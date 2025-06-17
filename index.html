@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>אבחון תעסוקתי מקצועי - מצאי את הדרך המושלמת לקריירה שלך</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 50%, #f1f3f4 100%);
+            overflow-x: hidden;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.9) 100%);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            color: #2c3e50;
+            padding: 120px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(220,53,69,0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(13,110,253,0.08) 0%, transparent 50%),
+                linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            line-height: 1.1;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #2c3e50 40%, #dc3545 60%, #0d6efd 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 50px;
+            color: #6c757d;
+            font-weight: 400;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(220,53,69,0.9), rgba(220,53,69,0.8));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(220,53,69,0.3);
+            color: white;
+            padding: 20px 45px;
+            font-size: 1.2rem;
+            text-decoration: none;
+            border-radius: 50px;
+            transition: all 0.4s ease;
+            font-weight: 600;
+            box-shadow: 
+                0 8px 32px rgba(220,53,69,0.2),
+                0 4px 16px rgba(0,0,0,0.1),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+            transform: translateY(0);
+            position: relative;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+            border-radius: 50px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 12px 48px rgba(220,53,69,0.3),
+                0 6px 24px rgba(0,0,0,0.15),
+                inset 0 1px 0 rgba(255,255,255,0.3);
+        }
+
+        .cta-button:hover::before {
+            opacity: 1;
+        }
+
+        .main-content {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(20px);
+            padding: 100px 0;
+        }
+
+        .section {
+            margin-bottom: 100px;
+        }
+
+        .section-title {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2c3e50 40%, #0d6efd 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-subtitle {
+            font-size: 1.3rem;
+            text-align: center;
+            margin-bottom: 70px;
+            color: #6c757d;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.8;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 60px;
+        }
+
+        .feature-card {
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 40px 35px;
+            border-radius: 24px;
+            text-align: center;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 8px 32px rgba(0,0,0,0.06),
+                0 4px 16px rgba(0,0,0,0.04),
+                inset 0 1px 0 rgba(255,255,255,0.6);
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(220,53,69,0.6), transparent);
+            transition: all 0.4s ease;
+        }
+
+        .feature-card:nth-child(even)::before {
+            background: linear-gradient(90deg, transparent, rgba(13,110,253,0.6), transparent);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 
+                0 16px 48px rgba(0,0,0,0.12),
+                0 8px 24px rgba(0,0,0,0.08),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+
+        .feature-card:hover::before {
+            height: 4px;
+            background: linear-gradient(90deg, rgba(220,53,69,0.2), rgba(220,53,69,0.8), rgba(220,53,69,0.2));
+        }
+
+        .feature-card:nth-child(even):hover::before {
+            background: linear-gradient(90deg, rgba(13,110,253,0.2), rgba(13,110,253,0.8), rgba(13,110,253,0.2));
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .feature-description {
+            color: #6c757d;
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        .pricing-section {
+            background: rgba(248,249,250,0.9);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding: 100px 0;
+            position: relative;
+        }
+
+        .pricing-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 30% 20%, rgba(13,110,253,0.05) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(220,53,69,0.05) 0%, transparent 50%);
+        }
+
+        .pricing-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .pricing-title {
+            color: #2c3e50;
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 70px;
+            font-weight: 700;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .pricing-card {
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 50px 40px;
+            border-radius: 28px;
+            text-align: center;
+            position: relative;
+            transition: all 0.4s ease;
+            box-shadow: 
+                0 12px 40px rgba(0,0,0,0.08),
+                0 6px 20px rgba(0,0,0,0.06),
+                inset 0 1px 0 rgba(255,255,255,0.7);
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 
+                0 20px 60px rgba(0,0,0,0.15),
+                0 10px 30px rgba(0,0,0,0.1),
+                inset 0 1px 0 rgba(255,255,255,0.9);
+        }
+
+        .pricing-card.featured {
+            transform: scale(1.02);
+            border: 2px solid rgba(220,53,69,0.3);
+            background: rgba(255,255,255,0.95);
+        }
+
+        .pricing-card.featured:hover {
+            transform: scale(1.02) translateY(-10px);
+        }
+
+        .popular-label {
+            position: absolute;
+            top: -15px;
+            right: 30px;
+            background: linear-gradient(135deg, rgba(220,53,69,0.9), rgba(220,53,69,0.8));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(220,53,69,0.3);
+            color: white;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 
+                0 4px 16px rgba(220,53,69,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+
+        .plan-name {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: #2c3e50;
+        }
+
+        .plan-price {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #dc3545, #0d6efd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+        }
+
+        .plan-currency {
+            font-size: 1.3rem;
+            color: #6c757d;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin: 35px 0;
+            text-align: right;
+        }
+
+        .plan-features li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            color: #495057;
+            font-size: 1.05rem;
+        }
+
+        .plan-features li:before {
+            content: "✓";
+            color: #28a745;
+            font-weight: bold;
+            margin-left: 12px;
+            font-size: 1.2rem;
+        }
+
+        .advanced-tech {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 70px 50px;
+            border-radius: 32px;
+            margin: 80px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 16px 48px rgba(0,0,0,0.08),
+                0 8px 24px rgba(0,0,0,0.06),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+
+        .advanced-tech::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 25% 25%, rgba(13,110,253,0.08) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(220,53,69,0.08) 0%, transparent 50%);
+            z-index: 1;
+        }
+
+        .advanced-tech-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .advanced-tech h3 {
+            font-size: 2.5rem;
+            margin-bottom: 25px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2c3e50, #0d6efd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .advanced-tech p {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            max-width: 900px;
+            margin: 0 auto;
+            color: #6c757d;
+        }
+
+        .testimonials {
+            padding: 100px 0;
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(20px);
+        }
+
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 35px;
+            margin-top: 70px;
+        }
+
+        .testimonial {
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 
+                0 8px 32px rgba(0,0,0,0.06),
+                0 4px 16px rgba(0,0,0,0.04),
+                inset 0 1px 0 rgba(255,255,255,0.6);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .testimonial::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(220,53,69,0.6), rgba(13,110,253,0.6));
+        }
+
+        .testimonial:nth-child(2)::before {
+            background: linear-gradient(180deg, rgba(13,110,253,0.6), rgba(220,53,69,0.6));
+        }
+
+        .testimonial:nth-child(3)::before {
+            background: linear-gradient(180deg, rgba(220,53,69,0.6), rgba(13,110,253,0.6));
+        }
+
+        .testimonial:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 12px 48px rgba(0,0,0,0.1),
+                0 6px 24px rgba(0,0,0,0.06),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+
+        .testimonial-text {
+            font-size: 1.1rem;
+            color: #495057;
+            line-height: 1.8;
+            margin-bottom: 25px;
+            font-style: italic;
+        }
+
+        .testimonial-author {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.05rem;
+        }
+
+        .final-cta {
+            background: linear-gradient(135deg, rgba(248,249,250,0.95) 0%, rgba(255,255,255,0.9) 100%);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.2);
+            color: #2c3e50;
+            padding: 100px 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .final-cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 40% 40%, rgba(220,53,69,0.06) 0%, transparent 50%),
+                radial-gradient(circle at 60% 60%, rgba(13,110,253,0.06) 0%, transparent 50%);
+        }
+
+        .final-cta-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .final-cta h2 {
+            font-size: 3rem;
+            margin-bottom: 25px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2c3e50, #dc3545);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .final-cta p {
+            font-size: 1.3rem;
+            margin-bottom: 50px;
+            color: #6c757d;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .footer {
+            background: linear-gradient(135deg, rgba(44,62,80,0.95), rgba(52,73,94,0.9));
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.9);
+            text-align: center;
+            padding: 60px 0;
+        }
+
+        .footer p {
+            margin: 5px 0;
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.8rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.3rem;
+            }
+            
+            .section-title, .pricing-title, .final-cta h2 {
+                font-size: 2.3rem;
+            }
+            
+            .pricing-card.featured {
+                transform: none;
+            }
+            
+            .pricing-card.featured:hover {
+                transform: translateY(-10px);
+            }
+            
+            .container {
+                padding: 0 15px;
+            }
+
+            .features-grid,
+            .pricing-grid,
+            .testimonial-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .advanced-tech,
+            .testimonials {
+                padding: 60px 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <section class="hero-section">
+        <div class="hero-content">
+            <div class="container">
+                <h1 class="hero-title">גלי את הקריירה המושלמת עבורך</h1>
+                <p class="hero-subtitle">אבחון תעסוקתי מתקדם ומותאם אישית לנשים חרדיות</p>
+                <a href="https://script.google.com/a/macros/nzinuk.com/s/AKfycbzu61YzUuSg0QXJElHWqFIQwTXS0ntwERUV5KTpAfI_ObQ3b1wwy6SyCZ5wqsuxp3ocCQ/exec" class="cta-button">
+                    רוצה לנסות? התחל את האבחון עכשיו
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <main class="main-content">
+        <div class="container">
+            <section class="section">
+                <h2 class="section-title">מתלבטת איזה מקצוע מתאים לך?</h2>
+                <p class="section-subtitle">
+                    אנחנו כאן כדי לעזור לך למצוא את הדרך המקצועית שתתאים בדיוק לכישורים, לאישיות ולצרכים שלך. האבחון שלנו מיועד במיוחד לנשים חרדיות ומתחשב בכל הגורמים הרלוונטיים לחייך.
+                </p>
+
+                <div class="advanced-tech">
+                    <div class="advanced-tech-content">
+                        <h3>טכנולוגיה מתקדמת לאבחון מדויק</h3>
+                        <p>
+                            האבחון שלנו כולל אפשרות לסקירה גרפולוגית ממוחשבת וניתוח בית, עץ אדם תוך שקלול הנתונים באופן אוטומטי יחד עם תוצאות השאלון. המערכת החכמה שלנו משלבת בין מספר שיטות אבחון מתקדמות כדי לתת לך תמונה מקיפה ומדויקת של הפוטנציאל המקצועי שלך.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">למה דווקא האבחון שלנו?</h2>
+                
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3 class="feature-title">מותאם אישית</h3>
+                        <p class="feature-description">האבחון נכתב במיוחד לקהילה החרדית ומתחשב בכל הגורמים הייחודיים והרגישויות התרבותיות שלך</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3 class="feature-title">מהיר ויעיל</h3>
+                        <p class="feature-description">תקבלי תוצאות מפורטות ומקצועיות תוך יום עסקים אחד בלבד</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3 class="feature-title">מדעי ומקצועי</h3>
+                        <p class="feature-description">מבוסס על מחקרים מתקדמים בתחום הפסיכולוגיה התעסוקתית ומערכת בינה מלאכותית</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3 class="feature-title">מעשי ויישומי</h3>
+                        <p class="feature-description">תקבלי המלצות קונקרטיות ומעשיות על מקצועות מתאימים ונתיבי קריירה ברורים</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">ניתוח רב-ממדי</h3>
+                        <p class="feature-description">שילוב של שאלון מקצועי עם ניתוח גרפולוגי וטכניקות ויזואליות מתקדמות</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">דיסקרטיות מלאה</h3>
+                        <p class="feature-description">האבחון נעשה בסודיות מוחלטת ותוך כיבוד מלא של הפרטיות והצניעות שלך</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <section class="pricing-section">
+        <div class="pricing-content">
+            <div class="container">
+                <h2 class="pricing-title">בחרי את החבילה המתאימה לך</h2>
+                
+                <div class="pricing-grid">
+                    <div class="pricing-card">
+                        <h3 class="plan-name">אבחון אוטומטי מתקדם</h3>
+                        <div class="plan-price">50<span class="plan-currency">₪</span></div>
+                        <ul class="plan-features">
+                            <li>אבחון מקצועי מלא ומקיף</li>
+                            <li>מערכת בינה מלאכותית מתקדמת</li>
+                            <li>תוצאות תוך יום עסקים אחד</li>
+                            <li>סקירה גרפולוגית ממוחשבת</li>
+                            <li>ניתוח בית ועץ אדם</li>
+                            <li>שקלול אוטומטי של כל הנתונים</li>
+                            <li>דוח מפורט ומותאם אישית</li>
+                        </ul>
+                        <a href="https://script.google.com/a/macros/nzinuk.com/s/AKfycbzu61YzUuSg0QXJElHWqFIQwTXS0ntwERUV5KTpAfI_ObQ3b1wwy6SyCZ5wqsuxp3ocCQ/exec" class="cta-button">
+                            רוצה לנסות? התחל את האבחון עכשיו
+                        </a>
+                    </div>
+                    
+                    <div class="pricing-card featured">
+                        <div class="popular-label">המומלץ ביותר</div>
+                        <h3 class="plan-name">אבחון מקיף + ייעוץ אישי</h3>
+                        <div class="plan-price">250<span class="plan-currency">₪</span></div>
+                        <ul class="plan-features">
+                            <li>כל היתרונות של האבחון האוטומטי</li>
+                            <li>שיחה אישית עם יועצת מקצועית מנוסה</li>
+                            <li>ייעוץ מותאם אישית לצרכים שלך</li>
+                            <li>פירוט מעמיק של התוצאות</li>
+                            <li>תכנית פעולה מעשית ושלבית</li>
+                            <li>המלצות על קורסים והכשרות</li>
+                            <li>מעקב והכוונה מתמשכת</li>
+                            <li>תמיכה מקצועית לאחר האבחון</li>
+                        </ul>
+                        <a href="https://script.google.com/a/macros/nzinuk.com/s/AKfycbzu61YzUuSg0QXJElHWqFIQwTXS0ntwERUV5KTpAfI_ObQ3b1wwy6SyCZ5wqsuxp3ocCQ/exec" class="cta-button">
+                            רוצה לנסות? התחל את האבחון עכשיו
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="testimonials">
+        <div class="container">
+            <h2 class="section-title">מה אומרות הלקוחות שלנו</h2>
+            
+            <div class="testimonial-grid">
+                <div class="testimonial">
+                    <p class="testimonial-text">
+                        האבחון פתח לי עולם חדש! גיליתי כישורים שלא ידעתי שיש לי ומצאתי את המקצוע המושלם שמתאים לסגנון החיים שלי. הניתוח הגרפולוגי היה מדויק באופן מפתיע.
+                    </p>
+                    <div class="testimonial-author">רחל כ., מעצבת גרפית</div>
+                </div>
+                
+                <div class="testimonial">
+                    <p class="testimonial-text">
+                        השיחה עם היועצת הייתה מדויקת וחכמה. קיבלתי כלים מעשיים ותכנית ברורה לפיתוח הקריירה שלי. האבחון המשולב עזר לי להבין את הפוטנציאל האמיתי שלי.
+                    </p>
+                    <div class="testimonial-author">שרה ל., רואת חשבון</div>
+                </div>
+
+                <div class="testimonial">
+                    <p class="testimonial-text">
+                        המערכת החכמה שילבה בצורה מושלמת את השאלון עם הניתוח הגרפולוגי. קיבלתי תמונה מקיפה של הכישורים שלי והמלצות מעשיות שבאמת עזרו לי לקבל החלטות.
+                    </p>
+                    <div class="testimonial-author">מרים ד., יועצת חינוכית</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="final-cta">
+        <div class="final-cta-content">
+            <div class="container">
+                <h2>מוכנה לקחת את הצעד הבא?</h2>
+                <p>אל תדחי יותר את החלום שלך לקריירה מספקת ומתגמלת. התחילי את המסע שלך עוד היום</p>
+                <a href="https://script.google.com/a/macros/nzinuk.com/s/AKfycbzu61YzUuSg0QXJElHWqFIQwTXS0ntwERUV5KTpAfI_ObQ3b1wwy6SyCZ5wqsuxp3ocCQ/exec" class="cta-button" style="font-size: 1.3rem; padding: 22px 50px;">
+                    רוצה לנסות? התחל את האבחון עכשיו
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 - אבחון תעסוקתי מקצועי | כל הזכויות שמורות</p>
+            <p style="margin-top: 10px;">יעוץ מקצועי ומותאם אישית לקהילה החרדית</p>
+        </div>
+    </footer>
+</body>
+</html>
