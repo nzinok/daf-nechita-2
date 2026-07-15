@@ -565,7 +565,7 @@ footer .fl b{font-family:'Secular One';font-size:17px;color:#C4D8E8}
 
     if(FORM_ENDPOINT.startsWith('PASTE_')){ setTimeout(()=>{form.hidden=true;thanks.hidden=false;},700); return; }
     try{
-      await fetch(FORM_ENDPOINT,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
+      await fetch(FORM_ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
       form.hidden=true; thanks.hidden=false; thanks.scrollIntoView({behavior:'smooth',block:'center'});
     }catch(err){
       submitBtn.classList.remove('loading'); submitBtn.disabled=false;
