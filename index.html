@@ -280,6 +280,51 @@ footer .fl b{font-family:'Secular One';font-size:17px;color:#C4D8E8}
 .menu-btn svg{width:26px;height:26px}
 .mcard .ic svg,.badge .ic svg,.chip .ic svg{width:auto;height:auto}
 svg{flex:none}
+
+/* ---------- CONTACT FORM ---------- */
+.contact-grid{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:center;text-align:right}
+.contact-copy h2{font-family:'Secular One';font-size:clamp(30px,4.2vw,46px);line-height:1.12;color:#fff}
+.contact-copy p{color:#B9D0E4;font-size:17px;line-height:1.7;font-weight:300;margin-top:16px;max-width:42ch}
+.contact-pts{list-style:none;margin:24px 0 0;display:flex;flex-direction:column;gap:12px}
+.contact-pts li{display:flex;align-items:center;gap:11px;color:#CBDCEB;font-size:15px}
+.contact-pts .d{width:9px;height:9px;flex:none;transform:rotate(45deg);background:var(--nl);box-shadow:0 0 10px rgba(141,198,63,.7)}
+.contact-copy .mailpill{margin-top:24px}
+
+.contact-card{background:rgba(255,255,255,.97);border-radius:22px;padding:32px 30px;
+  box-shadow:0 0 0 1px rgba(255,255,255,.12),0 40px 90px -30px rgba(0,0,0,.6),0 0 70px -18px rgba(31,191,222,.35)}
+#leadForm label{display:block;font-size:13.5px;font-weight:700;color:var(--navy);margin-bottom:14px;text-align:right}
+#leadForm label b{color:var(--no)}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+#leadForm input,#leadForm select,#leadForm textarea{
+  width:100%;margin-top:7px;padding:12px 13px;border:1.5px solid var(--line);border-radius:11px;
+  font-family:'Heebo';font-size:15px;font-weight:400;color:var(--ink);background:#fff;transition:border-color .18s,box-shadow .18s}
+#leadForm input::placeholder,#leadForm textarea::placeholder{color:#A9B7C6;font-weight:300}
+#leadForm input:focus,#leadForm select:focus,#leadForm textarea:focus{outline:0;border-color:var(--nc);box-shadow:0 0 0 4px rgba(31,191,222,.14)}
+#leadForm input.err,#leadForm select.err{border-color:#E5484D;box-shadow:0 0 0 4px rgba(229,72,77,.12)}
+#leadForm textarea{resize:vertical;min-height:74px}
+.sel-wrap{position:relative}
+.sel-wrap::after{content:'▾';position:absolute;left:14px;top:calc(50% + 3px);transform:translateY(-50%);color:#9AACBC;pointer-events:none;font-size:12px}
+#leadForm select{appearance:none;-webkit-appearance:none;cursor:pointer;padding-left:34px}
+.hp{position:absolute!important;left:-9999px!important;width:1px!important;height:1px!important;opacity:0!important}
+.form-submit{width:100%;justify-content:center;margin-top:6px;position:relative}
+.form-submit .spin{width:17px;height:17px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;display:none}
+.form-submit.loading .lbl{opacity:.6}
+.form-submit.loading .spin{display:inline-block;animation:ldspin .7s linear infinite}
+@keyframes ldspin{to{transform:rotate(360deg)}}
+.form-note{margin-top:12px;font-size:13.5px;text-align:center;min-height:1.2em;font-weight:500}
+.form-note.bad{color:#E5484D}
+.thanks{text-align:center;padding:16px 0 6px}
+.thanks-ic{width:64px;height:64px;margin:0 auto 16px;border-radius:50%;background:linear-gradient(140deg,var(--nl),var(--nl-deep));
+  display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px -8px rgba(141,198,63,.7)}
+.thanks-ic svg{width:32px;height:32px;color:#fff}
+.thanks h3{font-family:'Secular One';font-size:26px;color:var(--navy);margin-bottom:8px}
+.thanks p{color:var(--mute);font-size:15px}
+@media(max-width:900px){
+  .contact-grid{grid-template-columns:1fr;gap:32px;text-align:center}
+  .contact-copy p{margin-inline:auto}
+  .contact-pts li{justify-content:center}
+  .contact-card{text-align:right}
+}
 </style>
 </head>
 <body>
@@ -310,7 +355,7 @@ svg{flex:none}
   <div class="wrap hero-grid">
     <div>
       <span class="eyebrow" style="color:var(--nc)">מערכת אבחון תעסוקתי ליועצות</span>
-      <h1>אבחון תעסוקתי,<br><span class="hl">בקצב שלך.</span></h1>
+      <h1>תפסיקי להעתיק.<br><span class="hl">תתחילי לאבחן.</span></h1>
       <p class="sub">הדור הבא של הייעוץ התעסוקתי. טכנולוגיה שמשחררת אותך מהבירוקרטיה — כדי שתתרכזי באנשים.</p>
       <div class="cta-row">
         <a href="#contact" class="btn btn-primary"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"  style="width:18px"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg> לתיאום הדגמה</a>
@@ -646,12 +691,70 @@ svg{flex:none}
 <!-- ============ FINAL CTA ============ -->
 <section class="final" id="contact">
   <img class="compass" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/57016bbe6960385cca05abab2390b0915e063132/spinner.png.png" alt="">
-  <h2>נתחיל מנקודת זינוק.</h2>
-  <p>נשמח להראות לך את המערכת על תיק אמיתי שלך. עשרים דקות, בלי התחייבות.</p>
-  <div class="cta-row">
-    <a href="mailto:office@nzinuk.com?subject=בקשה%20להדגמה%20-%20נקודת%20זינוק" class="btn btn-primary"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"  style="width:18px"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg> לתיאום הדגמה</a>
+  <div class="wrap contact-grid">
+    <div class="contact-copy reveal">
+      <h2>רוצה להרגיש<br>את זה על תיק<br>אמיתי שלך?</h2>
+      <p>השאירי פרטים, ונתאם הדגמה קצרה — נעבור יחד על תיק אמיתי שלך ותראי בדיוק איך זה עובד אצלך.</p>
+      <ul class="contact-pts">
+        <li><span class="d"></span> ליווי אישי לאורך ההתאמה</li>
+        <li><span class="d"></span> בלי התחייבות, בלי כרטיס אשראי</li>
+        <li><span class="d"></span> נחזור אלייך תוך יום עבודה</li>
+      </ul>
+      <div class="mailpill">או ישירות: office@nzinuk.com</div>
+    </div>
+
+    <div class="contact-card reveal">
+      <form id="leadForm" novalidate>
+        <div class="frow">
+          <label>שם מלא <b>*</b>
+            <input type="text" name="name" required autocomplete="name" placeholder="איך לפנות אלייך?">
+          </label>
+        </div>
+        <div class="fgrid">
+          <label>טלפון <b>*</b>
+            <input type="tel" name="phone" required autocomplete="tel" inputmode="tel" placeholder="050-0000000">
+          </label>
+          <label>אימייל
+            <input type="email" name="email" autocomplete="email" inputmode="email" placeholder="name@example.com">
+          </label>
+        </div>
+        <div class="frow">
+          <label>עם איזה קהל את עובדת?
+            <div class="sel-wrap">
+              <select name="audience">
+                <option value="">בחרי (לא חובה)</option>
+                <option>בוגרות סמינר</option>
+                <option>הסבה מקצועית</option>
+                <option>נשים נשואות</option>
+                <option>מגוון קהלים</option>
+                <option>אחר</option>
+              </select>
+            </div>
+          </label>
+        </div>
+        <div class="frow">
+          <label>משהו שנשמח לדעת מראש?
+            <textarea name="message" rows="3" placeholder="לא חובה — כל מה שתרצי שנתכונן אליו"></textarea>
+          </label>
+        </div>
+        <!-- מלכודת ספאם: שדה נסתר שאמור להישאר ריק -->
+        <input type="text" name="company_hp" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
+        <button type="submit" class="btn btn-primary form-submit">
+          <span class="lbl">שליחה ותיאום הדגמה</span>
+          <span class="spin" aria-hidden="true"></span>
+        </button>
+        <p class="form-note" id="formNote" role="status"></p>
+      </form>
+      <!-- מסך תודה -->
+      <div class="thanks" id="thanks" hidden>
+        <div class="thanks-ic">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+        <h3>קיבלנו! תודה.</h3>
+        <p>נחזור אלייך תוך יום עבודה לתיאום ההדגמה.</p>
+      </div>
+    </div>
   </div>
-  <div class="mailpill">office@nzinuk.com</div>
 </section>
 
 <footer>
@@ -674,6 +777,71 @@ svg{flex:none}
     hdr.classList.toggle('on-hero', window.scrollY < heroBottom);
   }
   window.addEventListener('scroll', onScroll); onScroll();
+
+  // ---------- contact form ----------
+  // ▼▼▼ הדביקי כאן את ה-Web app URL מ-Apps Script ▼▼▼
+  const FORM_ENDPOINT = "https://script.google.com/macros/s/AKfycbzaDuhP3dMDau0N_3MiQgAcXD6gUiwEacdEwxffyXZouVzhoFjdzZXHEvrQe0Wzjxg/exec";
+  // ▲▲▲ ראה קובץ nzinuk-contact-form.gs ▲▲▲
+
+  const form = document.getElementById('leadForm');
+  const note = document.getElementById('formNote');
+  const thanks = document.getElementById('thanks');
+  const submitBtn = form ? form.querySelector('.form-submit') : null;
+
+  function setErr(el, on){ el.classList.toggle('err', on); }
+
+  if (form) form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    note.textContent = ''; note.className = 'form-note';
+
+    const name  = form.name.value.trim();
+    const phone = form.phone.value.trim();
+    const email = form.email.value.trim();
+
+    setErr(form.name, !name);
+    setErr(form.phone, !phone);
+    if (!name || !phone) {
+      note.textContent = 'נא למלא שם וטלפון.';
+      note.classList.add('bad');
+      (!name ? form.name : form.phone).focus();
+      return;
+    }
+
+    const payload = {
+      name, phone, email,
+      audience: form.audience.value,
+      message: form.message.value.trim(),
+      company_hp: form.company_hp.value,
+      source: 'דף נחיתה'
+    };
+
+    submitBtn.classList.add('loading');
+    submitBtn.disabled = true;
+
+    if (FORM_ENDPOINT.startsWith('PASTE_')) {
+      // מצב הדגמה — עדיין לא חובר ל-Sheets
+      setTimeout(() => { form.hidden = true; thanks.hidden = false; }, 700);
+      return;
+    }
+
+    try {
+      await fetch(FORM_ENDPOINT, {
+        method: 'POST',
+        // text/plain = "simple request" → בלי preflight מול Apps Script
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      // Apps Script לא מחזיר CORS, אז לא קוראים את התשובה — עצם השליחה הצליחה
+      form.hidden = true;
+      thanks.hidden = false;
+      thanks.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } catch (err) {
+      submitBtn.classList.remove('loading');
+      submitBtn.disabled = false;
+      note.textContent = 'משהו השתבש בשליחה. אפשר לנסות שוב, או לכתוב ל-office@nzinuk.com';
+      note.classList.add('bad');
+    }
+  });
 
   // scroll reveal
   const io = new IntersectionObserver((entries)=>{
