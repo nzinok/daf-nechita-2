@@ -325,11 +325,97 @@ svg{flex:none}
   .contact-pts li{justify-content:center}
   .contact-card{text-align:right}
 }
+
+/* =====================================================================
+   שכבת אנימציות + גרפיקה מועשרת
+   ===================================================================== */
+
+/* חלקיקים צפים ברקע ההירו */
+.hero-particles{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.hero-particles span{position:absolute;display:block;border-radius:50%;opacity:.5;
+  animation:rise linear infinite}
+@keyframes rise{
+  0%{transform:translateY(20px) scale(.6);opacity:0}
+  12%{opacity:.55}
+  100%{transform:translateY(-680px) scale(1);opacity:0}
+}
+
+/* וריאנטים של reveal — כניסה מכיוונים שונים */
+.reveal.from-right{transform:translateX(40px)}
+.reveal.from-left{transform:translateX(-40px)}
+.reveal.from-right.in,.reveal.from-left.in{transform:none}
+.reveal.zoom{transform:scale(.92);opacity:0}
+.reveal.zoom.in{transform:none;opacity:1}
+
+/* השהיה מדורגת (stagger) לילדים ברשת */
+.stagger>*{opacity:0;transform:translateY(28px);transition:opacity .6s cubic-bezier(.2,.7,.2,1),transform .6s cubic-bezier(.2,.7,.2,1)}
+.stagger.in>*{opacity:1;transform:none}
+.stagger.in>*:nth-child(1){transition-delay:.00s}
+.stagger.in>*:nth-child(2){transition-delay:.09s}
+.stagger.in>*:nth-child(3){transition-delay:.18s}
+.stagger.in>*:nth-child(4){transition-delay:.27s}
+.stagger.in>*:nth-child(5){transition-delay:.36s}
+.stagger.in>*:nth-child(6){transition-delay:.45s}
+
+/* כותרת ההירו — כניסה עולה מילה-מילה */
+.hero h1 .w{display:inline-block;opacity:0;transform:translateY(28px) rotate(3deg);
+  animation:wordUp .7s cubic-bezier(.2,.8,.2,1) forwards}
+.hero h1 .w:nth-child(1){animation-delay:.15s}
+.hero h1 .w:nth-child(2){animation-delay:.28s}
+.hero h1 .w:nth-child(3){animation-delay:.42s}
+.hero h1 .w:nth-child(4){animation-delay:.56s}
+@keyframes wordUp{to{opacity:1;transform:none}}
+.hero .eyebrow,.hero .sub,.hero .cta-row,.hero .trust{opacity:0;animation:fadeUp .7s ease forwards}
+.hero .eyebrow{animation-delay:.05s}.hero .sub{animation-delay:.62s}
+.hero .cta-row{animation-delay:.74s}.hero .trust{animation-delay:.86s}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.hero-shot{opacity:0;animation:shotIn 1s cubic-bezier(.2,.8,.2,1) .5s forwards}
+@keyframes shotIn{from{opacity:0;transform:perspective(1600px) rotateY(14deg) translateX(-40px)}
+  to{opacity:1;transform:perspective(1600px) rotateY(6deg)}}
+
+/* ריחוף על כרטיסים */
+.mcard,.val,.gen{transition:transform .28s cubic-bezier(.2,.7,.2,1),box-shadow .28s}
+.mcard:hover{transform:translateY(-8px)}
+.val:hover{transform:translateY(-6px) scale(1.015)}
+.mcard .ic{transition:transform .35s cubic-bezier(.3,1.4,.5,1)}
+.mcard:hover .ic{transform:rotate(-8deg) scale(1.08)}
+
+/* קו התקדמות עליון */
+.scrollbar{position:fixed;top:0;right:0;height:3px;z-index:200;
+  background:linear-gradient(90deg,var(--nc),var(--nl),var(--no));width:0;transition:width .1s linear;
+  box-shadow:0 0 12px rgba(31,191,222,.6)}
+
+/* ===== פס הסטטיסטיקות (מספרים שעולים) ===== */
+.statsband{position:relative;overflow:hidden;background:linear-gradient(158deg,var(--navy-2),var(--navy));color:#fff;
+  border-radius:28px;padding:46px 40px;margin-top:8px}
+.statsband .glow{position:absolute;inset:0;background:
+  radial-gradient(500px 260px at 82% 12%,rgba(31,191,222,.22),transparent 60%),
+  radial-gradient(460px 260px at 10% 92%,rgba(245,130,31,.16),transparent 60%)}
+.statsband .sg{position:relative;z-index:2;display:grid;grid-template-columns:repeat(4,1fr);gap:22px;text-align:center}
+.statsband .st .num{font-family:'Secular One';font-size:clamp(34px,4.4vw,52px);line-height:1;
+  background:linear-gradient(120deg,#fff,#BCD9E8);-webkit-background-clip:text;background-clip:text;color:transparent}
+.statsband .st .num .u{font-size:.5em;color:var(--nl);-webkit-text-fill-color:var(--nl)}
+.statsband .st .lbl{font-size:14px;color:#A9C0D4;margin-top:8px;font-weight:500}
+.statsband .st .dsc{font-size:12px;color:#7E97AE;margin-top:2px}
+.statsband .st{position:relative}
+.statsband .st:not(:last-child)::after{content:'';position:absolute;left:-11px;top:14%;height:72%;width:1px;background:rgba(255,255,255,.12)}
+
+@media(max-width:760px){
+  .statsband .sg{grid-template-columns:1fr 1fr;gap:30px 18px}
+  .statsband .st:not(:last-child)::after{display:none}
+  .hero h1 .w{animation-duration:.5s}
+}
+@media(prefers-reduced-motion:reduce){
+  .hero-particles,.scrollbar{display:none}
+  .hero h1 .w,.hero .eyebrow,.hero .sub,.hero .cta-row,.hero .trust,.hero-shot{animation:none;opacity:1;transform:none}
+  .stagger>*{opacity:1;transform:none}
+}
 </style>
 </head>
 <body>
 
 <!-- ============ NAV ============ -->
+<div class="scrollbar" id="scrollbar"></div>
 <header id="hdr" class="on-hero">
   <div class="bar">
     <a href="#top" class="logo-row">
@@ -351,11 +437,12 @@ svg{flex:none}
 
 <!-- ============ HERO ============ -->
 <section class="hero" id="top">
+  <div class="hero-particles" id="heroParticles"></div>
   <img class="compass" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/57016bbe6960385cca05abab2390b0915e063132/spinner.png.png" alt="">
   <div class="wrap hero-grid">
     <div>
       <span class="eyebrow" style="color:var(--nc)">מערכת אבחון תעסוקתי ליועצות</span>
-      <h1>תפסיקי להעתיק.<br><span class="hl">תתחילי לאבחן.</span></h1>
+      <h1><span class="w">תפסיקי</span> <span class="w">להעתיק.</span><br><span class="hl"><span class="w">תתחילי</span> <span class="w">לאבחן.</span></span></h1>
       <p class="sub">הדור הבא של הייעוץ התעסוקתי. טכנולוגיה שמשחררת אותך מהבירוקרטיה — כדי שתתרכזי באנשים.</p>
       <div class="cta-row">
         <a href="#contact" class="btn btn-primary"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"  style="width:18px"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg> לתיאום הדגמה</a>
@@ -409,6 +496,37 @@ svg{flex:none}
   </div>
 </section>
 
+<!-- ============ STATS BAND ============ -->
+<section class="pad" style="padding-top:70px;padding-bottom:20px">
+  <div class="wrap">
+    <div class="statsband reveal zoom">
+      <div class="glow"></div>
+      <div class="sg">
+        <div class="st">
+          <div class="num" data-to="4" data-suffix=" ש׳" data-dec="0"><span>0</span></div>
+          <div class="lbl">נחסכות בכל תיק</div>
+          <div class="dsc">במקום לנסח — לאשר</div>
+        </div>
+        <div class="st">
+          <div class="num" data-to="3"><span>0</span></div>
+          <div class="lbl">תוצרים מאותו תיק</div>
+          <div class="dsc">נבחנת · מנהלת · עזר</div>
+        </div>
+        <div class="st">
+          <div class="num" data-to="100" data-suffix="%"><span>0</span></div>
+          <div class="lbl">מהתשובות נקראות</div>
+          <div class="dsc">כולל הצפת ציטוטים</div>
+        </div>
+        <div class="st">
+          <div class="num" data-to="1" data-prefix="&lt;" data-suffix=" שנ׳"><span>0</span></div>
+          <div class="lbl">לשליפת תיק מהארכיון</div>
+          <div class="dsc">גם אחרי שנתיים</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ============ PROBLEM ============ -->
 <section class="pad" id="problem">
   <div class="wrap">
@@ -417,7 +535,7 @@ svg{flex:none}
       <h2 class="h-sec">היום, הכול נופל על הפגישה.</h2>
       <p class="lead" style="margin-top:16px">שעות של הכנה, שאלות והתרשמות — ובסוף היא קמה, הולכת, ולוקחת איתה רק את מה שזכרה. ככה זה עבד עד היום.</p>
     </div>
-    <div class="gen-grid reveal">
+    <div class="gen-grid stagger reveal">
       <div class="gen old">
         <h3><span class="chev">»</span> הדור הישן</h3>
         <ul>
@@ -448,7 +566,7 @@ svg{flex:none}
       <h2 class="h-sec">מתחילים בקישור.<br>מסיימים בדוח מושלם.</h2>
       <p class="lead" style="margin-top:16px">ארבעה שלבים. המערכת לוקחת על עצמה את כל העבודה שביניהם — ומשאירה לך בדיוק את מה שאת הכי טובה בו.</p>
     </div>
-    <div class="flow reveal">
+    <div class="flow stagger reveal">
       <div class="tile t1">
         <div class="box"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></div>
         <h4>שולחת קישור</h4>
@@ -586,7 +704,7 @@ svg{flex:none}
       <span class="eyebrow">מה יש בפנים</span>
       <h2 class="h-sec">כל מה שצריך כדי לאבחן<br>לעומק — במקום אחד.</h2>
     </div>
-    <div class="grid3">
+    <div class="grid3 stagger reveal">
       <div class="mcard reveal">
         <div class="ic ic-cyan"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg></div>
         <h4>כל התיק במסך אחד</h4>
@@ -667,7 +785,7 @@ svg{flex:none}
       <span class="eyebrow">השורה התחתונה</span>
       <h2 class="h-sec">מה זה באמת שווה לך?</h2>
     </div>
-    <div class="vals reveal">
+    <div class="vals stagger reveal">
       <div class="val">
         <div class="k">עומק</div>
         <div class="n">תיק שאת מכירה</div>
@@ -827,6 +945,7 @@ svg{flex:none}
     try {
       await fetch(FORM_ENDPOINT, {
         method: 'POST',
+        mode: 'no-cors',
         // text/plain = "simple request" → בלי preflight מול Apps Script
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
@@ -843,11 +962,75 @@ svg{flex:none}
     }
   });
 
-  // scroll reveal
+  // ---------- scroll progress bar ----------
+  const sbar = document.getElementById('scrollbar');
+  function updateBar(){
+    const h = document.documentElement;
+    const max = h.scrollHeight - h.clientHeight;
+    sbar.style.width = (max>0 ? (h.scrollTop/max*100) : 0) + '%';
+  }
+  window.addEventListener('scroll', updateBar, {passive:true}); updateBar();
+
+  // ---------- count-up numbers ----------
+  function countUp(el){
+    if(el.dataset.done) return; el.dataset.done = '1';
+    const to = parseFloat(el.dataset.to);
+    const dec = el.dataset.dec ? parseInt(el.dataset.dec) : (Number.isInteger(to)?0:1);
+    const pre = el.dataset.prefix || '';
+    const suf = el.dataset.suffix || '';
+    const span = el.querySelector('span');
+    const dur = 1400; const t0 = performance.now();
+    function tick(now){
+      const p = Math.min((now-t0)/dur, 1);
+      const eased = 1 - Math.pow(1-p, 3);
+      const val = (to*eased).toFixed(dec);
+      span.innerHTML = pre + val + (suf ? '<span class="u">'+suf+'</span>' : '');
+      if(p<1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // ---------- scroll reveal (with stagger + count-up triggers) ----------
   const io = new IntersectionObserver((entries)=>{
-    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
-  }, {threshold:.14});
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        e.target.classList.add('in');
+        e.target.querySelectorAll && e.target.querySelectorAll('.num[data-to]').forEach(countUp);
+        if(e.target.matches && e.target.matches('.num[data-to]')) countUp(e.target);
+        io.unobserve(e.target);
+      }
+    });
+  }, {threshold:.16});
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+  // ---------- hero floating particles ----------
+  (function(){
+    const host = document.getElementById('heroParticles');
+    if(!host) return;
+    const colors = ['#1FBFDE','#8DC63F','#F5821F'];
+    const N = window.innerWidth < 700 ? 14 : 26;
+    for(let i=0;i<N;i++){
+      const s = document.createElement('span');
+      const size = 3 + Math.random()*7;
+      s.style.width = s.style.height = size+'px';
+      s.style.left = Math.random()*100+'%';
+      s.style.bottom = '-'+ (Math.random()*40) +'px';
+      s.style.background = colors[i%3];
+      s.style.animationDuration = (7 + Math.random()*9)+'s';
+      s.style.animationDelay = (Math.random()*8)+'s';
+      s.style.filter = 'blur('+(Math.random()<.5?0:1)+'px)';
+      host.appendChild(s);
+    }
+  })();
+
+  // ---------- subtle parallax on hero screenshot ----------
+  const hshot = document.querySelector('.hero-shot');
+  if(hshot){
+    window.addEventListener('scroll', ()=>{
+      const y = window.scrollY;
+      if(y < 900) hshot.style.marginTop = (y*0.05)+'px';
+    }, {passive:true});
+  }
 
 </script>
 </body>
