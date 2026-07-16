@@ -529,7 +529,8 @@ svg{flex:none}
 .rep-spin-frame{width:64px;height:64px;margin:0 auto 16px;border-radius:50%;background:#fff;box-sizing:border-box;
   display:flex;align-items:center;justify-content:center;padding:9px;
   box-shadow:0 0 0 1px #E7EDF3,0 12px 30px -12px rgba(31,191,222,.5)}
-.rep-spin{width:46px;height:46px;flex:none;object-fit:contain;animation:spin 2.2s linear infinite}
+.rep-spin{width:46px;height:46px;flex:none;object-fit:contain;transform-origin:50% 50%;animation:repspin 2.2s linear infinite}
+@keyframes repspin{to{transform:rotate(360deg)}}
 .rep-progress h5{font-size:12px;color:#9AACBC;font-weight:700;letter-spacing:.03em;margin-bottom:4px}
 .rep-progress .rstep{font-family:'Secular One';font-size:19px;color:#128AA6;margin-bottom:14px;min-height:24px}
 .rep-track{height:9px;background:#EDF2F7;border-radius:6px;overflow:hidden}
@@ -1228,6 +1229,14 @@ svg{flex:none}
 </footer>
 
 <script>
+  // --- prevent the browser from restoring/animating scroll on load ---
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  // if there's no in-page anchor in the URL, make sure we start at the very top
+  if (!window.location.hash) {
+    window.scrollTo(0, 0);
+    window.addEventListener('load', () => window.scrollTo(0, 0));
+  }
+
   // sticky + hero-nav state
   const hdr = document.getElementById('hdr');
   const hero = document.querySelector('.hero');
@@ -1238,6 +1247,24 @@ svg{flex:none}
     hdr.classList.toggle('on-hero', window.scrollY < heroBottom);
   }
   window.addEventListener('scroll', onScroll); onScroll();
+
+  // ---------- testimonials: mouse-wheel horizontal scroll ----------
+  (function(){
+    const track = document.querySelector('.testi-track');
+    if(!track) return;
+    const maxScroll = () => track.scrollWidth - track.clientWidth; // positive magnitude
+    track.addEventListener('wheel', (e)=>{
+      if(Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return; // let real horizontal gestures pass
+      // In RTL, scrollLeft ranges from 0 (start) down to -(maxScroll) (end).
+      const pos = -track.scrollLeft;              // 0..maxScroll as a positive progress value
+      const atStart = pos <= 0;
+      const atEnd = pos >= maxScroll() - 1;
+      if((e.deltaY > 0 && !atEnd) || (e.deltaY < 0 && !atStart)){
+        e.preventDefault();
+        track.scrollLeft -= e.deltaY;             // deltaY>0 → move forward through cards
+      }
+    }, {passive:false});
+  })();
 
   // ---------- contact form ----------
   // ▼▼▼ הדביקי כאן את ה-Web app URL מ-Apps Script ▼▼▼
