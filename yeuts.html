@@ -317,6 +317,10 @@ svg{flex:none}
 .thanks-ic{width:64px;height:64px;margin:0 auto 16px;border-radius:50%;background:linear-gradient(140deg,var(--nl),var(--nl-deep));
   display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px -8px rgba(141,198,63,.7)}
 .thanks-ic svg{width:32px;height:32px;color:#fff}
+.thanks-anim{display:none;width:184px;height:184px;margin:0 auto 14px;border-radius:50%;
+  background:#0A1C34;overflow:hidden;box-shadow:0 14px 38px rgba(12,35,64,.26)}
+.thanks-anim img{width:100%;height:100%;display:block}
+@media (prefers-reduced-motion:reduce){.thanks-anim{display:none !important}}
 .thanks h3{font-family:'Secular One';font-size:26px;color:var(--navy);margin-bottom:8px}
 .thanks p{color:var(--mute);font-size:15px}
 @media(max-width:900px){
@@ -1209,7 +1213,8 @@ svg{flex:none}
       </form>
       <!-- מסך תודה -->
       <div class="thanks" id="thanks" hidden>
-        <div class="thanks-ic">
+        <div class="thanks-anim" id="thanksAnim" aria-hidden="true"><img alt="" id="thanksAnimImg"></div>
+                <div class="thanks-ic">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
         </div>
         <h3>קיבלנו! תודה.</h3>
@@ -1308,7 +1313,7 @@ svg{flex:none}
 
     if (FORM_ENDPOINT.startsWith('PASTE_')) {
       // מצב הדגמה — עדיין לא חובר ל-Sheets
-      setTimeout(() => { form.hidden = true; thanks.hidden = false; }, 700);
+      setTimeout(() => { form.hidden = true; thanks.hidden = false; playThanksAnim(); }, 700);
       return;
     }
 
@@ -1322,7 +1327,7 @@ svg{flex:none}
       });
       // Apps Script לא מחזיר CORS, אז לא קוראים את התשובה — עצם השליחה הצליחה
       form.hidden = true;
-      thanks.hidden = false;
+      thanks.hidden = false; playThanksAnim();
       thanks.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } catch (err) {
       submitBtn.classList.remove('loading');
@@ -1527,6 +1532,38 @@ svg{flex:none}
       if(y < 900) hshot.style.marginTop = (y*0.05)+'px';
     }, {passive:true});
   }
+
+
+  // ── מסך התודה: הנפשה חד-פעמית ──
+  // נטענת מראש ברגע שנוגעים בטופס, כדי שתהיה מוכנה כשהמסך נפתח.
+  var THANKS_ANIM = 'https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-logo-orbit-once.gif';
+  var thanksAnimReady = false, thanksAnimAsked = false;
+
+  function preloadThanksAnim(){
+    if(thanksAnimAsked) return;
+    thanksAnimAsked = true;
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var pre = new Image();
+    pre.onload = function(){ thanksAnimReady = true; };
+    pre.src = THANKS_ANIM;
+  }
+
+  function playThanksAnim(){
+    // או שההנפשה מוכנה ומוצגת מיד, או שנשאר ה-V. אף פעם לא החלפה באיחור.
+    if(!thanksAnimReady) return;
+    var wrap = document.getElementById('thanksAnim');
+    var img  = document.getElementById('thanksAnimImg');
+    var ic   = document.querySelector('#thanks .thanks-ic');
+    if(!wrap || !img) return;
+    if(ic) ic.style.display = 'none';
+    wrap.style.display = 'block';
+    img.src = THANKS_ANIM;   // מהמטמון: מוצג מיידית ומתחיל מפריים 0
+  }
+
+  (function(){
+    var lf = document.getElementById('leadForm');
+    if(lf) lf.addEventListener('focusin', preloadThanksAnim, { once: true });
+  })();
 
 </script>
 </body>
