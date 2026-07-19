@@ -499,7 +499,7 @@ svg{flex:none}
 .dt-btn:hover .pen,.dt-btn.on .pen{animation:mkPen 3.1s ease-in-out infinite}
 /* ── מחשב: הלשוניות בטור ימני, הבמה משמאל ─────────────────────────── */
 .dt-stage{position:relative}
-.dt-idle{display:none;align-items:center;justify-content:center;padding:26px 0 34px}
+.dt-idle{display:none;align-items:center;justify-content:center;padding:26px 0 34px;min-height:300px}
 .dt-idle.on{display:flex}
 .dt-idle img{width:210px;height:210px;display:block}
 @media (min-width:900px){
@@ -1519,15 +1519,36 @@ svg{flex:none}
 
     if(reduce) return;                    // מי שביקשה פחות תנועה מקבלת את הפאנל מיד
 
-    img.onload = function(){
-      if(advanced) return;
-      first.classList.remove('on');
-      document.getElementById(first.dataset.tab).classList.remove('on');
-      idle.classList.add('on');
-      timer = setTimeout(openFirst, 3150);   // אורך מחזור אחד של ההנפשה
-    };
-    img.onerror = openFirst;                 // הקובץ חסר — פשוט פותחים את הפאנל
-    img.src = 'https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-logo-orbit-page.gif';
+    // הבמה עוברת למצב מנוחה מיד, אבל ההנפשה מתחילה רק כשגוללים אליה —
+    // אחרת היא רצה ומסתיימת הרבה לפני שהמשתמשת מגיעה לסעיף.
+    first.classList.remove('on');
+    document.getElementById(first.dataset.tab).classList.remove('on');
+    idle.classList.add('on');
+
+    var GIF = 'https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-logo-orbit-page.gif';
+    var warmed = false, started = false;
+
+    function warm(){                       // מקדימים להוריד, כדי שלא ייראה ריק
+      if(warmed) return; warmed = true;
+      var pre = new Image(); pre.src = GIF;
+    }
+    function begin(){                      // מציגים ומתחילים לספור
+      if(started || advanced) return; started = true;
+      img.onload  = function(){ if(!advanced) timer = setTimeout(openFirst, 3150); };
+      img.onerror = openFirst;
+      img.src = GIF;                       // מהמטמון — מתנגן מפריים 0 ברגע הנכון
+    }
+
+    var section = document.querySelector('.demo-tabs');
+    if(!('IntersectionObserver' in window) || !section){ begin(); return; }
+
+    new IntersectionObserver(function(e,o){
+      if(e[0].isIntersecting){ o.disconnect(); warm(); }
+    }, { rootMargin: '700px 0px' }).observe(section);
+
+    new IntersectionObserver(function(e,o){
+      if(e[0].isIntersecting){ o.disconnect(); begin(); }
+    }, { threshold: .35 }).observe(section);
   })();
 
   // play buttons
