@@ -497,6 +497,20 @@ svg{flex:none}
 .dt-btn:hover .k2,.dt-btn.on .k2{animation:mkDraw 3.1s ease-in-out infinite;animation-delay:.14s}
 .dt-btn:hover .k3,.dt-btn.on .k3{animation:mkDraw 3.1s ease-in-out infinite;animation-delay:.28s}
 .dt-btn:hover .pen,.dt-btn.on .pen{animation:mkPen 3.1s ease-in-out infinite}
+/* ── מחשב: הלשוניות בטור ימני, הבמה משמאל ─────────────────────────── */
+.dt-stage{position:relative}
+.dt-idle{display:none;align-items:center;justify-content:center;padding:26px 0 34px}
+.dt-idle.on{display:flex}
+.dt-idle img{width:210px;height:210px;display:block}
+@media (min-width:900px){
+  .demo-tabs{display:grid;grid-template-columns:268px minmax(0,1fr);gap:24px;align-items:start;max-width:1060px}
+  .dt-bar{flex-direction:column;flex-wrap:nowrap;gap:10px;margin-bottom:0;position:sticky;top:96px}
+  .dt-btn{width:100%;flex-direction:row;justify-content:flex-start;text-align:right;
+          gap:13px;padding:13px 15px;min-width:0;border-radius:16px}
+  .dt-btn .mk{width:52px;height:52px;flex:0 0 52px}
+  .dt-idle{min-height:330px;padding:0}
+  .dt-idle img{width:250px;height:250px}
+}
 @media (max-width:520px){.dt-btn{min-width:calc(50% - 6px);padding:14px 8px 12px}
   .dt-btn .mk{width:56px;height:56px}}
 @media (prefers-reduced-motion:reduce){.dt-btn .mk *{animation:none !important}
@@ -851,7 +865,7 @@ svg{flex:none}
           <div style="background:#fff;border-radius:13px;overflow:hidden">
             <div style="background:linear-gradient(45deg,#4facfe,#00f2fe);padding:14px;text-align:center">
               <div style="display:inline-flex;padding:9px 16px;background:rgba(255,255,255,.95);border-radius:10px">
-                <img src="https://github.com/nzinok/bdikat-idkunim-basheelon/blob/main/%D7%A2%D7%95%D7%AA%D7%A7%20%D7%9C%D7%AA%D7%9E%D7%95%D7%A0%D7%AA%20%D7%A4%D7%A8%D7%95%D7%A4%D7%99%D7%9C%20%D7%A8%D7%97%D7%91%20%D7%91%D7%9C%D7%99%20%D7%A8%D7%A7%D7%A2.png?raw=true" style="width:118px">
+                <img src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/%D7%A2%D7%95%D7%AA%D7%A7%20%D7%9C%D7%AA%D7%9E%D7%95%D7%A0%D7%AA%20%D7%A4%D7%A8%D7%95%D7%A4%D7%99%D7%9C%20%D7%A8%D7%97%D7%91%20%D7%91%D7%9C%D7%99%20%D7%A8%D7%A7%D7%A2.png" style="width:118px">
               </div>
               <div style="color:#fff;font-weight:700;font-size:14px;margin-top:8px">שאלון אבחון תעסוקתי</div>
               <div style="color:#fff;font-size:9px;margin-top:6px;opacity:.95">מקטע 3 מתוך 7</div>
@@ -985,11 +999,13 @@ svg{flex:none}
     </div>
     <div class="demo-tabs reveal">
       <div class="dt-bar">
-        <button class="dt-btn on pulse-hint" data-tab="t-chat"><span class="mk mk-chat"><img class="ring" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-ring.png" alt="" loading="lazy" decoding="async"><svg class="ov" viewBox="0 0 100 100" fill="none"><g stroke="var(--nc)" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="30"><line class="ry y1" x1="50" y1="50" x2="27" y2="50"/><line class="ry y2" x1="50" y1="50" x2="73" y2="50"/><line class="ry y3" x1="50" y1="50" x2="31" y2="30"/><line class="ry y4" x1="50" y1="50" x2="69" y2="70"/><line class="ry y5" x1="50" y1="50" x2="69" y2="30"/><line class="ry y6" x1="50" y1="50" x2="31" y2="70"/></g><g fill="var(--nl)"><circle class="nd n1" cx="27" cy="50" r="4"/><circle class="nd n2" cx="73" cy="50" r="4"/><circle class="nd n3" cx="31" cy="30" r="4"/><circle class="nd n4" cx="69" cy="70" r="4"/><circle class="nd n5" cx="69" cy="30" r="4"/><circle class="nd n6" cx="31" cy="70" r="4"/></g><circle class="seed" cx="50" cy="50" r="5.4" fill="var(--nc-deep)"/></svg><img class="arrow" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-arrow.png" alt="" loading="lazy" decoding="async"></span>ניתוח פנימי → תוצר</button>
+        <button class="dt-btn on pulse-hint" data-tab="t-chat"><span class="mk mk-chat"><img class="ring" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-ring.png" alt="" loading="lazy" decoding="async"><svg class="ov" viewBox="0 0 100 100" fill="none"><g stroke="var(--nc)" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="30"><line class="ry y1" x1="50" y1="50" x2="27" y2="50"/><line class="ry y2" x1="50" y1="50" x2="73" y2="50"/><line class="ry y3" x1="50" y1="50" x2="31" y2="30"/><line class="ry y4" x1="50" y1="50" x2="69" y2="70"/><line class="ry y5" x1="50" y1="50" x2="69" y2="30"/><line class="ry y6" x1="50" y1="50" x2="31" y2="70"/></g><g fill="var(--nl)"><circle class="nd n1" cx="27" cy="50" r="4"/><circle class="nd n2" cx="73" cy="50" r="4"/><circle class="nd n3" cx="31" cy="30" r="4"/><circle class="nd n4" cx="69" cy="70" r="4"/><circle class="nd n5" cx="69" cy="30" r="4"/><circle class="nd n6" cx="31" cy="70" r="4"/></g><circle class="seed" cx="50" cy="50" r="5.4" fill="var(--nc-deep)"/></svg><img class="arrow" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-arrow.png" alt="" loading="lazy" decoding="async"></span>ניתוח פנימי ← תוצר</button>
         <button class="dt-btn" data-tab="t-quotes"><span class="mk mk-quotes"><img class="ring" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-ring.png" alt="" loading="lazy" decoding="async"><svg class="ov" viewBox="0 0 100 100" fill="none"><g><rect class="rw r1" x="30" y="36" width="40" height="5.4" rx="2.7" fill="#C4D3E1"/><rect class="rw r2" x="30" y="47" width="31" height="5.4" rx="2.7" fill="#C4D3E1"/><rect class="rw r3" x="30" y="58" width="37" height="5.4" rx="2.7" fill="#C4D3E1"/></g><g class="lens" stroke="var(--nc-deep)" stroke-width="3.4" stroke-linecap="round"><circle cx="50" cy="50" r="11" fill="rgba(31,191,222,.15)"/><line x1="58" y1="58" x2="66" y2="66"/></g></svg><img class="arrow" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-arrow.png" alt="" loading="lazy" decoding="async"></span>הצפת ציטוטים</button>
         <button class="dt-btn" data-tab="t-report"><span class="mk mk-report"><img class="ring" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-ring.png" alt="" loading="lazy" decoding="async"><svg class="ov" viewBox="0 0 100 100" fill="none"><rect class="pg" x="32" y="28" width="36" height="44" rx="4.5" fill="#fff" stroke="#C4D3E1" stroke-width="2"/><g stroke="var(--nc)" stroke-width="3" stroke-linecap="round" stroke-dasharray="24"><line class="ik k1" x1="39" y1="40" x2="61" y2="40"/><line class="ik k2" x1="39" y1="50" x2="61" y2="50"/><line class="ik k3" x1="39" y1="60" x2="54" y2="60"/></g><g class="pen"><path d="M50 47 l6 -10 3.4 2 -6 10 -3.7 1.7 z" fill="var(--no)"/><path d="M50 47 l3.7 -1.7 -.7 3 z" fill="var(--navy)"/></g></svg><img class="arrow" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-arrow.png" alt="" loading="lazy" decoding="async"></span>הפקת דוח</button>
       </div>
 
+      <div class="dt-stage">
+      <div class="dt-idle" id="dtIdle" aria-hidden="true"><img id="dtIdleImg" alt="" decoding="async"></div>
       <div class="dt-panel on" id="t-chat">
         <div class="dt-card wide">
           <div class="txt">
@@ -1082,7 +1098,7 @@ svg{flex:none}
                 <div class="rep-track"><i id="repBar"></i></div>
               </div>
               <div class="rep-doc" id="repDoc">
-                <div class="rdh"><img src="https://github.com/nzinok/bdikat-idkunim-basheelon/blob/main/%D7%A2%D7%95%D7%AA%D7%A7%20%D7%9C%D7%AA%D7%9E%D7%95%D7%A0%D7%AA%20%D7%A4%D7%A8%D7%95%D7%A4%D7%99%D7%9C%20%D7%A8%D7%97%D7%91%20%D7%91%D7%9C%D7%99%20%D7%A8%D7%A7%D7%A2.png?raw=true" alt=""></div>
+                <div class="rdh"><img src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/%D7%A2%D7%95%D7%AA%D7%A7%20%D7%9C%D7%AA%D7%9E%D7%95%D7%A0%D7%AA%20%D7%A4%D7%A8%D7%95%D7%A4%D7%99%D7%9C%20%D7%A8%D7%97%D7%91%20%D7%91%D7%9C%D7%99%20%D7%A8%D7%A7%D7%A2.png" alt=""></div>
                 <div class="rt">דוח אבחון תעסוקתי</div>
                 <div class="rs">מרים לוינגר · יולי 2026</div>
                 <div class="rcode"><b style="background:#22C55E">S · חברתי</b><b style="background:#EAB308">A · אמנותי</b><b style="background:#3B82F6">E · יזמי</b></div>
@@ -1096,6 +1112,7 @@ svg{flex:none}
           </div>
           <div class="tap-cta"><button data-play="report"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>הפעלת ההפקה</button></div>
         </div>
+      </div>
       </div>
     </div>
   </div>
@@ -1122,7 +1139,7 @@ svg{flex:none}
         <div>
           <div class="doc" style="box-shadow:0 0 0 2px rgba(245,130,31,.4),0 40px 76px -26px rgba(0,0,0,.5),0 0 66px -10px rgba(245,130,31,.32)">
             <div class="dh">
-              <img src="https://github.com/nzinok/bdikat-idkunim-basheelon/blob/main/%D7%A2%D7%95%D7%AA%D7%A7%20%D7%9C%D7%AA%D7%9E%D7%95%D7%A0%D7%AA%20%D7%A4%D7%A8%D7%95%D7%A4%D7%99%D7%9C%20%D7%A8%D7%97%D7%91%20%D7%91%D7%9C%D7%99%20%D7%A8%D7%A7%D7%A2.png?raw=true" alt="">
+              <img src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/%D7%A2%D7%95%D7%AA%D7%A7%20%D7%9C%D7%AA%D7%9E%D7%95%D7%A0%D7%AA%20%D7%A4%D7%A8%D7%95%D7%A4%D7%99%D7%9C%20%D7%A8%D7%97%D7%91%20%D7%91%D7%9C%D7%99%20%D7%A8%D7%A7%D7%A2.png" alt="">
               <s>הדסה כהן<br>יועצת תעסוקה</s>
             </div>
             <h4>דוח אבחון תעסוקתי</h4>
@@ -1470,6 +1487,48 @@ svg{flex:none}
       document.getElementById(btn.dataset.tab).classList.add('on');
     });
   });
+
+// ── מצב מנוחה: ההנפשה רצה, ואחרי מחזור אחד הלשונית הראשונה נפתחת ──
+  (function(){
+    var idle  = document.getElementById('dtIdle');
+    var img   = document.getElementById('dtIdleImg');
+    var first = document.querySelector('.dt-btn[data-tab]');
+    if(!idle || !img || !first) return;
+
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var advanced = false;
+    var timer = null;
+
+    function openFirst(){
+      if(advanced) return;
+      advanced = true;
+      if(timer) clearTimeout(timer);
+      idle.classList.remove('on');
+      first.classList.add('on');
+      document.getElementById(first.dataset.tab).classList.add('on');
+    }
+
+    // כל בחירה של המשתמשת מבטלת את האוטומט לתמיד
+    tabBtns.forEach(function(b){
+      b.addEventListener('click', function(){
+        advanced = true;
+        if(timer) clearTimeout(timer);
+        idle.classList.remove('on');
+      });
+    });
+
+    if(reduce) return;                    // מי שביקשה פחות תנועה מקבלת את הפאנל מיד
+
+    img.onload = function(){
+      if(advanced) return;
+      first.classList.remove('on');
+      document.getElementById(first.dataset.tab).classList.remove('on');
+      idle.classList.add('on');
+      timer = setTimeout(openFirst, 3150);   // אורך מחזור אחד של ההנפשה
+    };
+    img.onerror = openFirst;                 // הקובץ חסר — פשוט פותחים את הפאנל
+    img.src = 'https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-logo-orbit-page.gif';
+  })();
 
   // play buttons
   document.querySelectorAll('.tap-cta button[data-play]').forEach(btn=>{
