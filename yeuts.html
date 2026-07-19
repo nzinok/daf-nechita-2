@@ -497,19 +497,124 @@ svg{flex:none}
 .dt-btn:hover .k2,.dt-btn.on .k2{animation:mkDraw 3.1s ease-in-out infinite;animation-delay:.14s}
 .dt-btn:hover .k3,.dt-btn.on .k3{animation:mkDraw 3.1s ease-in-out infinite;animation-delay:.28s}
 .dt-btn:hover .pen,.dt-btn.on .pen{animation:mkPen 3.1s ease-in-out infinite}
+/* ── שני האייקונים החדשים ──────────────────────────────────────── */
+.mk-docs .arrow{transform-origin:50% 30%}
+.mk-quant .arrow{transform-origin:50% 68%}
+@keyframes mkArrowD{0%,7%{opacity:1;transform:scale(1) rotate(0)}20%{opacity:0;transform:scale(.18) rotate(-14deg)}73%{opacity:0;transform:scale(.18) rotate(-14deg)}88%,100%{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes mkArrowB{0%,7%{opacity:1;transform:scale(1) rotate(0)}20%{opacity:0;transform:scale(.14) rotate(20deg)}73%{opacity:0;transform:scale(.14) rotate(20deg)}88%,100%{opacity:1;transform:scale(1) rotate(0)}}
+.dt-btn:hover .mk-docs .arrow,.dt-btn.on .mk-docs .arrow{animation:mkArrowD 3.1s ease-in-out infinite}
+.dt-btn:hover .mk-quant .arrow,.dt-btn.on .mk-quant .arrow{animation:mkArrowB 3.1s ease-in-out infinite}
+/* הדף נשאב פנימה ומתפוגג לניצוצות */
+@keyframes mkSheet{0%,16%{transform:translateY(-26px) scale(.2);opacity:0}
+                   21%{transform:translateY(-20px) scale(.45);opacity:1}
+                   32%{transform:translateY(0) scale(1);opacity:1}
+                   54%{transform:translateY(0) scale(1);opacity:1}
+                   64%{transform:translateY(0) scale(.55);opacity:0}
+                   100%{transform:translateY(-26px) scale(.2);opacity:0}}
+@keyframes mkSpark{0%,58%{transform:scale(0);opacity:0}
+                   66%{transform:scale(1);opacity:1}
+                   74%{transform:scale(1);opacity:1}
+                   80%,100%{transform:scale(0);opacity:0}}
+/* העמודות מטפסות מקו הבסיס שאליו החץ התכווץ */
+@keyframes mkBase {0%,16%{transform:scaleX(0);opacity:0}22%,74%{transform:scaleX(1);opacity:1}82%,100%{transform:scaleX(0);opacity:0}}
+@keyframes mkBar  {0%,22%{transform:scaleY(0)}40%{transform:scaleY(1)}70%{transform:scaleY(1)}80%,100%{transform:scaleY(0)}}
+.dt-btn .sheet,.dt-btn .sp,.dt-btn .base{transform-box:fill-box;transform-origin:center}
+.dt-btn .br{transform-box:fill-box;transform-origin:bottom}
+.dt-btn:hover .sheet,.dt-btn.on .sheet{animation:mkSheet 3.1s ease-in-out infinite}
+.dt-btn:hover .sp,.dt-btn.on .sp{animation:mkSpark 3.1s ease-in-out infinite}
+.dt-btn:hover .s2,.dt-btn.on .s2{animation-delay:.05s}
+.dt-btn:hover .s3,.dt-btn.on .s3{animation-delay:.10s}
+.dt-btn:hover .s4,.dt-btn.on .s4{animation-delay:.15s}
+.dt-btn:hover .s5,.dt-btn.on .s5{animation-delay:.20s}
+.dt-btn:hover .base,.dt-btn.on .base{animation:mkBase 3.1s ease-in-out infinite}
+.dt-btn:hover .br,.dt-btn.on .br{animation:mkBar 3.1s cubic-bezier(.3,1.4,.5,1) infinite}
+.dt-btn:hover .b2,.dt-btn.on .b2{animation-delay:.11s}
+.dt-btn:hover .b3,.dt-btn.on .b3{animation-delay:.22s}
+
+/* ── מסך הביניים בין הרצה להרצה ────────────────────────────────── */
+.uiscreen{position:relative}
+.dt-il{position:absolute;inset:0;z-index:6;background:#0A1C34;display:flex;align-items:center;
+  justify-content:center;opacity:0;pointer-events:none;transition:opacity .42s ease}
+.dt-il.show{opacity:1}
+.dt-il img{width:64%;max-width:236px;height:auto;display:block}
+@media (prefers-reduced-motion:reduce){.dt-il{display:none}}
+
+/* ── תווית המחשה ───────────────────────────────────────────────── */
+.demo-tag{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:5px 12px;border-radius:99px;
+  background:#FFF3E6;border:1px solid #FAD4AE;color:#B0590C;font-size:12px;font-weight:700}
+.demo-tag::before{content:"";width:6px;height:6px;border-radius:50%;background:#F5821F;flex:0 0 6px}
+
+/* ── פאנל קליטת מסמכים ─────────────────────────────────────────── */
+.dc{padding:18px;background:#F7FAFC}
+.dc-drop{border:2px dashed #C4D3E1;border-radius:14px;padding:16px;text-align:center;color:var(--mute);font-size:13px}
+.dc-file{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:12px;
+  padding:11px 13px;margin:0 auto;max-width:330px;text-align:right;opacity:0;transform:translateY(-14px)}
+.dc-file b{font-size:13.5px;color:var(--ink);display:block}
+.dc-file span{font-size:11.5px;color:var(--mute)}
+.dc-ico{width:34px;height:34px;border-radius:9px;background:#FDE8E8;color:#C0392B;display:flex;align-items:center;
+  justify-content:center;font-size:11px;font-weight:700;flex:0 0 34px}
+.dc-prog{height:6px;border-radius:99px;background:#E4EBF2;margin:14px auto 6px;max-width:330px;overflow:hidden;opacity:0}
+.dc-prog i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--nc),var(--nl))}
+.dc-stat{text-align:center;font-size:12px;color:var(--mute);min-height:17px}
+.dc-out{margin-top:14px;display:grid;gap:8px}
+.dc-row{background:#fff;border:1px solid var(--line);border-right:3px solid var(--nl);border-radius:10px;
+  padding:9px 12px;font-size:13px;color:var(--ink);opacity:0;transform:translateX(12px)}
+.dc-row s{display:block;font-size:11.5px;color:var(--mute);text-decoration:none;margin-top:2px}
+.dc-seal{margin-top:14px;text-align:center;opacity:0}
+.dc-seal span{display:inline-flex;align-items:center;gap:7px;background:#EAF8FC;border:1px solid #B6E7F1;color:#106C82;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:700}
+.run .dc-file{animation:dcIn .5s ease .1s forwards}
+.run .dc-prog{animation:dcFade .3s ease .5s forwards}
+.run .dc-prog i{animation:dcBar 1.5s cubic-bezier(.4,0,.2,1) .55s forwards}
+.run .dc-r1{animation:dcRow .45s ease 1.9s forwards}
+.run .dc-r2{animation:dcRow .45s ease 2.15s forwards}
+.run .dc-r3{animation:dcRow .45s ease 2.4s forwards}
+.run .dc-seal{animation:dcFade .5s ease 2.8s forwards}
+@keyframes dcIn{to{opacity:1;transform:none}}
+@keyframes dcFade{to{opacity:1}}
+@keyframes dcBar{to{width:100%}}
+@keyframes dcRow{to{opacity:1;transform:none}}
+
+/* ── פאנל תמונה כמותית ─────────────────────────────────────────── */
+.qt{padding:20px 18px;background:#F7FAFC}
+.qt-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+.qt-h b{font-size:13.5px;color:var(--ink)}
+.qt-h span{font-size:11.5px;color:var(--mute)}
+.qt-chart{display:flex;align-items:flex-end;gap:10px;height:150px;padding:0 4px 0;border-bottom:2px solid #D6E0EA}
+.qt-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.qt-val{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:5px;opacity:0}
+.qt-bar{width:100%;max-width:44px;border-radius:7px 7px 0 0;transform:scaleY(0);transform-origin:bottom}
+.qt-lbl{margin-top:9px;font-size:11.5px;color:var(--mute);text-align:center;line-height:1.3;min-height:29px}
+.qt-legend{display:flex;gap:16px;justify-content:center;margin-top:16px;font-size:11.5px;color:var(--mute)}
+.qt-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-left:5px}
+.run .qt-bar{animation:qtGrow .85s cubic-bezier(.25,1.2,.4,1) forwards}
+.run .qt-val{animation:dcFade .4s ease forwards}
+.run .qt-c2 .qt-bar,.run .qt-c2 .qt-val{animation-delay:.12s}
+.run .qt-c3 .qt-bar,.run .qt-c3 .qt-val{animation-delay:.24s}
+.run .qt-c4 .qt-bar,.run .qt-c4 .qt-val{animation-delay:.36s}
+.run .qt-c5 .qt-bar,.run .qt-c5 .qt-val{animation-delay:.48s}
+.run .qt-c6 .qt-bar,.run .qt-c6 .qt-val{animation-delay:.60s}
+@keyframes qtGrow{to{transform:scaleY(1)}}
+@media (prefers-reduced-motion:reduce){
+  .run .dc-file,.run .dc-prog,.run .dc-row,.run .dc-seal,.run .qt-val{animation:none!important;opacity:1!important;transform:none!important}
+  .run .dc-prog i{animation:none!important;width:100%!important}
+  .run .qt-bar{animation:none!important;transform:scaleY(1)!important}
+}
 /* ── מחשב: הלשוניות בטור ימני, הבמה משמאל ─────────────────────────── */
 .dt-stage{position:relative}
-.dt-idle{display:none;align-items:center;justify-content:center;padding:26px 0 34px;min-height:300px}
-.dt-idle.on{display:flex}
-.dt-idle img{width:210px;height:210px;display:block}
+
+
+
 @media (min-width:900px){
   .demo-tabs{display:grid;grid-template-columns:268px minmax(0,1fr);gap:24px;align-items:start;max-width:1060px}
   .dt-bar{flex-direction:column;flex-wrap:nowrap;gap:10px;margin-bottom:0;position:sticky;top:96px}
   .dt-btn{width:100%;flex-direction:row;justify-content:flex-start;text-align:right;
           gap:13px;padding:13px 15px;min-width:0;border-radius:16px}
   .dt-btn .mk{width:52px;height:52px;flex:0 0 52px}
-  .dt-idle{min-height:330px;padding:0}
-  .dt-idle img{width:250px;height:250px}
+  .dt-stage{min-height:445px}
+  .dt-card.wide{min-height:445px;align-content:start}
+  .dt-panel.on{height:100%}
+  
+  
 }
 @media (max-width:520px){.dt-btn{min-width:calc(50% - 6px);padding:14px 8px 12px}
   .dt-btn .mk{width:56px;height:56px}}
@@ -624,17 +729,8 @@ svg{flex:none}
 .rep-doc .rtx{font-size:9.5px;line-height:1.7;color:#4A5568}
 .rep-doc .rlines u{display:block;height:5px;background:#EDF2F7;border-radius:3px;margin-bottom:5px;text-decoration:none}
 .rep-doc .rlines u:nth-child(2){width:88%}
-.rep-replay{margin-top:16px;font-size:12.5px;font-weight:700;color:#128AA6;background:#E4F6FA;border:1px solid #B6E7F1;
-  padding:8px 18px;border-radius:99px;cursor:pointer;display:none;align-items:center;gap:7px}
-.rep-replay.show{display:inline-flex}
-.rep-replay svg{width:14px;height:14px}
 
 /* play button hint on tab panels */
-.tap-cta{text-align:center;margin-top:16px}
-.tap-cta button{font-family:'Heebo';font-weight:700;font-size:13.5px;color:#128AA6;background:#E4F6FA;border:1px solid #B6E7F1;
-  padding:9px 20px;border-radius:99px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:.2s}
-.tap-cta button:hover{background:#d3eff6}
-.tap-cta button svg{width:15px;height:15px}
 @media(max-width:760px){.chat{grid-template-columns:1fr}.chat-side{display:none}}
 
 /* ===== המלצות יועצות ===== */
@@ -994,60 +1090,27 @@ svg{flex:none}
 <section class="pad" id="demo" style="background:#fff">
   <div class="wrap">
     <div class="center reveal">
-      <span class="eyebrow">שלוש יכולות מרכזיות</span>
-      <h2 class="h-sec">שלושה דברים שהמערכת<br>עושה בשבילך.</h2>
+      <span class="eyebrow">מה המערכת עושה בשבילך</span>
+      <h2 class="h-sec">כל מה שלקח שעות,<br>קורה עכשיו ברקע.</h2>
     </div>
     <div class="demo-tabs reveal">
       <div class="dt-bar">
-        <button class="dt-btn on pulse-hint" data-tab="t-chat"><span class="mk mk-chat"><img class="ring" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-ring.png" alt="" loading="lazy" decoding="async"><svg class="ov" viewBox="0 0 100 100" fill="none"><g stroke="var(--nc)" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="30"><line class="ry y1" x1="50" y1="50" x2="27" y2="50"/><line class="ry y2" x1="50" y1="50" x2="73" y2="50"/><line class="ry y3" x1="50" y1="50" x2="31" y2="30"/><line class="ry y4" x1="50" y1="50" x2="69" y2="70"/><line class="ry y5" x1="50" y1="50" x2="69" y2="30"/><line class="ry y6" x1="50" y1="50" x2="31" y2="70"/></g><g fill="var(--nl)"><circle class="nd n1" cx="27" cy="50" r="4"/><circle class="nd n2" cx="73" cy="50" r="4"/><circle class="nd n3" cx="31" cy="30" r="4"/><circle class="nd n4" cx="69" cy="70" r="4"/><circle class="nd n5" cx="69" cy="30" r="4"/><circle class="nd n6" cx="31" cy="70" r="4"/></g><circle class="seed" cx="50" cy="50" r="5.4" fill="var(--nc-deep)"/></svg><img class="arrow" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-arrow.png" alt="" loading="lazy" decoding="async"></span>ניתוח פנימי ← תוצר</button>
-        <button class="dt-btn" data-tab="t-quotes"><span class="mk mk-quotes"><img class="ring" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-ring.png" alt="" loading="lazy" decoding="async"><svg class="ov" viewBox="0 0 100 100" fill="none"><g><rect class="rw r1" x="30" y="36" width="40" height="5.4" rx="2.7" fill="#C4D3E1"/><rect class="rw r2" x="30" y="47" width="31" height="5.4" rx="2.7" fill="#C4D3E1"/><rect class="rw r3" x="30" y="58" width="37" height="5.4" rx="2.7" fill="#C4D3E1"/></g><g class="lens" stroke="var(--nc-deep)" stroke-width="3.4" stroke-linecap="round"><circle cx="50" cy="50" r="11" fill="rgba(31,191,222,.15)"/><line x1="58" y1="58" x2="66" y2="66"/></g></svg><img class="arrow" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-arrow.png" alt="" loading="lazy" decoding="async"></span>הצפת ציטוטים</button>
+        <button class="dt-btn on pulse-hint" data-tab="t-quotes"><span class="mk mk-quotes"><img class="ring" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-ring.png" alt="" loading="lazy" decoding="async"><svg class="ov" viewBox="0 0 100 100" fill="none"><g><rect class="rw r1" x="30" y="36" width="40" height="5.4" rx="2.7" fill="#C4D3E1"/><rect class="rw r2" x="30" y="47" width="31" height="5.4" rx="2.7" fill="#C4D3E1"/><rect class="rw r3" x="30" y="58" width="37" height="5.4" rx="2.7" fill="#C4D3E1"/></g><g class="lens" stroke="var(--nc-deep)" stroke-width="3.4" stroke-linecap="round"><circle cx="50" cy="50" r="11" fill="rgba(31,191,222,.15)"/><line x1="58" y1="58" x2="66" y2="66"/></g></svg><img class="arrow" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-arrow.png" alt="" loading="lazy" decoding="async"></span>הצפת ציטוטים</button>
+        <button class="dt-btn" data-tab="t-quant"><span class="mk mk-quant"><img class="ring" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-ring.png" alt="" loading="lazy" decoding="async"><svg class="ov" viewBox="0 0 100 100" fill="none"><g class="bars"><rect class="br b1" x="31" y="34" width="9" height="32" rx="3" fill="var(--nc)"/><rect class="br b2" x="45" y="34" width="9" height="32" rx="3" fill="var(--nl)"/><rect class="br b3" x="59" y="34" width="9" height="32" rx="3" fill="var(--no)"/></g><path class="base" d="M26 68h48" stroke="#9FB3C8" stroke-width="2.4" stroke-linecap="round"/></svg><img class="arrow" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-arrow.png" alt="" loading="lazy" decoding="async"></span>תמונה כמותית</button>
+        <button class="dt-btn" data-tab="t-docs"><span class="mk mk-docs"><img class="ring" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-ring.png" alt="" loading="lazy" decoding="async"><svg class="ov" viewBox="0 0 100 100" fill="none"><g class="sheet"><rect x="34" y="26" width="32" height="42" rx="4" fill="#fff" stroke="#C4D3E1" stroke-width="2"/><path d="M41 38h18M41 47h18M41 56h12" stroke="#C4D3E1" stroke-width="2.6" stroke-linecap="round"/></g><g class="spark" fill="var(--nl)"><circle class="sp s1" cx="50" cy="50" r="3.4"/><circle class="sp s2" cx="36" cy="42" r="2.6"/><circle class="sp s3" cx="64" cy="42" r="2.6"/><circle class="sp s4" cx="36" cy="60" r="2.6"/><circle class="sp s5" cx="64" cy="60" r="2.6"/></g></svg><img class="arrow" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-arrow.png" alt="" loading="lazy" decoding="async"></span>קליטת מסמכים</button>
+        <button class="dt-btn" data-tab="t-chat"><span class="mk mk-chat"><img class="ring" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-ring.png" alt="" loading="lazy" decoding="async"><svg class="ov" viewBox="0 0 100 100" fill="none"><g stroke="var(--nc)" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="30"><line class="ry y1" x1="50" y1="50" x2="27" y2="50"/><line class="ry y2" x1="50" y1="50" x2="73" y2="50"/><line class="ry y3" x1="50" y1="50" x2="31" y2="30"/><line class="ry y4" x1="50" y1="50" x2="69" y2="70"/><line class="ry y5" x1="50" y1="50" x2="69" y2="30"/><line class="ry y6" x1="50" y1="50" x2="31" y2="70"/></g><g fill="var(--nl)"><circle class="nd n1" cx="27" cy="50" r="4"/><circle class="nd n2" cx="73" cy="50" r="4"/><circle class="nd n3" cx="31" cy="30" r="4"/><circle class="nd n4" cx="69" cy="70" r="4"/><circle class="nd n5" cx="69" cy="30" r="4"/><circle class="nd n6" cx="31" cy="70" r="4"/></g><circle class="seed" cx="50" cy="50" r="5.4" fill="var(--nc-deep)"/></svg><img class="arrow" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-arrow.png" alt="" loading="lazy" decoding="async"></span>ניתוח פנימי ← תוצר</button>
         <button class="dt-btn" data-tab="t-report"><span class="mk mk-report"><img class="ring" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-ring.png" alt="" loading="lazy" decoding="async"><svg class="ov" viewBox="0 0 100 100" fill="none"><rect class="pg" x="32" y="28" width="36" height="44" rx="4.5" fill="#fff" stroke="#C4D3E1" stroke-width="2"/><g stroke="var(--nc)" stroke-width="3" stroke-linecap="round" stroke-dasharray="24"><line class="ik k1" x1="39" y1="40" x2="61" y2="40"/><line class="ik k2" x1="39" y1="50" x2="61" y2="50"/><line class="ik k3" x1="39" y1="60" x2="54" y2="60"/></g><g class="pen"><path d="M50 47 l6 -10 3.4 2 -6 10 -3.7 1.7 z" fill="var(--no)"/><path d="M50 47 l3.7 -1.7 -.7 3 z" fill="var(--navy)"/></g></svg><img class="arrow" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-arrow.png" alt="" loading="lazy" decoding="async"></span>הפקת דוח</button>
       </div>
-
       <div class="dt-stage">
-      <div class="dt-idle" id="dtIdle" aria-hidden="true"><img id="dtIdleImg" alt="" decoding="async"></div>
-      <div class="dt-panel on" id="t-chat">
-        <div class="dt-card wide">
-          <div class="txt">
-            <h4>חדר ההתייעצות — ובלחיצה, תוצר</h4>
-            <p>שיח חסוי מול מנוע שקרא כל מילה בתיק. הכותרת נכתבת לבד, וכשהתובנה מגובשת — לחיצה אחת הופכת את השיחה למסמך מסודר בתיק.</p>
-          </div>
-          <div class="uiscreen">
-            <div class="ui-bar"><s></s><s></s><s></s><span>nzinuk.com/app</span></div>
-            <div class="chat">
-              <div class="chat-side">
-                <div class="chat-new">+ התייעצות חדשה</div>
-                <div class="thread-item active" id="thActive">
-                  <div class="tt" id="thTitle">התייעצות חדשה…</div>
-                  <div class="tm" id="thMeta">—</div>
-                </div>
-                <div class="thread-item"><div class="tt">פער בין השאיפות לציונים</div><div class="tm">2 הודעות</div></div>
-                <div class="thread-item"><div class="tt">שאלות לפגישה ראשונה</div><div class="tm">3 הודעות</div></div>
-              </div>
-              <div class="chat-main">
-                <div class="chat-head">
-                  <div class="chat-title"><span id="chTitleTxt">התייעצות חדשה</span><span class="auto" id="chAuto">✦ כותרת אוטומטית</span></div>
-                  <div class="chat-toproduct" id="chProd"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>הפוך לתוצר</div>
-                </div>
-                <div class="chat-body" id="chatBody"></div>
-                <div class="prod-toast" id="prodToast">
-                  <span class="pi"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
-                  <div><b>נוצר תוצר בתיק</b><span>"סיכום התייעצות — מסלול גרפיקה"</span></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="tap-cta"><button data-play="chat"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>הפעלת ההדגמה</button></div>
-        </div>
-      </div>
-
-      <div class="dt-panel" id="t-quotes">
+      <div class="dt-panel on" id="t-quotes">
         <div class="dt-card wide">
           <div class="txt">
             <h4>המערכת סורקת — והציטוטים צפים</h4>
             <p>המערכת קוראת את כל תשובות הנבחנת ומעלה למעלה רק את מה שבאמת אומר משהו — מילה במילה, עם נימוק לכל ציטוט. תמונת מצב עוד לפני שקראת עמוד אחד.</p>
+            <span class="demo-tag">המחשה לצורך הדגמה</span>
           </div>
           <div class="uiscreen">
+            <div class="dt-il" aria-hidden="true"><img alt="" decoding="async"></div>
             <div class="ui-bar"><s></s><s></s><s></s><span>nzinuk.com/app</span></div>
             <div class="qz-screen">
               <div class="qz-head2"><b>✦ מה חשוב לראות מהשאלון</b><span id="qzCount">סורק…</span></div>
@@ -1078,17 +1141,102 @@ svg{flex:none}
               </div>
             </div>
           </div>
-          <div class="tap-cta"><button data-play="quotes"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>הפעלת הסריקה</button></div>
         </div>
       </div>
 
-      <div class="dt-panel" id="t-report">
+<div class="dt-panel" id="t-quant">
+        <div class="dt-card wide">
+          <div class="txt">
+            <h4>תמונה כמותית, בלי לספור כלום</h4>
+            <p>כל תשובה בשאלון נספרת ומשוקללת לקטגוריות. מה שדרש טבלה ידנית ושעה של ספירה מופיע כגרף — ומראה מיד איפה החוזקות ואיפה צריך לברר.</p>
+            <span class="demo-tag">המחשה לצורך הדגמה</span>
+          </div>
+          <div class="uiscreen">
+            <div class="dt-il" aria-hidden="true"><img alt="" decoding="async"></div>
+            <div class="ui-bar"><s></s><s></s><s></s><span>nzinuk.com/app</span></div>
+            <div class="qt">
+              <div class="qt-h"><b>ממוצע דירוג לפי אפיון — קוד הולנד</b><span>רבקה ש. · 84 שאלות</span></div>
+              <div class="qt-chart"><div class="qt-col qt-c1"><span class="qt-val">2.1</span><i class="qt-bar" style="height:42%;background:var(--no)"></i><span class="qt-lbl">ריאליסטי</span></div><div class="qt-col qt-c2"><span class="qt-val">4.7</span><i class="qt-bar" style="height:94%;background:var(--nc)"></i><span class="qt-lbl">חברתי</span></div><div class="qt-col qt-c3"><span class="qt-val">3.4</span><i class="qt-bar" style="height:68%;background:var(--nl)"></i><span class="qt-lbl">יזמי</span></div><div class="qt-col qt-c4"><span class="qt-val">4.1</span><i class="qt-bar" style="height:82%;background:var(--nc)"></i><span class="qt-lbl">אמנותי</span></div><div class="qt-col qt-c5"><span class="qt-val">2.8</span><i class="qt-bar" style="height:56%;background:var(--no)"></i><span class="qt-lbl">חקרני</span></div><div class="qt-col qt-c6"><span class="qt-val">3.6</span><i class="qt-bar" style="height:72%;background:var(--nl)"></i><span class="qt-lbl">שיטתי</span></div></div>
+              <div class="qt-legend"><span><i style="background:var(--nc)"></i>גבוה</span><span><i style="background:var(--nl)"></i>בינוני</span><span><i style="background:var(--no)"></i>לבירור</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+<div class="dt-panel" id="t-docs">
+        <div class="dt-card wide">
+          <div class="txt">
+            <h4>מסמך חיצוני נכנס — ויוצא מנותח</h4>
+            <p>דוח ממכון אחר, אבחון קודם, מכתב ממורה. המערכת קוראת את כל העמודים, שולפת את מה שרלוונטי לתיק, ומוחקת את המקור. את לא קוראת ארבעה עשר עמודים כדי למצוא שתי שורות.</p>
+            <span class="demo-tag">המחשה לצורך הדגמה</span>
+          </div>
+          <div class="uiscreen">
+            <div class="dt-il" aria-hidden="true"><img alt="" decoding="async"></div>
+            <div class="ui-bar"><s></s><s></s><s></s><span>nzinuk.com/app</span></div>
+            <div class="dc">
+              <div class="dc-drop">גררי לכאן מסמך, או בחרי קובץ</div>
+              <div class="dc-file">
+                <span class="dc-ico">PDF</span>
+                <div><b>דוח אבחון חיצוני — מכון תעסוקתי.pdf</b><span>14 עמודים · 2.4MB</span></div>
+              </div>
+              <div class="dc-prog"><i></i></div>
+              <div class="dc-stat">קורא עמודים ומאתר את הרלוונטי…</div>
+              <div class="dc-out">
+                <div class="dc-row dc-r1">נטייה מובהקת לתחומי טיפול וחינוך<s>עמוד 4 · מבחן נטיות תעסוקתיות</s></div>
+                <div class="dc-row dc-r2">ציון גבוה בהבנת הנקרא, בינוני בחשיבה כמותית<s>עמוד 7 · פרופיל קוגניטיבי</s></div>
+                <div class="dc-row dc-r3">המליץ על מסלול לימודים קצר לפני תעסוקה מלאה<s>עמוד 12 · סיכום והמלצות</s></div>
+              </div>
+              <div class="dc-seal"><span>✓ המקור נמחק — שימוש חד-פעמי</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+<div class="dt-panel" id="t-chat">
+        <div class="dt-card wide">
+          <div class="txt">
+            <h4>חדר ההתייעצות — ובלחיצה, תוצר</h4>
+            <p>שיח חסוי מול מנוע שקרא כל מילה בתיק. הכותרת נכתבת לבד, וכשהתובנה מגובשת — לחיצה אחת הופכת את השיחה למסמך מסודר בתיק.</p>
+            <span class="demo-tag">המחשה לצורך הדגמה</span>
+          </div>
+          <div class="uiscreen">
+            <div class="dt-il" aria-hidden="true"><img alt="" decoding="async"></div>
+            <div class="ui-bar"><s></s><s></s><s></s><span>nzinuk.com/app</span></div>
+            <div class="chat">
+              <div class="chat-side">
+                <div class="chat-new">+ התייעצות חדשה</div>
+                <div class="thread-item active" id="thActive">
+                  <div class="tt" id="thTitle">התייעצות חדשה…</div>
+                  <div class="tm" id="thMeta">—</div>
+                </div>
+                <div class="thread-item"><div class="tt">פער בין השאיפות לציונים</div><div class="tm">2 הודעות</div></div>
+                <div class="thread-item"><div class="tt">שאלות לפגישה ראשונה</div><div class="tm">3 הודעות</div></div>
+              </div>
+              <div class="chat-main">
+                <div class="chat-head">
+                  <div class="chat-title"><span id="chTitleTxt">התייעצות חדשה</span><span class="auto" id="chAuto">✦ כותרת אוטומטית</span></div>
+                  <div class="chat-toproduct" id="chProd"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>הפוך לתוצר</div>
+                </div>
+                <div class="chat-body" id="chatBody"></div>
+                <div class="prod-toast" id="prodToast">
+                  <span class="pi"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+                  <div><b>נוצר תוצר בתיק</b><span>"סיכום התייעצות — מסלול גרפיקה"</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+<div class="dt-panel" id="t-report">
         <div class="dt-card wide">
           <div class="txt">
             <h4>הפקת דוח — משקללת את כל התיק</h4>
             <p>לחיצה אחת, והמערכת שוקללת את השאלון, הנתונים, ההערות והאבחנה לדוח מלא ומנוסח. בזמן שהוא נכתב — את כבר בתיק הבא.</p>
+            <span class="demo-tag">המחשה לצורך הדגמה</span>
           </div>
           <div class="uiscreen">
+            <div class="dt-il" aria-hidden="true"><img alt="" decoding="async"></div>
             <div class="ui-bar"><s></s><s></s><s></s><span>nzinuk.com/app</span></div>
             <div class="rep-wrap">
               <div class="rep-progress" id="repProg">
@@ -1107,14 +1255,12 @@ svg{flex:none}
                 <div class="rsec">מסלולים מומלצים</div>
                 <div class="rlines"><u></u><u></u><u></u></div>
               </div>
-              <button class="rep-replay" id="repReplay"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>הרצה מחדש</button>
             </div>
           </div>
-          <div class="tap-cta"><button data-play="report"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>הפעלת ההפקה</button></div>
         </div>
       </div>
-      </div>
     </div>
+  </div>
   </div>
 </section>
 
@@ -1488,73 +1634,84 @@ svg{flex:none}
     });
   });
 
-// ── מצב מנוחה: ההנפשה רצה, ואחרי מחזור אחד הלשונית הראשונה נפתחת ──
+// ── לולאת ההדגמה: הרצה, מסך ביניים כהה, והרצה מחדש ──────────────
   (function(){
-    var idle  = document.getElementById('dtIdle');
-    var img   = document.getElementById('dtIdleImg');
-    var first = document.querySelector('.dt-btn[data-tab]');
-    if(!idle || !img || !first) return;
-
+    var IL_GIF = 'https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-logo-orbit-once.gif';
+    var HOLD = { 't-docs':4200, 't-chat':10000, 't-quotes':4800, 't-quant':2600, 't-report':7000 };
+    var IL_MS = 3500;                       // אורך ההנפשה ועוד ההעמעום
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var advanced = false;
-    var timer = null;
 
-    function openFirst(){
-      if(advanced) return;
-      advanced = true;
-      if(timer) clearTimeout(timer);
-      idle.classList.remove('on');
-      first.classList.add('on');
-      document.getElementById(first.dataset.tab).classList.add('on');
+    var timer = null, current = null, warmed = false;
+
+    function warm(){
+      if(warmed) return; warmed = true;
+      var pre = new Image(); pre.src = IL_GIF;
+    }
+    function hideIl(){
+      document.querySelectorAll('.dt-il').forEach(function(el){ el.classList.remove('show'); });
+    }
+    function showIl(tab){
+      var panel = document.getElementById(tab);
+      if(!panel) return;
+      var il = panel.querySelector('.dt-il');
+      if(!il) return;
+      var img = il.querySelector('img');
+      img.src = IL_GIF;                     // מהמטמון — מתחיל מפריים 0 בכל מחזור
+      il.classList.add('show');
+    }
+    function fire(tab){
+      clearTimers();                        // מבטל שאריות של הרצה קודמת
+      if(tab === 't-docs' || tab === 't-quant'){
+        var p = document.getElementById(tab);
+        if(!p) return;
+        p.classList.remove('run'); void p.offsetWidth; p.classList.add('run');
+      }
+      else if(tab === 't-chat')   playDemo('chat');
+      else if(tab === 't-quotes') playDemo('quotes');
+      else if(tab === 't-report') playDemo('report');
+    }
+    function cycle(){
+      if(!current) return;
+      hideIl();
+      fire(current);
+      if(reduce) return;                    // הרצה אחת, בלי לולאה ובלי מסך ביניים
+      timer = setTimeout(function(){
+        showIl(current);
+        timer = setTimeout(cycle, IL_MS);
+      }, HOLD[current] || 5000);
     }
 
-    // כל בחירה של המשתמשת מבטלת את האוטומט לתמיד
+    function stop(){
+      if(timer){ clearTimeout(timer); timer = null; }
+      hideIl();
+    }
+    function start(tab){
+      stop();
+      current = tab;
+      setTimeout(cycle, 40);                // נותן לפאנל להיות גלוי לפני ההנפשה
+    }
+
     tabBtns.forEach(function(b){
-      b.addEventListener('click', function(){
-        advanced = true;
-        if(timer) clearTimeout(timer);
-        idle.classList.remove('on');
-      });
+      b.addEventListener('click', function(){ warm(); start(b.dataset.tab); });
     });
 
-    if(reduce) return;                    // מי שביקשה פחות תנועה מקבלת את הפאנל מיד
-
-    // הבמה עוברת למצב מנוחה מיד, אבל ההנפשה מתחילה רק כשגוללים אליה —
-    // אחרת היא רצה ומסתיימת הרבה לפני שהמשתמשת מגיעה לסעיף.
-    first.classList.remove('on');
-    document.getElementById(first.dataset.tab).classList.remove('on');
-    idle.classList.add('on');
-
-    var GIF = 'https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-logo-orbit-page.gif';
-    var warmed = false, started = false;
-
-    function warm(){                       // מקדימים להוריד, כדי שלא ייראה ריק
-      if(warmed) return; warmed = true;
-      var pre = new Image(); pre.src = GIF;
-    }
-    function begin(){                      // מציגים ומתחילים לספור
-      if(started || advanced) return; started = true;
-      img.onload  = function(){ if(!advanced) timer = setTimeout(openFirst, 3150); };
-      img.onerror = openFirst;
-      img.src = GIF;                       // מהמטמון — מתנגן מפריים 0 ברגע הנכון
-    }
-
+    // רץ רק כשהסעיף על המסך
     var section = document.querySelector('.demo-tabs');
-    if(!('IntersectionObserver' in window) || !section){ begin(); return; }
-
-    new IntersectionObserver(function(e,o){
-      if(e[0].isIntersecting){ o.disconnect(); warm(); }
-    }, { rootMargin: '700px 0px' }).observe(section);
-
-    new IntersectionObserver(function(e,o){
-      if(e[0].isIntersecting){ o.disconnect(); begin(); }
-    }, { threshold: .35 }).observe(section);
+    if(section && 'IntersectionObserver' in window){
+      new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+          if(e.isIntersecting){
+            warm();
+            var openBtn = document.querySelector('.dt-btn.on');
+            if(openBtn && !current) start(openBtn.dataset.tab);
+            else if(current && !timer) cycle();
+          } else {
+            stop();
+          }
+        });
+      }, { threshold: .25 }).observe(section);
+    }
   })();
-
-  // play buttons
-  document.querySelectorAll('.tap-cta button[data-play]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{ clearTimers(); playDemo(btn.dataset.play); });
-  });
 
   // ===== DEMO 1: internal analysis chat → product =====
   const chatScript = [
@@ -1607,16 +1764,13 @@ svg{flex:none}
     const step=document.getElementById('repStep');
     const bar=document.getElementById('repBar');
     const doc=document.getElementById('repDoc');
-    const replay=document.getElementById('repReplay');
-    prog.classList.remove('hide'); doc.classList.remove('show'); replay.classList.remove('show');
+        prog.classList.remove('hide'); doc.classList.remove('show');
     bar.style.width='0'; step.textContent=repSteps[0];
     repSteps.forEach((txt,i)=>{
       later(()=>{ step.textContent=txt; bar.style.width=((i+1)/repSteps.length*100)+'%'; }, 500 + i*900);
     });
     later(()=>{ prog.classList.add('hide'); doc.classList.add('show'); }, 500 + repSteps.length*900 + 400);
-    later(()=>{ replay.classList.add('show'); }, 500 + repSteps.length*900 + 1200);
   }
-  const rr=document.getElementById('repReplay'); if(rr) rr.addEventListener('click', ()=>{ clearTimers(); playReport(); });
 
   const chProdBtn=document.getElementById('chProd');
   if(chProdBtn) chProdBtn.addEventListener('click', ()=>{
@@ -1636,7 +1790,7 @@ svg{flex:none}
   const demoSec=document.getElementById('demo');
   if(demoSec){
     const dio=new IntersectionObserver((es)=>{
-      es.forEach(e=>{ if(e.isIntersecting){ playChat(); dio.unobserve(e.target); } });
+      es.forEach(e=>{ if(e.isIntersecting){ dio.unobserve(e.target); } });
     },{threshold:.3});
     dio.observe(demoSec);
   }
