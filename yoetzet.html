@@ -3,43 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>נקודת זינוק — מערכת אבחון תעסוקתי ליועצות</title>
-<meta name="description" content="מערכת אבחון תעסוקתי שמשחררת אותך מהבירוקרטיה. שאלון חכם, הצפת ציטוטים, דוחות בלחיצה — כדי שתתרכזי באנשים.">
+<title>נקודת זינוק — ליועצות תעסוקה</title>
+<meta name="description" content="הכלי שמשנה את הדרך שבה יועצות תעסוקה עובדות. גלי איך נקודת זינוק חוסכת לך שעות, מדייקת את האבחון, ומגדילה את ההכנסה שלך.">
 <link rel="canonical" href="https://nzinuk.com/yoetzet.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="נקודת זינוק">
 <meta property="og:locale" content="he_IL">
-<meta property="og:title" content="נקודת זינוק — מערכת אבחון תעסוקתי ליועצות">
-<meta property="og:description" content="מערכת אבחון תעסוקתי שמשחררת אותך מהבירוקרטיה. שאלון חכם, הצפת ציטוטים, דוחות בלחיצה — כדי שתתרכזי באנשים.">
 <meta property="og:url" content="https://nzinuk.com/yoetzet.html">
+<meta property="og:title" content="נקודת זינוק — ליועצות תעסוקה">
+<meta property="og:description" content="הכלי שמשנה את הדרך שבה יועצות תעסוקה עובדות. השאירי פרטים ונגלה לך איך.">
 <meta property="og:image" content="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/%D7%9C%D7%95%D7%92%D7%95%20%D7%9E%D7%A6%D7%A4%D7%9F%20%D7%A0%D7%A7%D7%95%D7%93%D7%AA%20%D7%96%D7%99%D7%A0%D7%95%D7%A7.png">
 <meta name="twitter:card" content="summary">
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Service",
-      "@id": "https://nzinuk.com/yoetzet.html#service",
-      "name": "מערכת אבחון תעסוקתי ליועצות",
-      "serviceType": "מערכת לניהול ואבחון תעסוקתי",
-      "provider": {
-        "@id": "https://nzinuk.com/#org"
-      },
-      "audience": {
-        "@type": "Audience",
-        "audienceType": "יועצות תעסוקה"
-      },
-      "areaServed": {
-        "@type": "Country",
-        "name": "IL"
-      },
-      "url": "https://nzinuk.com/yoetzet.html"
-    }
-  ]
-}
-</script>
-
 
 <link rel="icon" href="https://nzinuk.com/favicon.ico" sizes="any">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -47,7 +21,6 @@
 
 <style>
 :root{
-  /* צבעי המצפן */
   --nc:#1FBFDE;   --nc-deep:#128AA6;
   --nl:#8DC63F;   --nl-deep:#5E8F1E;
   --no:#F5821F;   --no-deep:#C4640F;
@@ -58,728 +31,85 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{font-family:'Heebo',sans-serif;color:var(--ink);background:#F4F7FA;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-.display{font-family:'Secular One',sans-serif;font-weight:400;letter-spacing:-.01em}
-a{color:inherit;text-decoration:none}
-img{max-width:100%;display:block}
 
-.wrap{max-width:1180px;margin:0 auto;padding:0 26px}
-.eyebrow{font-size:12px;font-weight:800;letter-spacing:.2em;color:var(--nc-deep);display:inline-flex;align-items:center;gap:8px}
-.eyebrow::before{content:'»';color:var(--no);font-size:15px}
-.h-sec{font-family:'Secular One';font-size:clamp(30px,4.6vw,50px);line-height:1.12;color:var(--navy);margin:14px 0 0}
-.lead{font-size:clamp(16px,1.9vw,19px);line-height:1.7;color:var(--mute);font-weight:300;max-width:56ch}
-
-/* ---------- כפתורים ---------- */
-.btn{display:inline-flex;align-items:center;gap:9px;font-weight:700;font-size:16px;padding:15px 30px;border-radius:999px;
-  transition:transform .18s,box-shadow .18s;cursor:pointer;border:0;font-family:'Heebo'}
-.btn-primary{background:linear-gradient(135deg,var(--no),var(--no-deep));color:#fff;
-  box-shadow:0 12px 30px -8px rgba(245,130,31,.6)}
+.btn{display:inline-flex;align-items:center;gap:8px;font-family:'Heebo';font-weight:700;font-size:15px;
+  padding:13px 26px;border-radius:999px;cursor:pointer;border:0;text-decoration:none;
+  transition:transform .18s,box-shadow .18s}
+.btn-primary{background:linear-gradient(90deg,var(--no),#ff9838);color:#fff;box-shadow:0 14px 34px -12px rgba(245,130,31,.6)}
 .btn-primary:hover{transform:translateY(-2px);box-shadow:0 18px 40px -10px rgba(245,130,31,.7)}
-.btn-ghost{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.28)}
-.btn-ghost:hover{background:rgba(255,255,255,.16)}
-.btn-dark{background:var(--navy);color:#fff;box-shadow:0 12px 30px -10px rgba(12,35,64,.5)}
-.btn-dark:hover{transform:translateY(-2px)}
 
-/* ---------- NAV ---------- */
-header{position:fixed;top:0;right:0;left:0;z-index:100;transition:all .3s}
-header .bar{display:flex;align-items:center;justify-content:space-between;padding:16px 26px;max-width:1180px;margin:0 auto}
-header.scrolled{background:rgba(244,247,250,.86);backdrop-filter:blur(14px);box-shadow:0 4px 24px -12px rgba(12,35,64,.25)}
-.logo-row{display:flex;align-items:center;gap:11px}
-.logo-row img{width:34px;height:34px;object-fit:contain;object-position:center}
-.logo-row b{font-family:'Secular One';font-size:20px;color:var(--navy)}
-header.on-hero .logo-row b{color:#fff}
-nav.links{display:flex;gap:30px;font-size:15px;font-weight:500;color:var(--ink)}
-header.on-hero nav.links{color:rgba(255,255,255,.82)}
-nav.links a{position:relative}
-nav.links a::after{content:'';position:absolute;bottom:-5px;right:0;width:0;height:2px;background:var(--nc);transition:width .25s}
-nav.links a:hover::after{width:100%}
-.nav-cta{padding:10px 22px;font-size:14px}
-.menu-btn{display:none;background:none;border:0;cursor:pointer;color:inherit}
-
-/* ---------- HERO ---------- */
-.hero{position:relative;min-height:100vh;background:
-  radial-gradient(1100px 700px at 88% 8%, rgba(31,191,222,.20), transparent 55%),
-  radial-gradient(900px 620px at 6% 96%, rgba(245,130,31,.16), transparent 55%),
-  linear-gradient(160deg,#0A1E38 0%,#0C2340 55%,#0E2E52 100%);
-  color:#fff;overflow:hidden;display:flex;align-items:center}
-.hero .compass{position:absolute;left:-160px;top:50%;transform:translateY(-50%);width:640px;opacity:.09;animation:spin 40s linear infinite}
-@keyframes spin{to{transform:translateY(-50%) rotate(360deg)}}
-.hero-grid{position:relative;z-index:3;display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center;width:100%;padding:120px 0 70px}
-.hero h1{font-family:'Secular One';font-size:clamp(38px,5.6vw,66px);line-height:1.08;letter-spacing:-.015em}
-.hero h1 .hl .w{background:linear-gradient(120deg,var(--nc),var(--nl));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
-.hero p.sub{font-size:clamp(17px,2vw,20px);line-height:1.6;color:#B9D0E4;font-weight:300;margin-top:22px;max-width:40ch}
-.hero .cta-row{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap}
-.hero .trust{margin-top:30px;display:flex;gap:22px;flex-wrap:wrap;font-size:13px;color:#88A6C0}
-.hero .trust span{display:flex;align-items:center;gap:7px}
-.hero .trust svg{width:15px;height:15px;color:var(--nl)}
-
-/* מסך צף בהירו */
-.hero-shot{position:relative}
-.hero-shot .screen{border-radius:14px;overflow:hidden;
-  box-shadow:0 0 0 1px rgba(255,255,255,.12),0 40px 90px -30px rgba(0,0,0,.7),0 0 80px -20px rgba(31,191,222,.4);
-  transform:perspective(1600px) rotateY(6deg) rotateX(2deg)}
-.hero-shot .chip{position:absolute;background:rgba(255,255,255,.97);border-radius:12px;padding:11px 15px;
-  box-shadow:0 18px 40px -14px rgba(0,0,0,.5);display:flex;align-items:center;gap:10px;z-index:4}
-.hero-shot .chip .ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex:none}
-.hero-shot .chip .ic svg{width:18px;height:18px;color:#fff}
-.hero-shot .chip b{font-size:13px;color:var(--navy);display:block;font-weight:700}
-.hero-shot .chip span{font-size:11px;color:var(--mute)}
-.hero-shot .c1{top:-22px;right:-20px;animation:float 5s ease-in-out infinite}
-.hero-shot .c2{bottom:24px;left:-30px;animation:float 5s ease-in-out infinite .8s}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-11px)}}
-
-.hero-shot .mini{background:#101f38;padding:14px}
-.hero-shot .mini .top{display:flex;align-items:center;gap:6px;margin-bottom:12px}
-.hero-shot .mini .top s{width:9px;height:9px;border-radius:50%;background:#2b3f5c;display:block}
-.mini-card{background:#16294a;border-radius:9px;padding:12px 13px;margin-bottom:9px}
-.mini-bar{height:7px;border-radius:5px;background:#22375a;overflow:hidden;margin-top:8px}
-.mini-bar i{display:block;height:100%;border-radius:5px}
-
-.wave{position:absolute;bottom:-1px;right:0;left:0;z-index:2;line-height:0}
-.wave svg{width:100%;height:70px;display:block}
-
-/* ---------- SECTION SHELL ---------- */
-section{position:relative}
-.pad{padding:88px 0}
-.center{text-align:center;display:flex;flex-direction:column;align-items:center}
-.center .lead{margin-inline:auto}
-.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
-.reveal.in{opacity:1;transform:none}
-.compass-wm{position:absolute;width:340px;opacity:.05;pointer-events:none;z-index:0}
-
-/* ---------- PROBLEM (two cards) ---------- */
-.gen-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:44px}
-.gen{border-radius:22px;padding:32px 30px}
-.gen h3{font-family:'Secular One';font-size:24px;margin-bottom:20px;display:flex;align-items:center;gap:9px}
-.gen ul{list-style:none;display:flex;flex-direction:column;gap:15px}
-.gen li{font-size:15.5px;line-height:1.55;padding-bottom:15px;border-bottom:1px solid;display:flex;gap:10px}
-.gen li:last-child{border-bottom:0;padding-bottom:0}
-.gen li svg{width:19px;height:19px;flex:none;margin-top:2px}
-.gen.old{background:#fff;box-shadow:0 1px 0 var(--line),0 20px 50px -30px rgba(12,35,64,.25)}
-.gen.old h3{color:#8095A8} .gen.old li{color:#7189A0;border-color:#EDF1F5} .gen.old li svg{color:#B4C2CF}
-.gen.new{background:linear-gradient(158deg,var(--navy-2),var(--navy));color:#fff;
-  box-shadow:0 0 0 1px rgba(31,191,222,.4),0 30px 66px -26px rgba(12,35,64,.6),0 0 70px -18px rgba(141,198,63,.4)}
-.gen.new h3{color:#fff} .gen.new li{color:#C4D8E8;border-color:rgba(255,255,255,.12)} .gen.new li b{color:var(--nl)}
-.gen.new li svg{color:var(--nc)}
-.gen .chev{color:var(--no)} .gen.new .chev{color:var(--nc)}
-.promise{margin-top:30px;text-align:center;font-family:'Secular One';font-size:clamp(18px,2.4vw,24px);color:var(--no-deep)}
-
-/* ---------- FLOW (4 tiles) ---------- */
-.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:52px}
-.tile{text-align:center;position:relative}
-.tile .box{width:92px;height:92px;margin:0 auto 18px;border-radius:24px;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(155deg,#13345a,var(--navy))}
-.tile .box svg{width:40px;height:40px;stroke:#fff;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-.tile.t1 .box{box-shadow:0 0 0 2px rgba(31,191,222,.55),0 22px 44px -18px rgba(12,35,64,.5),0 0 40px -6px rgba(31,191,222,.55)}
-.tile.t2 .box{box-shadow:0 0 0 2px rgba(141,198,63,.55),0 22px 44px -18px rgba(12,35,64,.5),0 0 40px -6px rgba(141,198,63,.55)}
-.tile.t3 .box{box-shadow:0 0 0 2px rgba(245,130,31,.55),0 22px 44px -18px rgba(12,35,64,.5),0 0 40px -6px rgba(245,130,31,.55)}
-.tile.t4 .box{box-shadow:0 0 0 2px rgba(12,35,64,.5),0 22px 44px -18px rgba(12,35,64,.5)}
-.tile h4{font-family:'Secular One';font-size:20px;margin-bottom:9px}
-.tile.t1 h4{color:var(--nc-deep)} .tile.t2 h4{color:var(--nl-deep)} .tile.t3 h4{color:var(--no-deep)} .tile.t4 h4{color:var(--navy)}
-.tile p{font-size:13.5px;line-height:1.6;color:#54708B}
-.tile .num{font-family:'Secular One';position:absolute;top:-6px;left:50%;transform:translateX(-50%);
-  font-size:11px;color:#fff;background:rgba(255,255,255,.15);width:0;height:0}
-
-/* ---------- FEATURE ROWS ---------- */
-.feat{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center;padding:70px 0}
-.feat.flip .feat-txt{order:2}
-.feat-txt h3{font-family:'Secular One';font-size:clamp(26px,3.4vw,38px);line-height:1.15;color:var(--navy);margin:14px 0 16px}
-.feat-txt .rule{width:60px;height:4px;border-radius:3px;background:linear-gradient(90deg,var(--nc),var(--nl));margin-bottom:20px}
-.pts{list-style:none;display:flex;flex-direction:column;gap:16px;margin-top:24px}
-.pts li{display:flex;gap:12px;font-size:15px;line-height:1.55;color:#33506C}
-.pts li .d{width:9px;height:9px;flex:none;margin-top:7px;border-radius:2px;transform:rotate(45deg)}
-.pts li:nth-child(1) .d{background:var(--nc)} .pts li:nth-child(2) .d{background:var(--nl)}
-.pts li:nth-child(3) .d{background:var(--no)} .pts li:nth-child(4) .d{background:var(--navy)}
-.pts li b{color:var(--navy);display:block;font-weight:700;margin-bottom:1px}
-
-/* מסגרת מסך עם זוהר */
-.glass{border-radius:14px;overflow:hidden;position:relative}
-.glass.cyan{box-shadow:0 0 0 2px rgba(31,191,222,.45),0 30px 66px -28px rgba(12,35,64,.5),0 0 60px -14px rgba(31,191,222,.35)}
-.glass.lime{box-shadow:0 0 0 2px rgba(141,198,63,.5),0 30px 66px -28px rgba(12,35,64,.5),0 0 60px -14px rgba(141,198,63,.35)}
-.glass.orange{box-shadow:0 0 0 2px rgba(245,130,31,.45),0 30px 66px -28px rgba(12,35,64,.5),0 0 60px -14px rgba(245,130,31,.32)}
-.glass .bar{height:30px;background:linear-gradient(#F6F8FA,#EDF1F5);display:flex;align-items:center;padding:0 12px;gap:6px}
-.glass .bar s{width:9px;height:9px;border-radius:50%;background:#D7DEE5;display:block}
-.glass .bar span{margin:0 auto;font-size:10px;color:#9AACBC;direction:ltr}
-.glass .body{background:#F9FAFB}
-
-/* mock: quotes */
-.mk{padding:16px}
-.mk-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.mk-h b{font-size:14px;color:var(--navy)} .mk-h span{font-size:10px;color:#9AACBC}
-.qbox{border:1px solid;border-radius:11px;overflow:hidden;margin-bottom:9px}
-.qbox .qh{padding:8px 12px;font-size:12px;font-weight:700}
-.qbox .qb{background:#fff;padding:10px 12px}
-.q-amber{border-color:#FCD9A8} .q-amber .qh{background:#FEF3E2;color:var(--no-deep)}
-.q-cyan{border-color:#B6E7F1} .q-cyan .qh{background:#E4F6FA;color:var(--nc-deep)}
-.q-item{font-size:12.5px;font-weight:600;color:#334155;line-height:1.5}
-.q-vs{text-align:center;font-size:10px;font-weight:700;color:#F0A150;margin:4px 0}
-.q-note{font-size:11px;color:#64748b;font-style:italic;margin-top:5px}
-
-/* mock: report */
-.doc{background:#fff;border-radius:6px;padding:22px 24px;margin:22px}
-.doc .dh{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--nc);padding-bottom:9px;margin-bottom:13px}
-.doc .dh img{width:78px} .doc .dh s{text-decoration:none;font-size:9px;color:#A0AEC0;text-align:left;line-height:1.5}
-.doc h4{font-family:'Secular One';font-size:19px;color:var(--navy)} .doc .sub{font-size:10px;color:#A0AEC0;margin-bottom:12px}
-.doc .sec{font-size:11px;font-weight:700;color:var(--nc-deep);margin:12px 0 5px}
-.doc .tx{font-size:10.5px;line-height:1.8;color:#4A5568}
-.doc .code{display:flex;gap:5px;margin:8px 0}
-.doc .code b{flex:1;text-align:center;font-size:10px;color:#fff;padding:6px 0;border-radius:5px;font-weight:700}
-.doc .lines u{display:block;height:6px;background:#EDF2F7;border-radius:3px;margin-bottom:6px;text-decoration:none}
-.doc .lines u:nth-child(2){width:90%}.doc .lines u:nth-child(3){width:80%}
-
-/* ---------- STRIP (report in hand) ---------- */
-.strip{background:linear-gradient(158deg,var(--navy-2),var(--navy));color:#fff;border-radius:28px;padding:56px;position:relative;overflow:hidden}
-.strip .glow{position:absolute;inset:0;background:radial-gradient(600px 300px at 80% 20%,rgba(245,130,31,.22),transparent 60%),radial-gradient(500px 300px at 10% 90%,rgba(141,198,63,.16),transparent 60%)}
-.strip-grid{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
-.strip h3{font-family:'Secular One';font-size:clamp(28px,3.6vw,40px);line-height:1.12}
-.strip p{color:#BCD2E4;font-size:16px;line-height:1.7;margin-top:16px;font-weight:300}
-.badge{display:inline-flex;align-items:center;gap:12px;margin-top:26px;background:rgba(245,130,31,.14);
-  border:1px solid rgba(245,130,31,.4);border-radius:14px;padding:15px 20px}
-.badge .ic{width:40px;height:40px;border-radius:11px;background:linear-gradient(140deg,var(--no),var(--no-deep));
-  display:flex;align-items:center;justify-content:center;flex:none}
-.badge .ic svg{width:21px;height:21px;color:#fff}
-.badge b{font-size:14px;color:#fff;display:block}.badge span{font-size:12.5px;color:#A9C0D4}
-
-/* ---------- MINI FEATURES GRID ---------- */
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:50px}
-.mcard{background:#fff;border-radius:18px;padding:28px 26px;box-shadow:0 1px 0 var(--line),0 20px 44px -30px rgba(12,35,64,.3);
-  transition:transform .2s,box-shadow .2s}
-.mcard:hover{transform:translateY(-4px);box-shadow:0 24px 50px -28px rgba(12,35,64,.4)}
-.mcard .ic{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
-.mcard .ic svg{width:24px;height:24px;color:#fff}
-.mcard h4{font-family:'Secular One';font-size:20px;color:var(--navy);margin-bottom:8px}
-.mcard p{font-size:14px;line-height:1.6;color:var(--mute)}
-.ic-cyan{background:linear-gradient(140deg,var(--nc),var(--nc-deep))}
-.ic-lime{background:linear-gradient(140deg,var(--nl),var(--nl-deep))}
-.ic-orange{background:linear-gradient(140deg,var(--no),var(--no-deep))}
-
-/* ---------- VALUE (bottom line) ---------- */
-.vals{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:50px}
-.val{background:#fff;border-radius:20px;padding:30px 26px;text-align:center}
-.val:nth-child(1){box-shadow:0 0 0 2px rgba(245,130,31,.4),0 20px 44px -26px rgba(12,35,64,.3)}
-.val:nth-child(2){box-shadow:0 0 0 2px rgba(141,198,63,.42),0 20px 44px -26px rgba(12,35,64,.3)}
-.val:nth-child(3){box-shadow:0 0 0 2px rgba(31,191,222,.42),0 20px 44px -26px rgba(12,35,64,.3)}
-.val .k{font-size:11px;letter-spacing:.14em;font-weight:800;margin-bottom:12px}
-.val:nth-child(1) .k{color:var(--no-deep)}.val:nth-child(2) .k{color:var(--nl-deep)}.val:nth-child(3) .k{color:var(--nc-deep)}
-.val .n{font-family:'Secular One';font-size:26px;color:var(--navy);margin-bottom:10px}
-.val p{font-size:14px;line-height:1.6;color:var(--mute)}
-
-/* ---------- FINAL CTA ---------- */
-.final{background:
-  radial-gradient(800px 500px at 82% 12%,rgba(31,191,222,.22),transparent 55%),
-  radial-gradient(700px 460px at 8% 92%,rgba(245,130,31,.18),transparent 55%),
-  linear-gradient(160deg,#0A1E38,#0C2340 60%,#0E2E52);
-  color:#fff;text-align:center;padding:96px 26px;position:relative;overflow:hidden}
-.final .compass{position:absolute;right:-140px;bottom:-140px;width:460px;opacity:.08}
-.final h2{font-family:'Secular One';font-size:clamp(32px,4.8vw,52px);line-height:1.12;position:relative;z-index:2}
-.final p{color:#B9D0E4;font-size:18px;font-weight:300;margin-top:18px;position:relative;z-index:2}
-.final .cta-row{position:relative;z-index:2;margin-top:36px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
-.final .mailpill{margin-top:24px;position:relative;z-index:2;font-size:15px;color:#9FC0D8;direction:ltr}
-
-/* ---------- FOOTER ---------- */
-footer{background:#07152a;color:#7E97AE;padding:34px 26px;text-align:center;font-size:13px}
-footer .fl{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px}
-footer .fl img{width:28px;height:28px;object-fit:contain;object-position:center}
-footer .fl b{font-family:'Secular One';font-size:17px;color:#C4D8E8}
-
-/* ---------- RESPONSIVE ---------- */
-@media(max-width:900px){
-  nav.links,.nav-cta{display:none}
-  .menu-btn{display:block}
-  .hero-grid{grid-template-columns:1fr;gap:30px;padding:110px 0 60px;text-align:center}
-  .hero .cta-row,.hero .trust{justify-content:center}
-  .hero p.sub{margin-inline:auto}
-  .hero-shot{max-width:440px;margin:0 auto}
-  .gen-grid{grid-template-columns:1fr}
-  .flow{grid-template-columns:1fr 1fr;gap:30px}
-  .feat,.feat.flip{grid-template-columns:1fr;gap:30px}
-  .feat.flip .feat-txt{order:0}
-  .feat-img{max-width:520px;margin:0 auto;width:100%}
-  .strip-grid{grid-template-columns:1fr;gap:30px}
-  .strip{padding:38px 26px}
-  .grid3,.vals{grid-template-columns:1fr}
-}
-@media(max-width:520px){
-  .flow{grid-template-columns:1fr}
-  .pad{padding:64px 0}
-}
-@media(prefers-reduced-motion:reduce){
-  *{animation:none!important}
-  .reveal{opacity:1;transform:none}
-}
-
-/* inline svg sizing fallbacks */
-.gen li svg,.trust svg,.eyebrow svg{width:19px;height:19px}
-.trust svg{width:15px;height:15px}
-.btn svg{width:18px;height:18px}
-.menu-btn svg{width:26px;height:26px}
-.mcard .ic svg,.badge .ic svg,.chip .ic svg{width:auto;height:auto}
-svg{flex:none}
-
-/* ---------- CONTACT FORM ---------- */
-.contact-grid{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:center;text-align:right}
-.contact-copy h2{font-family:'Secular One';font-size:clamp(30px,4.2vw,46px);line-height:1.12;color:#fff}
-.contact-copy p{color:#B9D0E4;font-size:17px;line-height:1.7;font-weight:300;margin-top:16px;max-width:42ch}
-.contact-pts{list-style:none;margin:24px 0 0;display:flex;flex-direction:column;gap:12px}
-.contact-pts li{display:flex;align-items:center;gap:11px;color:#CBDCEB;font-size:15px}
-.contact-pts .d{width:9px;height:9px;flex:none;transform:rotate(45deg);background:var(--nl);box-shadow:0 0 10px rgba(141,198,63,.7)}
-.contact-copy .mailpill{margin-top:24px}
-
-.contact-card{background:rgba(255,255,255,.97);border-radius:22px;padding:32px 30px;
-  box-shadow:0 0 0 1px rgba(255,255,255,.12),0 40px 90px -30px rgba(0,0,0,.6),0 0 70px -18px rgba(31,191,222,.35)}
-#leadForm label{display:block;font-size:13.5px;font-weight:700;color:var(--navy);margin-bottom:14px;text-align:right}
-#leadForm label b{color:var(--no)}
-.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-#leadForm input,#leadForm select,#leadForm textarea{
-  width:100%;margin-top:7px;padding:12px 13px;border:1.5px solid var(--line);border-radius:11px;
-  font-family:'Heebo';font-size:15px;font-weight:400;color:var(--ink);background:#fff;transition:border-color .18s,box-shadow .18s}
-#leadForm input::placeholder,#leadForm textarea::placeholder{color:#A9B7C6;font-weight:300}
-#leadForm input:focus,#leadForm select:focus,#leadForm textarea:focus{outline:0;border-color:var(--nc);box-shadow:0 0 0 4px rgba(31,191,222,.14)}
-#leadForm input.err,#leadForm select.err{border-color:#E5484D;box-shadow:0 0 0 4px rgba(229,72,77,.12)}
-#leadForm textarea{resize:vertical;min-height:74px}
-.sel-wrap{position:relative}
-.sel-wrap::after{content:'▾';position:absolute;left:14px;top:calc(50% + 3px);transform:translateY(-50%);color:#9AACBC;pointer-events:none;font-size:12px}
-#leadForm select{appearance:none;-webkit-appearance:none;cursor:pointer;padding-left:34px}
-.hp{position:absolute!important;left:-9999px!important;width:1px!important;height:1px!important;opacity:0!important}
-.form-submit{width:100%;justify-content:center;margin-top:6px;position:relative}
-.form-submit .spin{width:17px;height:17px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;display:none}
-.form-submit.loading .lbl{opacity:.6}
-.form-submit.loading .spin{display:inline-block;animation:ldspin .7s linear infinite}
-@keyframes ldspin{to{transform:rotate(360deg)}}
-.form-note{margin-top:12px;font-size:13.5px;text-align:center;min-height:1.2em;font-weight:500}
-.form-note.bad{color:#E5484D}
-.thanks{text-align:center;padding:16px 0 6px}
-.thanks-ic{width:64px;height:64px;margin:0 auto 16px;border-radius:50%;background:linear-gradient(140deg,var(--nl),var(--nl-deep));
-  display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px -8px rgba(141,198,63,.7)}
-.thanks-ic svg{width:32px;height:32px;color:#fff}
-.thanks-anim{display:none;width:184px;height:184px;margin:0 auto 14px;border-radius:50%;
-  background:#0A1C34;overflow:hidden;box-shadow:0 14px 38px rgba(12,35,64,.26)}
-.thanks-anim img{width:100%;height:100%;display:block}
-@media (prefers-reduced-motion:reduce){.thanks-anim{display:none !important}}
-.thanks h3{font-family:'Secular One';font-size:26px;color:var(--navy);margin-bottom:8px}
-.thanks p{color:var(--mute);font-size:15px}
-@media(max-width:900px){
-  .contact-grid{grid-template-columns:1fr;gap:32px;text-align:center}
-  .contact-copy p{margin-inline:auto}
-  .contact-pts li{justify-content:center}
-  .contact-card{text-align:right}
-}
-
-/* =====================================================================
-   שכבת אנימציות + גרפיקה מועשרת
-   ===================================================================== */
-
-/* חלקיקים צפים ברקע ההירו */
-.hero-particles{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
-.hero-particles span{position:absolute;display:block;border-radius:50%;opacity:.5;
-  animation:rise linear infinite}
-@keyframes rise{
-  0%{transform:translateY(20px) scale(.6);opacity:0}
-  12%{opacity:.55}
-  100%{transform:translateY(-680px) scale(1);opacity:0}
-}
-
-/* וריאנטים של reveal — כניסה מכיוונים שונים */
-.reveal.from-right{transform:translateX(40px)}
-.reveal.from-left{transform:translateX(-40px)}
-.reveal.from-right.in,.reveal.from-left.in{transform:none}
-.reveal.zoom{transform:scale(.92);opacity:0}
-.reveal.zoom.in{transform:none;opacity:1}
-
-/* השהיה מדורגת (stagger) לילדים ברשת */
-.stagger>*{opacity:0;transform:translateY(28px);transition:opacity .6s cubic-bezier(.2,.7,.2,1),transform .6s cubic-bezier(.2,.7,.2,1)}
-.stagger.in>*{opacity:1;transform:none}
-.stagger.in>*:nth-child(1){transition-delay:.00s}
-.stagger.in>*:nth-child(2){transition-delay:.09s}
-.stagger.in>*:nth-child(3){transition-delay:.18s}
-.stagger.in>*:nth-child(4){transition-delay:.27s}
-.stagger.in>*:nth-child(5){transition-delay:.36s}
-.stagger.in>*:nth-child(6){transition-delay:.45s}
-
-/* כותרת ההירו — כניסה עולה מילה-מילה */
-.hero h1 .w{display:inline-block;opacity:0;transform:translateY(28px) rotate(3deg);
-  animation:wordUp .7s cubic-bezier(.2,.8,.2,1) forwards}
-.hero h1 .w:nth-child(1){animation-delay:.15s}
-.hero h1 .w:nth-child(2){animation-delay:.28s}
-.hero h1 .w:nth-child(3){animation-delay:.42s}
-.hero h1 .w:nth-child(4){animation-delay:.56s}
-@keyframes wordUp{to{opacity:1;transform:none}}
-.hero .eyebrow,.hero .sub,.hero .cta-row,.hero .trust{opacity:0;animation:fadeUp .7s ease forwards}
-.hero .eyebrow{animation-delay:.05s}.hero .sub{animation-delay:.62s}
-.hero .cta-row{animation-delay:.74s}.hero .trust{animation-delay:.86s}
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
-.hero-shot{opacity:0;animation:shotIn 1s cubic-bezier(.2,.8,.2,1) .5s forwards}
-@keyframes shotIn{from{opacity:0;transform:perspective(1600px) rotateY(14deg) translateX(-40px)}
-  to{opacity:1;transform:perspective(1600px) rotateY(6deg)}}
-
-/* ריחוף על כרטיסים */
-.mcard,.val,.gen{transition:transform .28s cubic-bezier(.2,.7,.2,1),box-shadow .28s}
-.mcard:hover{transform:translateY(-8px)}
-.val:hover{transform:translateY(-6px) scale(1.015)}
-.mcard .ic{transition:transform .35s cubic-bezier(.3,1.4,.5,1)}
-.mcard:hover .ic{transform:rotate(-8deg) scale(1.08)}
-
-/* קו התקדמות עליון */
-.scrollbar{position:fixed;top:0;right:0;height:3px;z-index:200;
-  background:linear-gradient(90deg,var(--nc),var(--nl),var(--no));width:0;transition:width .1s linear;
-  box-shadow:0 0 12px rgba(31,191,222,.6)}
-
-/* ===== פס הסטטיסטיקות (מספרים שעולים) ===== */
-.statsband{position:relative;overflow:hidden;background:linear-gradient(158deg,var(--navy-2),var(--navy));color:#fff;
-  border-radius:28px;padding:46px 40px;margin-top:8px}
-.statsband .glow{position:absolute;inset:0;background:
-  radial-gradient(500px 260px at 82% 12%,rgba(31,191,222,.22),transparent 60%),
-  radial-gradient(460px 260px at 10% 92%,rgba(245,130,31,.16),transparent 60%)}
-.statsband .sg{position:relative;z-index:2;display:grid;grid-template-columns:repeat(4,1fr);gap:22px;text-align:center}
-.statsband .st .num{font-family:'Secular One';font-size:clamp(34px,4.4vw,52px);line-height:1;
-  background:linear-gradient(120deg,#fff,#BCD9E8);-webkit-background-clip:text;background-clip:text;color:transparent}
-.statsband .st .num .u{font-size:.5em;color:var(--nl);-webkit-text-fill-color:var(--nl)}
-.statsband .st .lbl{font-size:14px;color:#A9C0D4;margin-top:8px;font-weight:500}
-.statsband .st .dsc{font-size:12px;color:#7E97AE;margin-top:2px}
-.statsband .st{position:relative}
-.statsband .st:not(:last-child)::after{content:'';position:absolute;left:-11px;top:14%;height:72%;width:1px;background:rgba(255,255,255,.12)}
-
-@media(max-width:760px){
-  .statsband .sg{grid-template-columns:1fr 1fr;gap:30px 18px}
-  .statsband .st:not(:last-child)::after{display:none}
-  .hero h1 .w{animation-duration:.5s}
-}
-@media(prefers-reduced-motion:reduce){
-  .hero-particles,.scrollbar{display:none}
-  .hero h1 .w,.hero .eyebrow,.hero .sub,.hero .cta-row,.hero .trust,.hero-shot{animation:none;opacity:1;transform:none}
-  .stagger>*{opacity:1;transform:none}
-}
-
-/* ===== ספינר ענק שמסתובב עם הגלילה ===== */
-.scroll-compass{position:fixed;z-index:0;pointer-events:none;width:300px;height:300px;opacity:.06;
-  left:-90px;top:38%;will-change:transform}
+/* ---------- background scroll compass ---------- */
+.scroll-compass{position:fixed;z-index:0;pointer-events:none;width:520px;height:520px;opacity:.06;
+  left:-150px;top:34%;will-change:transform}
 .scroll-compass img{width:100%;height:100%;object-fit:contain}
-@media(max-width:760px){.scroll-compass{width:190px;height:190px;left:-70px;opacity:.05}}
+@media (max-width:760px){.scroll-compass{width:340px;height:340px;left:-120px;opacity:.05}}
+@media (prefers-reduced-motion:reduce){.scroll-compass{display:none}}
 
-/* ===== אלמנטים אינטראקטיביים ===== */
-/* כרטיסי "מה יש בפנים" — לחיצה מרחיבה טיפ */
-.mcard .more{max-height:0;overflow:hidden;opacity:0;
-  transition:max-height .4s cubic-bezier(.2,.7,.2,1),opacity .3s,margin-top .3s}
-.mcard.open .more{max-height:120px;opacity:1;margin-top:12px}
-.mcard .more p{font-size:13px;line-height:1.6;color:var(--nc-deep);
-  border-top:1px dashed var(--line);padding-top:10px;margin:0}
-.mcard .tap{display:inline-flex;align-items:center;gap:5px;margin-top:12px;font-size:12.5px;font-weight:700;color:var(--nc-deep)}
-.mcard .tap svg{width:14px;height:14px;transition:transform .3s}
-.mcard.open .tap svg{transform:rotate(180deg)}
-.mcard.open{box-shadow:0 0 0 2px rgba(31,191,222,.4),0 26px 52px -28px rgba(12,35,64,.4)}
+/* ---------- header ---------- */
+header{position:fixed;top:0;right:0;left:0;z-index:100;transition:all .3s}
+header .bar{max-width:1180px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;justify-content:space-between}
+.logo-row{display:flex;align-items:center;gap:11px;text-decoration:none}
+.logo-row img{width:34px;height:34px;object-fit:contain;object-position:center}
+.logo-row b{font-family:'Secular One';font-size:20px;color:#fff}
 
-/* טאבים של "הדגמה חיה" */
-.demo-tabs{max-width:940px;margin:44px auto 0}
-.dt-bar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:26px}
-.dt-btn{border:1.5px solid var(--line);background:#fff;color:var(--mute);font-family:'Heebo';font-weight:700;
-  font-size:14.5px;padding:11px 22px;border-radius:999px;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
-.dt-btn svg{width:17px;height:17px}
-.dt-btn:hover{border-color:var(--nc);color:var(--nc-deep)}
-.dt-btn.on{background:linear-gradient(135deg,var(--nc),var(--nc-deep));color:#fff;border-color:transparent;
-  box-shadow:0 12px 26px -8px rgba(31,191,222,.5)}
-.dt-panel{display:none;animation:dtIn .45s cubic-bezier(.2,.7,.2,1)}
-.dt-panel.on{display:block}
-@keyframes dtIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-/* ── לשוניות ככרטיסים: הלוגו מונפש מעל הכיתוב, החץ הופך לכלי ──────── */
-.dt-bar{gap:12px}
-.dt-btn{flex-direction:column;gap:10px;padding:18px 14px 15px;border-radius:18px;min-width:154px;
-  line-height:1.35;text-align:center}
-.dt-btn .mk{position:relative;width:68px;height:68px;border-radius:50%;background:#F2F6FA;display:block;
-  overflow:hidden;transition:background .25s}
-.dt-btn.on .mk{background:#fff}
-.dt-btn .mk img,.dt-btn .mk .ov{position:absolute;inset:0;width:100%;height:100%;display:block}
-.dt-btn .ov{opacity:0}
-.dt-btn .arrow{transform-box:fill-box}
-.mk-chat .arrow{transform-origin:50% 50%}
-.mk-quotes .arrow{transform-origin:50% 37%}
-.mk-report .arrow{transform-origin:64% 34%}
-@keyframes mkArrowC{0%,7%{opacity:1;transform:scale(1) rotate(0)}20%{opacity:0;transform:scale(.10) rotate(-30deg)}73%{opacity:0;transform:scale(.10) rotate(-30deg)}88%,100%{opacity:1;transform:scale(1) rotate(0)}}
-@keyframes mkArrowQ{0%,7%{opacity:1;transform:scale(1) rotate(0)}20%{opacity:0;transform:scale(.16) rotate(-46deg)}73%{opacity:0;transform:scale(.16) rotate(-46deg)}88%,100%{opacity:1;transform:scale(1) rotate(0)}}
-@keyframes mkArrowR{0%,7%{opacity:1;transform:scale(1) rotate(0)}20%{opacity:0;transform:scale(.20) rotate(6deg)}73%{opacity:0;transform:scale(.20) rotate(6deg)}88%,100%{opacity:1;transform:scale(1) rotate(0)}}
-.dt-btn:hover .mk-chat .arrow,.dt-btn.on .mk-chat .arrow{animation:mkArrowC 3.1s ease-in-out infinite}
-.dt-btn:hover .mk-quotes .arrow,.dt-btn.on .mk-quotes .arrow{animation:mkArrowQ 3.1s ease-in-out infinite}
-.dt-btn:hover .mk-report .arrow,.dt-btn.on .mk-report .arrow{animation:mkArrowR 3.1s ease-in-out infinite}
-@keyframes mkOv{0%,15%{opacity:0}21%,72%{opacity:1}84%,100%{opacity:0}}
-.dt-btn:hover .ov,.dt-btn.on .ov{animation:mkOv 3.1s ease-in-out infinite}
-@keyframes mkDraw{0%,26%{stroke-dashoffset:var(--d)}46%,68%{stroke-dashoffset:0}80%,100%{stroke-dashoffset:var(--d)}}
-@keyframes mkDot{0%,28%{transform:scale(0)}38%{transform:scale(1.25)}68%{transform:scale(1)}78%,100%{transform:scale(0)}}
-@keyframes mkRow{0%,30%{fill:#C4D3E1}42%,68%{fill:var(--nl)}80%,100%{fill:#C4D3E1}}
-@keyframes mkSeed{0%,16%{transform:scale(.14);opacity:0}22%{transform:scale(.5);opacity:1}30%{transform:scale(1);opacity:1}66%{transform:scale(1);opacity:1}75%{transform:scale(.14);opacity:1}80%,100%{transform:scale(.14);opacity:0}}
-@keyframes mkLens{0%,16%{transform:translateY(-13px) scale(.16);opacity:0}21%{transform:translateY(-13px) scale(.3);opacity:1}31%{transform:translateY(-13px) scale(1);opacity:1}64%{transform:translateY(13px) scale(1);opacity:1}73%{transform:translateY(-13px) scale(.3);opacity:1}79%,100%{transform:translateY(-13px) scale(.16);opacity:0}}
-@keyframes mkPen{0%,16%{transform:translate(11px,-10px) scale(.2);opacity:0}21%{transform:translate(11px,-10px) scale(.45);opacity:1}30%{transform:translate(11px,-10px) scale(1);opacity:1}44%{transform:translate(-11px,-10px) scale(1);opacity:1}48%{transform:translate(11px,0) scale(1);opacity:1}59%{transform:translate(-11px,0) scale(1);opacity:1}63%{transform:translate(11px,10px) scale(1);opacity:1}71%{transform:translate(-4px,10px) scale(1);opacity:1}76%{transform:translate(11px,-10px) scale(.45);opacity:1}81%,100%{transform:translate(11px,-10px) scale(.2);opacity:0}}
-.dt-btn .ry{--d:30}
-.dt-btn .ik{--d:24}
-.dt-btn .nd,.dt-btn .lens,.dt-btn .pen,.dt-btn .seed{transform-box:fill-box;transform-origin:center}
-.dt-btn:hover .seed,.dt-btn.on .seed{animation:mkSeed 3.1s ease-in-out infinite}
-.dt-btn:hover .ry,.dt-btn.on .ry{animation:mkDraw 3.1s ease-in-out infinite}
-.dt-btn:hover .y2,.dt-btn.on .y2{animation-delay:.05s}
-.dt-btn:hover .y3,.dt-btn.on .y3{animation-delay:.10s}
-.dt-btn:hover .y4,.dt-btn.on .y4{animation-delay:.15s}
-.dt-btn:hover .y5,.dt-btn.on .y5{animation-delay:.20s}
-.dt-btn:hover .y6,.dt-btn.on .y6{animation-delay:.25s}
-.dt-btn:hover .nd,.dt-btn.on .nd{animation:mkDot 3.1s ease-in-out infinite}
-.dt-btn:hover .n2,.dt-btn.on .n2{animation-delay:.05s}
-.dt-btn:hover .n3,.dt-btn.on .n3{animation-delay:.10s}
-.dt-btn:hover .n4,.dt-btn.on .n4{animation-delay:.15s}
-.dt-btn:hover .n5,.dt-btn.on .n5{animation-delay:.20s}
-.dt-btn:hover .n6,.dt-btn.on .n6{animation-delay:.25s}
-.dt-btn:hover .r1,.dt-btn.on .r1{animation:mkRow 3.1s ease-in-out infinite}
-.dt-btn:hover .r2,.dt-btn.on .r2{animation:mkRow 3.1s ease-in-out infinite;animation-delay:.17s}
-.dt-btn:hover .r3,.dt-btn.on .r3{animation:mkRow 3.1s ease-in-out infinite;animation-delay:.34s}
-.dt-btn:hover .lens,.dt-btn.on .lens{animation:mkLens 3.1s cubic-bezier(.45,0,.55,1) infinite}
-.dt-btn:hover .pg,.dt-btn.on .pg{animation:mkOv 3.1s ease-in-out infinite}
-.dt-btn:hover .k1,.dt-btn.on .k1{animation:mkDraw 3.1s ease-in-out infinite}
-.dt-btn:hover .k2,.dt-btn.on .k2{animation:mkDraw 3.1s ease-in-out infinite;animation-delay:.14s}
-.dt-btn:hover .k3,.dt-btn.on .k3{animation:mkDraw 3.1s ease-in-out infinite;animation-delay:.28s}
-.dt-btn:hover .pen,.dt-btn.on .pen{animation:mkPen 3.1s ease-in-out infinite}
-/* ── שני האייקונים החדשים ──────────────────────────────────────── */
-.mk-docs .arrow{transform-origin:50% 30%}
-.mk-quant .arrow{transform-origin:50% 68%}
-@keyframes mkArrowD{0%,7%{opacity:1;transform:scale(1) rotate(0)}20%{opacity:0;transform:scale(.18) rotate(-14deg)}73%{opacity:0;transform:scale(.18) rotate(-14deg)}88%,100%{opacity:1;transform:scale(1) rotate(0)}}
-@keyframes mkArrowB{0%,7%{opacity:1;transform:scale(1) rotate(0)}20%{opacity:0;transform:scale(.14) rotate(20deg)}73%{opacity:0;transform:scale(.14) rotate(20deg)}88%,100%{opacity:1;transform:scale(1) rotate(0)}}
-.dt-btn:hover .mk-docs .arrow,.dt-btn.on .mk-docs .arrow{animation:mkArrowD 3.1s ease-in-out infinite}
-.dt-btn:hover .mk-quant .arrow,.dt-btn.on .mk-quant .arrow{animation:mkArrowB 3.1s ease-in-out infinite}
-/* הדף נשאב פנימה ומתפוגג לניצוצות */
-@keyframes mkSheet{0%,16%{transform:translateY(-26px) scale(.2);opacity:0}
-                   21%{transform:translateY(-20px) scale(.45);opacity:1}
-                   32%{transform:translateY(0) scale(1);opacity:1}
-                   54%{transform:translateY(0) scale(1);opacity:1}
-                   64%{transform:translateY(0) scale(.55);opacity:0}
-                   100%{transform:translateY(-26px) scale(.2);opacity:0}}
-@keyframes mkSpark{0%,58%{transform:scale(0);opacity:0}
-                   66%{transform:scale(1);opacity:1}
-                   74%{transform:scale(1);opacity:1}
-                   80%,100%{transform:scale(0);opacity:0}}
-/* העמודות מטפסות מקו הבסיס שאליו החץ התכווץ */
-@keyframes mkBase {0%,16%{transform:scaleX(0);opacity:0}22%,74%{transform:scaleX(1);opacity:1}82%,100%{transform:scaleX(0);opacity:0}}
-@keyframes mkBar  {0%,22%{transform:scaleY(0)}40%{transform:scaleY(1)}70%{transform:scaleY(1)}80%,100%{transform:scaleY(0)}}
-.dt-btn .sheet,.dt-btn .sp,.dt-btn .base{transform-box:fill-box;transform-origin:center}
-.dt-btn .br{transform-box:fill-box;transform-origin:bottom}
-.dt-btn:hover .sheet,.dt-btn.on .sheet{animation:mkSheet 3.1s ease-in-out infinite}
-.dt-btn:hover .sp,.dt-btn.on .sp{animation:mkSpark 3.1s ease-in-out infinite}
-.dt-btn:hover .s2,.dt-btn.on .s2{animation-delay:.05s}
-.dt-btn:hover .s3,.dt-btn.on .s3{animation-delay:.10s}
-.dt-btn:hover .s4,.dt-btn.on .s4{animation-delay:.15s}
-.dt-btn:hover .s5,.dt-btn.on .s5{animation-delay:.20s}
-.dt-btn:hover .base,.dt-btn.on .base{animation:mkBase 3.1s ease-in-out infinite}
-.dt-btn:hover .br,.dt-btn.on .br{animation:mkBar 3.1s cubic-bezier(.3,1.4,.5,1) infinite}
-.dt-btn:hover .b2,.dt-btn.on .b2{animation-delay:.11s}
-.dt-btn:hover .b3,.dt-btn.on .b3{animation-delay:.22s}
+/* ---------- hero ---------- */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(1200px 600px at 70% -10%,#123253 0%,var(--navy) 55%);
+  overflow:hidden;text-align:center;padding:120px 24px 80px;z-index:1}
+.hero::before{content:'';position:absolute;inset:0;
+  background-image:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px);
+  background-size:22px 22px;opacity:.6}
 
-/* ── מסך הביניים בין הרצה להרצה ────────────────────────────────── */
-.uiscreen{position:relative}
-.dt-il{position:absolute;inset:0;z-index:6;background:#0A1C34;display:flex;align-items:center;
-  justify-content:center;opacity:0;pointer-events:none;transition:opacity .42s ease}
-.dt-il.show{opacity:1}
-.dt-il img{width:64%;max-width:236px;height:auto;display:block}
-@media (prefers-reduced-motion:reduce){.dt-il{display:none}}
+.hero-inner{position:relative;z-index:2;max-width:780px}
+.hero h1{font-family:'Secular One';color:#fff;line-height:1.15;
+  font-size:clamp(32px,6vw,60px);margin-bottom:8px}
+.hero h1 .rot{color:var(--no);display:inline-block;min-height:1.15em}
+.hero p.sub{color:#C7D6E6;font-size:clamp(17px,2.4vw,21px);font-weight:300;
+  line-height:1.6;margin:22px auto 40px;max-width:620px}
 
-/* ── תווית המחשה ───────────────────────────────────────────────── */
-.demo-tag{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:5px 12px;border-radius:99px;
-  background:#FFF3E6;border:1px solid #FAD4AE;color:#B0590C;font-size:12px;font-weight:700}
-.demo-tag::before{content:"";width:6px;height:6px;border-radius:50%;background:#F5821F;flex:0 0 6px}
+.cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
 
-/* ── פאנל קליטת מסמכים ─────────────────────────────────────────── */
-.dc{padding:18px;background:#F7FAFC}
-.dc-drop{border:2px dashed #C4D3E1;border-radius:14px;padding:16px;text-align:center;color:var(--mute);font-size:13px}
-.dc-file{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:12px;
-  padding:11px 13px;margin:0 auto;max-width:330px;text-align:right;opacity:0;transform:translateY(-14px)}
-.dc-file b{font-size:13.5px;color:var(--ink);display:block}
-.dc-file span{font-size:11.5px;color:var(--mute)}
-.dc-ico{width:34px;height:34px;border-radius:9px;background:#FDE8E8;color:#C0392B;display:flex;align-items:center;
-  justify-content:center;font-size:11px;font-weight:700;flex:0 0 34px}
-.dc-prog{height:6px;border-radius:99px;background:#E4EBF2;margin:14px auto 6px;max-width:330px;overflow:hidden;opacity:0}
-.dc-prog i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--nc),var(--nl))}
-.dc-stat{text-align:center;font-size:12px;color:var(--mute);min-height:17px}
-.dc-out{margin-top:14px;display:grid;gap:8px}
-.dc-row{background:#fff;border:1px solid var(--line);border-right:3px solid var(--nl);border-radius:10px;
-  padding:9px 12px;font-size:13px;color:var(--ink);opacity:0;transform:translateX(12px)}
-.dc-row s{display:block;font-size:11.5px;color:var(--mute);text-decoration:none;margin-top:2px}
-.dc-seal{margin-top:14px;text-align:center;opacity:0}
-.dc-seal span{display:inline-flex;align-items:center;gap:7px;background:#EAF8FC;border:1px solid #B6E7F1;color:#106C82;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:700}
-.run .dc-file{animation:dcIn .5s ease .1s forwards}
-.run .dc-prog{animation:dcFade .3s ease .5s forwards}
-.run .dc-prog i{animation:dcBar 1.5s cubic-bezier(.4,0,.2,1) .55s forwards}
-.run .dc-r1{animation:dcRow .45s ease 1.9s forwards}
-.run .dc-r2{animation:dcRow .45s ease 2.15s forwards}
-.run .dc-r3{animation:dcRow .45s ease 2.4s forwards}
-.run .dc-seal{animation:dcFade .5s ease 2.8s forwards}
-@keyframes dcIn{to{opacity:1;transform:none}}
-@keyframes dcFade{to{opacity:1}}
-@keyframes dcBar{to{width:100%}}
-@keyframes dcRow{to{opacity:1;transform:none}}
+.hero-strip{position:relative;z-index:2;margin-top:56px;display:flex;gap:34px;justify-content:center;flex-wrap:wrap}
+.hero-strip .s{color:#9FB4CC;font-size:14.5px;display:flex;align-items:center;gap:9px}
+.hero-strip .s b{color:#fff;font-family:'Secular One';font-size:18px}
+.hero-strip .s .d{width:8px;height:8px;border-radius:2px;transform:rotate(45deg);
+  background:var(--nl);box-shadow:0 0 10px rgba(141,198,63,.6)}
 
-/* ── פאנל תמונה כמותית ─────────────────────────────────────────── */
-.qt{padding:20px 18px;background:#F7FAFC}
-.qt-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
-.qt-h b{font-size:13.5px;color:var(--ink)}
-.qt-h span{font-size:11.5px;color:var(--mute)}
-.qt-chart{display:flex;align-items:flex-end;gap:10px;height:150px;padding:0 4px 0;border-bottom:2px solid #D6E0EA}
-.qt-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
-.qt-val{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:5px;opacity:0}
-.qt-bar{width:100%;max-width:44px;border-radius:7px 7px 0 0;transform:scaleY(0);transform-origin:bottom}
-.qt-lbl{margin-top:9px;font-size:11.5px;color:var(--mute);text-align:center;line-height:1.3;min-height:29px}
-.run .qt-bar{animation:qtGrow .85s cubic-bezier(.25,1.2,.4,1) forwards}
-.run .qt-val{animation:dcFade .4s ease forwards}
-.run .qt-c2 .qt-bar,.run .qt-c2 .qt-val{animation-delay:.12s}
-.run .qt-c3 .qt-bar,.run .qt-c3 .qt-val{animation-delay:.24s}
-.run .qt-c4 .qt-bar,.run .qt-c4 .qt-val{animation-delay:.36s}
-.run .qt-c5 .qt-bar,.run .qt-c5 .qt-val{animation-delay:.48s}
-.run .qt-c6 .qt-bar,.run .qt-c6 .qt-val{animation-delay:.60s}
-@keyframes qtGrow{to{transform:scaleY(1)}}
-@media (prefers-reduced-motion:reduce){
-  .run .dc-file,.run .dc-prog,.run .dc-row,.run .dc-seal,.run .qt-val{animation:none!important;opacity:1!important;transform:none!important}
-  .run .dc-prog i{animation:none!important;width:100%!important}
-  .run .qt-bar{animation:none!important;transform:scaleY(1)!important}
-}
-/* ── מחשב: הלשוניות בטור ימני, הבמה משמאל ─────────────────────────── */
-.dt-stage{position:relative}
+/* ---------- value teasers ---------- */
+.teasers{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:90px 24px 20px}
+.teasers h2{text-align:center;font-family:'Secular One';color:var(--navy);
+  font-size:clamp(24px,4vw,34px);margin-bottom:14px}
+.teasers .lead{text-align:center;color:var(--mute);font-size:17px;max-width:560px;
+  margin:0 auto 54px;font-weight:300;line-height:1.6}
+.tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+@media(max-width:820px){.tgrid{grid-template-columns:1fr}}
+.tcard{background:#fff;border:1px solid var(--line);border-radius:20px;padding:30px 26px;
+  box-shadow:0 20px 46px -30px rgba(12,35,64,.32);transition:transform .28s,box-shadow .28s}
+.tcard:hover{transform:translateY(-5px);box-shadow:0 30px 60px -30px rgba(12,35,64,.42)}
+.tcard .ic{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+  margin-bottom:18px;background:linear-gradient(135deg,rgba(31,191,222,.16),rgba(141,198,63,.16))}
+.tcard .ic svg{width:26px;height:26px;color:var(--nc-deep)}
+.tcard h3{font-family:'Secular One';color:var(--navy);font-size:20px;margin-bottom:9px}
+.tcard p{color:var(--mute);font-size:15px;line-height:1.65;font-weight:300}
 
-
-
-@media (min-width:900px){
-  .demo-tabs{display:grid;grid-template-columns:268px minmax(0,1fr);gap:24px;align-items:start;max-width:1060px}
-  .dt-bar{flex-direction:column;flex-wrap:nowrap;gap:10px;margin-bottom:0;position:sticky;top:96px}
-  .dt-btn{width:100%;flex-direction:row;justify-content:flex-start;text-align:right;
-          gap:13px;padding:13px 15px;min-width:0;border-radius:16px}
-  .dt-btn .mk{width:52px;height:52px;flex:0 0 52px}
-  .dt-stage{min-height:445px}
-  .dt-card.wide{min-height:445px;align-content:start}
-  .dt-panel.on{height:100%}
-  
-  
-}
-@media (max-width:520px){.dt-btn{min-width:calc(50% - 6px);padding:14px 8px 12px}
-  .dt-btn .mk{width:56px;height:56px}}
-@media (prefers-reduced-motion:reduce){.dt-btn .mk *{animation:none !important}
-  .dt-btn .ov{opacity:0 !important}
-  .dt-btn .arrow{opacity:1 !important;transform:none !important}}
-.dt-card{background:#fff;border-radius:20px;padding:34px;display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center;
-  box-shadow:0 1px 0 var(--line),0 24px 54px -34px rgba(12,35,64,.35)}
-.dt-card .txt h4{font-family:'Secular One';font-size:24px;color:var(--navy);margin-bottom:12px}
-.dt-card .txt p{font-size:15px;line-height:1.7;color:var(--mute)}
-.dt-visual{border-radius:14px;overflow:hidden;min-height:210px;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(155deg,#0E2A46,#0C2340);position:relative}
-.dt-visual .vg{position:absolute;inset:0}
-@media(max-width:760px){.dt-card{grid-template-columns:1fr;gap:22px;padding:24px}}
-
-/* בליטת "לחצי" רכה */
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(31,191,222,.35)}50%{box-shadow:0 0 0 8px rgba(31,191,222,0)}}
-.pulse-hint{animation:pulse 2.4s ease-in-out infinite}
-
-/* ===== מסכי אמת אינטראקטיביים בטאבים ===== */
-.dt-card.wide{grid-template-columns:1fr;gap:0}
-.dt-card.wide .txt{margin-bottom:22px;text-align:center;max-width:60ch;margin-inline:auto}
-.uiscreen{border-radius:14px;overflow:hidden;background:#fff;direction:rtl;
-  box-shadow:0 0 0 1px rgba(12,35,64,.08),0 30px 66px -30px rgba(12,35,64,.4)}
-.ui-bar{height:30px;background:linear-gradient(#F6F8FA,#EDF1F5);display:flex;align-items:center;padding:0 12px;gap:6px}
-.ui-bar s{width:9px;height:9px;border-radius:50%;background:#D7DEE5;display:block}
-.ui-bar span{margin:0 auto;font-size:10px;color:#9AACBC;direction:ltr}
-
-/* --- Internal analysis chat --- */
-.chat{display:grid;grid-template-columns:210px 1fr;height:420px;background:#F8FAFC}
-.chat-side{background:#fff;border-left:1px solid #E7EDF3;padding:14px 12px;overflow:hidden}
-.chat-new{border:1px solid #C7E7F0;color:#128AA6;font-weight:700;font-size:12.5px;border-radius:9px;padding:9px;text-align:center;margin-bottom:12px}
-.thread-item{border-radius:9px;padding:9px 10px;margin-bottom:7px;border-right:3px solid transparent;transition:.25s}
-.thread-item .tt{font-size:12px;font-weight:700;color:#334155;line-height:1.35}
-.thread-item .tm{font-size:10px;color:#9AACBC;margin-top:3px}
-.thread-item.active{background:#E4F6FA;border-right-color:#1FBFDE}
-.thread-item.fresh{animation:threadPop .5s cubic-bezier(.3,1.3,.5,1)}
-@keyframes threadPop{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
-.chat-main{display:flex;flex-direction:column;overflow:hidden}
-.chat-head{padding:11px 14px;border-bottom:1px solid #E7EDF3;display:flex;align-items:center;justify-content:space-between;background:#fff;min-height:52px}
-.chat-title{font-size:13px;font-weight:700;color:#334155;display:flex;align-items:center;gap:8px;min-height:18px}
-.chat-title .auto{font-size:9px;background:#EEF7E7;color:#5E8F1E;border:1px solid #cfe6b4;padding:2px 7px;border-radius:99px;opacity:0;transition:.4s}
-.chat-title .auto.show{opacity:1}
-.chat-toproduct{font-size:11px;font-weight:700;color:#fff;background:linear-gradient(90deg,#1FBFDE,#128AA6);
-  padding:7px 12px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;opacity:.5;transition:.3s;white-space:nowrap}
-.chat-toproduct.ready{opacity:1;box-shadow:0 8px 20px -6px rgba(31,191,222,.5)}
-.chat-toproduct svg{width:13px;height:13px}
-.chat-body{flex:1;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
-.bub{max-width:82%;padding:10px 13px;border-radius:14px;font-size:12.5px;line-height:1.55;opacity:0;transform:translateY(10px);animation:bubIn .45s cubic-bezier(.2,.7,.2,1) forwards}
-@keyframes bubIn{to{opacity:1;transform:none}}
-.bub.me{align-self:flex-start;background:#DBEAFE;color:#1E3A5F;border-bottom-right-radius:4px}
-.bub.ai{align-self:flex-end;background:#fff;color:#334155;border:1px solid #E7EDF3;border-bottom-left-radius:4px}
-.bub.ai b{color:#0C2340}
-.typing{align-self:flex-end;background:#fff;border:1px solid #E7EDF3;border-radius:14px;border-bottom-left-radius:4px;padding:12px 15px;display:flex;gap:4px}
-.typing s{width:6px;height:6px;border-radius:50%;background:#B4C2CF;display:block;animation:td 1.2s infinite}
-.typing s:nth-child(2){animation-delay:.2s}.typing s:nth-child(3){animation-delay:.4s}
-@keyframes td{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}
-/* product toast */
-.prod-toast{position:absolute;left:50%;bottom:20px;transform:translateX(-50%) translateY(20px);z-index:5;
-  background:#0C2340;color:#fff;border-radius:12px;padding:12px 18px;display:flex;align-items:center;gap:11px;
-  box-shadow:0 20px 44px -14px rgba(0,0,0,.5);opacity:0;transition:.45s cubic-bezier(.2,.7,.2,1);pointer-events:none;max-width:90%}
-.prod-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.prod-toast .pi{width:34px;height:34px;border-radius:9px;background:linear-gradient(140deg,#8DC63F,#5E8F1E);display:flex;align-items:center;justify-content:center;flex:none}
-.prod-toast .pi svg{width:18px;height:18px;color:#fff}
-.prod-toast b{font-size:13px;display:block}.prod-toast span{font-size:11px;color:#A9C0D4}
-
-/* --- Quotes reveal --- */
-.qz-screen{padding:16px;max-height:440px;overflow:hidden}
-.qz-head2{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.qz-head2 b{font-size:14px;color:#4338ca}.qz-head2 span{font-size:10px;color:#9AACBC}
-.qcat{border:1px solid;border-radius:11px;overflow:hidden;margin-bottom:9px;opacity:0;transform:translateY(12px)}
-.qcat.in{animation:qIn .5s cubic-bezier(.2,.7,.2,1) forwards}
-@keyframes qIn{to{opacity:1;transform:none}}
-.qcat .qh2{font-size:12.5px;font-weight:700;padding:8px 12px}
-.qcat .qbd{background:#fff;padding:10px 12px}
-.qcat.amber{border-color:#FCD9A8}.qcat.amber .qh2{background:#FEF3E2;color:#C4640F}
-.qcat.blue{border-color:#B6D4F1}.qcat.blue .qh2{background:#EAF2FC;color:#2563EB}
-.qcat.rose{border-color:#F1B6C4}.qcat.rose .qh2{background:#FCEAEF;color:#BE3455}
-.qcat.slate{border-color:#D5DEE7}.qcat.slate .qh2{background:#EEF2F6;color:#5C748C}
-.qline{font-size:12.5px;font-weight:600;color:#334155;line-height:1.5}
-.qvs{text-align:center;font-size:10px;font-weight:700;color:#F0A150;margin:4px 0}
-.qwhy{font-size:11px;color:#64748b;font-style:italic;margin-top:5px}
-.qscan{position:relative;height:3px;background:linear-gradient(90deg,transparent,#1FBFDE,transparent);
-  border-radius:3px;margin:0 0 12px;opacity:0}
-.qscan.run{animation:scan 1.4s ease forwards}
-@keyframes scan{0%{opacity:1;transform:translateX(100%)}100%{opacity:0;transform:translateX(-100%)}}
-
-/* --- Report generation --- */
-.rep-wrap{padding:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:420px;gap:0;position:relative;overflow:hidden}
-.rep-progress{width:100%;max-width:420px;text-align:center}
-.rep-progress.hide{display:none}
-.rep-spin-frame{width:64px;height:64px;margin:0 auto 16px;border-radius:50%;background:#fff;box-sizing:border-box;
-  display:flex;align-items:center;justify-content:center;padding:9px;
-  box-shadow:0 0 0 1px #E7EDF3,0 12px 30px -12px rgba(31,191,222,.5)}
-.rep-spin{width:46px;height:46px;flex:none;object-fit:contain;transform-origin:50% 50%;animation:repspin 2.2s linear infinite}
-@keyframes repspin{to{transform:rotate(360deg)}}
-.rep-progress h5{font-size:12px;color:#9AACBC;font-weight:700;letter-spacing:.03em;margin-bottom:4px}
-.rep-progress .rstep{font-family:'Secular One';font-size:19px;color:#128AA6;margin-bottom:14px;min-height:24px}
-.rep-track{height:9px;background:#EDF2F7;border-radius:6px;overflow:hidden}
-.rep-track i{display:block;height:100%;width:0;background:linear-gradient(90deg,#1FBFDE,#8DC63F);border-radius:6px;transition:width .4s ease}
-.rep-doc{width:100%;max-width:340px;background:#fff;border-radius:6px;padding:20px 22px;
-  box-shadow:0 0 0 1px #eef2f7,0 24px 54px -26px rgba(12,35,64,.4);opacity:0;transform:translateY(20px) scale(.96);position:absolute}
-.rep-doc.show{animation:docReveal .7s cubic-bezier(.2,.8,.3,1) forwards;position:relative}
-@keyframes docReveal{to{opacity:1;transform:none}}
-.rep-doc .rdh{text-align:center;border-bottom:2px solid #1FBFDE;padding-bottom:8px;margin-bottom:10px}
-.rep-doc .rdh img{width:88px;margin:0 auto}
-.rep-doc .rt{font-family:'Secular One';font-size:15px;color:#0C2340;text-align:center}
-.rep-doc .rs{font-size:10px;color:#A0AEC0;text-align:center;margin-bottom:10px}
-.rep-doc .rcode{display:flex;gap:4px;margin-bottom:10px}
-.rep-doc .rcode b{flex:1;text-align:center;font-size:9px;color:#fff;padding:5px 0;border-radius:4px}
-.rep-doc .rsec{font-size:10px;font-weight:700;color:#128AA6;margin:9px 0 4px}
-.rep-doc .rtx{font-size:9.5px;line-height:1.7;color:#4A5568}
-.rep-doc .rlines u{display:block;height:5px;background:#EDF2F7;border-radius:3px;margin-bottom:5px;text-decoration:none}
-.rep-doc .rlines u:nth-child(2){width:88%}
-
-/* play button hint on tab panels */
-@media(max-width:760px){.chat{grid-template-columns:1fr}.chat-side{display:none}}
-
-/* ===== המלצות יועצות ===== */
-.testi{position:relative;overflow:hidden}
-.testi .compass-wm2{position:absolute;left:-100px;bottom:-60px;width:320px;opacity:.05;pointer-events:none}
-.testi-track{display:flex;gap:22px;overflow-x:auto;scroll-snap-type:x mandatory;padding:8px 4px 22px;margin-top:44px;
+/* ---------- testimonials (ported from marketing page) ---------- */
+.testi{position:relative;z-index:1;max-width:1180px;margin:100px auto 0;padding:0 24px;overflow:hidden}
+.testi .center{text-align:center;margin-bottom:14px}
+.testi .eyebrow{font-size:12px;font-weight:800;letter-spacing:.2em;color:var(--nc-deep);display:inline-flex;align-items:center;gap:8px}
+.testi .eyebrow::before{content:'»';color:var(--no);font-size:15px}
+.testi .h-sec{font-family:'Secular One';font-size:clamp(26px,4.2vw,42px);line-height:1.14;color:var(--navy);margin:14px 0 0}
+.testi-track{display:flex;gap:22px;overflow-x:auto;scroll-snap-type:x mandatory;padding:8px 4px 22px;margin-top:40px;
   scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .testi-track::-webkit-scrollbar{display:none}
-.tcard{scroll-snap-align:center;flex:0 0 clamp(300px,44%,440px);background:#fff;border-radius:20px;padding:32px 30px;
+.tstm{scroll-snap-align:center;flex:0 0 clamp(300px,44%,440px);background:#fff;border-radius:20px;padding:32px 30px;
   box-shadow:0 1px 0 var(--line),0 24px 54px -34px rgba(12,35,64,.35);display:flex;flex-direction:column;position:relative}
-.tcard .quote-ic{position:absolute;top:22px;left:28px;font-family:'Secular One';font-size:64px;line-height:1;color:var(--nc);opacity:.16}
-.tcard p{font-size:16px;line-height:1.72;color:#33506C;font-weight:400;position:relative;z-index:1;flex:1}
-.tcard .who{display:flex;align-items:center;gap:12px;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
-.tcard .av{width:44px;height:44px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+.tstm .quote-ic{position:absolute;top:22px;left:28px;font-family:'Secular One';font-size:64px;line-height:1;color:var(--nc);opacity:.16}
+.tstm p{font-size:16px;line-height:1.72;color:#33506C;font-weight:400;position:relative;z-index:1;flex:1}
+.tstm .who{display:flex;align-items:center;gap:12px;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+.tstm .av{width:44px;height:44px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
   font-family:'Secular One';font-size:18px;color:#fff}
-.tcard .who b{display:block;font-size:14.5px;color:var(--navy)}
-.tcard .who span{font-size:12.5px;color:var(--mute)}
+.tstm .who b{display:block;font-size:14.5px;color:var(--navy)}
+.tstm .who span{font-size:12.5px;color:var(--mute)}
 .av-1{background:linear-gradient(140deg,var(--nc),var(--nc-deep))}
 .av-2{background:linear-gradient(140deg,var(--nl),var(--nl-deep))}
 .av-3{background:linear-gradient(140deg,var(--no),var(--no-deep))}
@@ -787,637 +117,171 @@ svg{flex:none}
 .av-5{background:linear-gradient(140deg,var(--no),var(--nc-deep))}
 .testi-hint{text-align:center;margin-top:6px;font-size:13px;color:var(--mute)}
 .testi-hint svg{width:15px;height:15px;vertical-align:-2px;margin:0 3px}
-@media(max-width:760px){.tcard{flex-basis:86%}}
+
+/* ---------- contact form ---------- */
+.contact{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:90px 24px 40px;scroll-margin-top:80px}
+.contact-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:40px;align-items:start}
+@media(max-width:820px){.contact-grid{grid-template-columns:1fr;gap:28px}}
+.contact-intro h2{font-family:'Secular One';color:var(--navy);font-size:clamp(24px,4vw,32px);margin-bottom:16px;line-height:1.2}
+.contact-intro p{color:var(--mute);font-size:16px;line-height:1.7;font-weight:300;margin-bottom:22px}
+.contact-pts{list-style:none;display:flex;flex-direction:column;gap:13px}
+.contact-pts li{display:flex;align-items:flex-start;gap:11px;color:var(--ink);font-size:15px}
+.contact-pts .d{width:9px;height:9px;flex:none;margin-top:6px;transform:rotate(45deg);
+  background:var(--nl);box-shadow:0 0 10px rgba(141,198,63,.7)}
+
+.contact-card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:34px 30px;
+  box-shadow:0 26px 60px -34px rgba(12,35,64,.4);position:relative;overflow:hidden}
+#leadForm label{display:block;font-size:13.5px;font-weight:700;color:var(--navy);margin-bottom:14px;text-align:right}
+#leadForm label b{color:var(--no)}
+#leadForm input,#leadForm select,#leadForm textarea{
+  width:100%;margin-top:6px;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;
+  font-family:'Heebo';font-size:15px;font-weight:400;color:var(--ink);background:#fff;
+  transition:border-color .18s,box-shadow .18s}
+#leadForm input::placeholder,#leadForm textarea::placeholder{color:#A9B7C6;font-weight:300}
+#leadForm input:focus,#leadForm select:focus,#leadForm textarea:focus{outline:0;border-color:var(--nc);box-shadow:0 0 0 4px rgba(31,191,222,.14)}
+#leadForm input.err,#leadForm select.err{border-color:#E5484D;box-shadow:0 0 0 4px rgba(229,72,77,.12)}
+#leadForm textarea{resize:vertical;min-height:74px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+@media(max-width:520px){.fgrid{grid-template-columns:1fr}}
+.sel-wrap{position:relative}
+.sel-wrap::after{content:'▾';position:absolute;left:14px;top:calc(50% + 3px);transform:translateY(-50%);color:#9AACBC;pointer-events:none;font-size:12px}
+#leadForm select{appearance:none;-webkit-appearance:none;cursor:pointer;padding-left:34px}
+.hp{position:absolute!important;left:-9999px!important;width:1px;height:1px;opacity:0}
+.form-submit{width:100%;justify-content:center;margin-top:8px;position:relative}
+.form-submit .spin{width:17px;height:17px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;display:none}
+.form-submit.loading .lbl{opacity:.6}
+.form-submit.loading .spin{display:inline-block;animation:ldspin .7s linear infinite}
+@keyframes ldspin{to{transform:rotate(360deg)}}
+.form-note{margin-top:12px;font-size:13.5px;text-align:center;min-height:1em}
+.form-note.bad{color:#E5484D}
+
+/* מסך תודה — הנפשה בתוך עיגול, על רקע הכרטיס הרגיל (משתלב, לא ריבוע) */
+#thanks{display:none;text-align:center;padding:26px 20px 12px}
+#thanks.show{display:block;animation:thFade .5s ease}
+@keyframes thFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#thanks .mark-ring{width:184px;height:184px;margin:0 auto 18px;border-radius:50%;
+  background:#0A1C34;overflow:hidden;box-shadow:0 14px 38px rgba(12,35,64,.26)}
+#thanks .mark-ring img{width:100%;height:100%;display:block}
+#thanks h3{font-family:'Secular One';color:var(--navy);font-size:24px;margin-bottom:10px}
+#thanks p{color:var(--mute);font-size:16px;line-height:1.65;font-weight:300;max-width:320px;margin:0 auto}
+
+/* ---------- footer ---------- */
+footer{position:relative;z-index:1;background:var(--navy);color:#9FB4CC;text-align:center;padding:34px 24px;margin-top:80px;font-size:14px}
+footer .lg{font-family:'Secular One';color:#fff;font-size:18px;margin-bottom:8px}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}}
 </style>
 </head>
 <body>
 
-<!-- ============ NAV ============ -->
-<div class="scrollbar" id="scrollbar"></div>
-<div class="scroll-compass" id="scrollCompass"><img src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/%D7%9C%D7%95%D7%92%D7%95%20%D7%9E%D7%A6%D7%A4%D7%9F%20%D7%A0%D7%A7%D7%95%D7%93%D7%AA%20%D7%96%D7%99%D7%A0%D7%95%D7%A7.png" alt=""></div>
-<header id="hdr" class="on-hero">
+<!-- מצפן רקע שמסתובב עם הגלילה -->
+<div class="scroll-compass" id="scrollCompass" aria-hidden="true">
+  <img src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/57016bbe6960385cca05abab2390b0915e063132/spinner.png.png" alt="" loading="lazy" decoding="async">
+</div>
+
+<header id="hdr">
   <div class="bar">
     <a href="index.html" class="logo-row">
       <img src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/%D7%9C%D7%95%D7%92%D7%95%20%D7%9E%D7%A6%D7%A4%D7%9F%20%D7%A0%D7%A7%D7%95%D7%93%D7%AA%20%D7%96%D7%99%D7%A0%D7%95%D7%A7.png" alt="">
       <b>נקודת זינוק</b>
     </a>
-    <nav class="links">
-      <a href="#how">איך זה עובד</a>
-      <a href="#questionnaire">השאלון</a>
-      <a href="#analysis">הניתוח</a>
-      <a href="#value">למה זה שווה</a>
-    </nav>
-    <a href="#contact" class="btn btn-primary nav-cta">לתיאום הדגמה</a>
-    <button class="menu-btn" aria-label="תפריט" onclick="document.querySelector('nav.links').scrollIntoView()">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-    </button>
+    <a href="#contact" class="btn btn-primary">אני רוצה לגלות</a>
   </div>
 </header>
 
 <!-- ============ HERO ============ -->
-<section class="hero" id="top">
-  <div class="hero-particles" id="heroParticles"></div>
-  <img class="compass" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/57016bbe6960385cca05abab2390b0915e063132/spinner.png.png" alt="">
-  <div class="wrap hero-grid">
-    <div>
-      <span class="eyebrow" style="color:var(--nc)">מערכת אבחון תעסוקתי ליועצות</span>
-      <h1><span class="w">אבחון</span> <span class="w">מדויק,</span><br><span class="hl"><span class="w">שמזניק</span> <span class="w">קדימה.</span></span></h1>
-      <p class="sub">הדור הבא של הייעוץ התעסוקתי. טכנולוגיה שמשחררת אותך מהבירוקרטיה — כדי שתתרכזי באנשים.</p>
-      <div class="cta-row">
-        <a href="#contact" class="btn btn-primary"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"  style="width:18px"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg> לתיאום הדגמה</a>
-        <a href="#how" class="btn btn-ghost">איך זה עובד</a>
-      </div>
-      <div class="trust">
-        <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M20 6 9 17l-5-5"/></svg> שאלון מותאם לכל קהל יעד</span>
-        <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M20 6 9 17l-5-5"/></svg> דוח כתוב לנבחנת</span>
-        <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M20 6 9 17l-5-5"/></svg> אבחון מרחוק</span>
-      </div>
+<section class="hero">
+  <div class="hero-inner">
+    <h1>גלי איך נקודת זינוק<br><span class="rot" id="rot">מקפיצה אותך קדימה</span></h1>
+    <p class="sub">הצטרפי ליועצות שכבר גילו דרך חדשה לעבוד — מדויקת יותר, מהירה יותר, ומשתלמת יותר. השאירי פרטים, ונראה לך בדיוק איך זה עובד.</p>
+    <div class="cta-row">
+      <a href="#contact" class="btn btn-primary">אני רוצה לגלות איך</a>
     </div>
-
-    <div class="hero-shot">
-      <div class="chip c1">
-        <span class="ic" style="background:linear-gradient(140deg,var(--nc),var(--nc-deep))"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/><path d="m16 16-1.9-1.9"/></svg></span>
-        <div><b>הצפת ציטוטים</b><span>תמונת מצב מיד בכניסה</span></div>
-      </div>
-      <div class="chip c2">
-        <span class="ic" style="background:linear-gradient(140deg,var(--no),var(--no-deep))"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m3 15 2 2 4-4"/></svg></span>
-        <div><b>דוח ב־PDF</b><span>ממותג בשמך</span></div>
-      </div>
-      <div class="screen">
-        <div class="mini">
-          <div class="top"><s></s><s></s><s></s></div>
-          <div class="mini-card">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <span style="color:#cfe0f0;font-size:13px;font-weight:700">רבקה ש.</span>
-              <span style="background:rgba(141,198,63,.2);color:var(--nl);font-size:10px;padding:3px 9px;border-radius:99px">נבדקה ✓</span>
-            </div>
-            <div style="color:#7d95b3;font-size:10px;margin-top:4px">קוד הולנד · S · A · C</div>
-          </div>
-          <div class="mini-card">
-            <div style="color:#9fb4cc;font-size:11px;margin-bottom:2px">חברתי</div>
-            <div class="mini-bar"><i style="width:88%;background:var(--nl)"></i></div>
-            <div style="color:#9fb4cc;font-size:11px;margin:8px 0 2px">יזמי</div>
-            <div class="mini-bar"><i style="width:64%;background:var(--nc)"></i></div>
-            <div style="color:#9fb4cc;font-size:11px;margin:8px 0 2px">מעשי</div>
-            <div class="mini-bar"><i style="width:38%;background:var(--no)"></i></div>
-          </div>
-          <div class="mini-card" style="display:flex;align-items:center;gap:10px">
-            <span style="width:30px;height:30px;border-radius:8px;background:linear-gradient(140deg,var(--nc),var(--nl));display:flex;align-items:center;justify-content:center;flex:none">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"  style="width:16px;color:#fff"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg></span>
-            <span style="color:#cfe0f0;font-size:11.5px;line-height:1.4">"שארגיש שאני עוזרת למישהו, לא רק מזיזה ניירות"</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="wave">
-    <svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path fill="#F4F7FA" d="M0,40 C360,72 1080,4 1440,36 L1440,70 L0,70 Z"></path></svg>
-  </div>
-</section>
-
-<!-- ============ STATS BAND ============ -->
-<section class="pad" style="padding-top:70px;padding-bottom:20px">
-  <div class="wrap">
-    <div class="statsband reveal zoom">
-      <div class="glow"></div>
-      <div class="sg">
-        <div class="st">
-          <div class="num" data-to="4" data-suffix=" ש׳" data-dec="0"><span>0</span></div>
-          <div class="lbl">נחסכות בכל תיק</div>
-          <div class="dsc">במקום לנסח — לאשר</div>
-        </div>
-        <div class="st">
-          <div class="num" data-to="3"><span>0</span></div>
-          <div class="lbl">תוצרים מאותו תיק</div>
-          <div class="dsc">נבחנת · מנהלת · עזר</div>
-        </div>
-        <div class="st">
-          <div class="num" data-to="100" data-suffix="%"><span>0</span></div>
-          <div class="lbl">מהתשובות נקראות</div>
-          <div class="dsc">כולל הצפת ציטוטים</div>
-        </div>
-        <div class="st">
-          <div class="num" data-to="1" data-prefix="&lt;" data-suffix=" שנ׳"><span>0</span></div>
-          <div class="lbl">לשליפת תיק מהארכיון</div>
-          <div class="dsc">גם אחרי שנתיים</div>
-        </div>
-      </div>
+    <div class="hero-strip">
+      <div class="s"><span class="d"></span> <span><b>שעות</b> שנחסכות בכל אבחון</span></div>
+      <div class="s"><span class="d"></span> <span>להכיר <b>עמוק יותר</b> את הנבחנת</span></div>
+      <div class="s"><span class="d"></span> <span>יותר נבחנות, <b>יותר הכנסה</b></span></div>
     </div>
   </div>
 </section>
 
-<!-- ============ PROBLEM ============ -->
-<section class="pad" id="problem">
-  <div class="wrap">
-    <div class="center reveal">
-      <span class="eyebrow">המצב היום</span>
-      <h2 class="h-sec">היום, הכול נופל על הפגישה.</h2>
-      <p class="lead" style="margin-top:16px">שעות של הכנה, שאלות והתרשמות — ובסוף היא קמה, הולכת, ולוקחת איתה רק את מה שזכרה. ככה זה עבד עד היום.</p>
+<!-- ============ TEASERS ============ -->
+<section class="teasers">
+  <h2 class="reveal">מה נקודת זינוק עושה בשבילך</h2>
+  <p class="lead reveal">מה שמשתנה ברגע שאת עוברת לעבוד עם נקודת זינוק.</p>
+  <div class="tgrid">
+    <div class="tcard reveal">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <h3>חוסכת לך שעות</h3>
+      <p>מה שלקח לך ערב שלם של עבודה ידנית — קורה עכשיו בחלק קטן מהזמן. את מתפנה למה שחשוב באמת: הנבחנת שמולך.</p>
     </div>
-    <div class="gen-grid stagger reveal">
-      <div class="gen old">
-        <h3><span class="chev">»</span> הדור הישן</h3>
-        <ul>
-          <li><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>הפגישה הכרחית וארוכה, ורובה מוקדש לשאלות בסיסיות.</span></li>
-          <li><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M12.75 7.09a3 3 0 0 1 2.16 2.16"/><path d="M17.072 17.072c-1.634 2.17-3.527 3.912-4.471 4.727a1 1 0 0 1-1.202.001C9.539 20.246 5 16.062 5 10a7 7 0 0 1 1.014-3.616"/><path d="m2 2 20 20"/><path d="M8.475 2.818A7 7 0 0 1 19 9c0 1.036-.132 2.010-.365 2.916"/></svg><span>בלי מפגש פנים אל פנים — <b>אין אבחון</b>.</span></li>
-          <li><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M21 15V5a2 2 0 0 0-2-2H9"/><path d="M2 2l20 20"/><path d="M3.6 3.6c-.4.3-.6.8-.6 1.4v16l4-4h9"/></svg><span>נשאר רק מה שהיא זכרה מהשיחה. <b>אין דוח</b>.</span></li>
-        </ul>
-      </div>
-      <div class="gen new">
-        <h3><span class="chev">»</span> עם נקודת זינוק</h3>
-        <ul>
-          <li><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg><span>מגיעה אלייך <b>מוכנה</b>, עוד לפני שנפגשתן. מה שנותר — חידוד והעמקה בלבד.</span></li>
-          <li><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M12 20h.01"/><path d="M2 8.82a15 15 0 0 1 20 0"/><path d="M5 12.859a10 10 0 0 1 14 0"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/></svg><span>אפשר <b>לאבחן מרחוק</b>, בקלות ובאותה מידה — ולעשות אפילו יותר.</span></li>
-          <li><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m3 15 2 2 4-4"/></svg><span><b>דוח אבחון כתוב</b> — היא יוצאת איתו ביד.</span></li>
-        </ul>
-      </div>
+    <div class="tcard reveal">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+      <h3>להכיר עמוק יותר את הנבחנת</h3>
+      <p>המערכת עוזרת לך לראות את התמונה המלאה של כל נבחנת בבהירות — כדי שההמלצה שלך תהיה מבוססת, בטוחה ומקצועית.</p>
     </div>
-    <p class="promise reveal">המטרה אינה להחליף את הייעוץ שלך — אלא לשדרג את החוויה, עבורה ועבורך.</p>
-  </div>
-</section>
-
-<!-- ============ HOW / FLOW ============ -->
-<section class="pad" id="how" style="background:#fff">
-  <img class="compass-wm" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/57016bbe6960385cca05abab2390b0915e063132/spinner.png.png" style="right:-120px;top:40px">
-  <div class="wrap" style="position:relative;z-index:1">
-    <div class="center reveal">
-      <span class="eyebrow">מקצה לקצה</span>
-      <h2 class="h-sec">מתחילים בקישור.<br>מסיימים בדוח מושלם.</h2>
-      <p class="lead" style="margin-top:16px">ארבעה שלבים. המערכת לוקחת על עצמה את כל העבודה שביניהם — ומשאירה לך בדיוק את מה שאת הכי טובה בו.</p>
-    </div>
-    <div class="flow stagger reveal">
-      <div class="tile t1">
-        <div class="box"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></div>
-        <h4>שולחת קישור</h4>
-        <p>לנבחנת אחת, או רשימה מרוכזת לכיתה שלמה. הקרדיט יורד רק כשהקישור נוצר.</p>
-      </div>
-      <div class="tile t2">
-        <div class="box"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div>
-        <h4>היא ממלאת</h4>
-        <p>שאלון חכם שמתאים את עצמו לקהל היעד ולתשובות שלה. הכול נכנס ישירות לתיק.</p>
-      </div>
-      <div class="tile t3">
-        <div class="box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6M8 11h6"/></svg></div>
-        <h4>את מפעילה ניתוח</h4>
-        <p>המערכת קוראת את התיק כולו, מצליבה, מציפה ציטוטים ומנסחת דוח מלא.</p>
-      </div>
-      <div class="tile t4">
-        <div class="box"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="m9 15 2 2 4-4"/></svg></div>
-        <h4>את מאשרת</h4>
-        <p>קוראת, ממקדת, מתייעצת — ושולחת PDF ממותג בשמך.</p>
-      </div>
+    <div class="tcard reveal">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg></div>
+      <h3>מגדילה את ההכנסה</h3>
+      <p>כשכל אבחון לוקח פחות זמן ויוצא מקצועי יותר — את יכולה לקחת יותר נבחנות, לבנות מוניטין, ולהרוויח יותר מהעבודה שאת כבר אוהבת.</p>
     </div>
   </div>
 </section>
 
-<!-- ============ QUESTIONNAIRE ============ -->
-<section class="pad" id="questionnaire">
-  <div class="wrap">
-    <div class="feat">
-      <div class="feat-txt reveal">
-        <span class="eyebrow">מנוע השאלונים</span>
-        <h3>שאלון אחד.<br>אינסוף גרסאות.</h3>
-        <div class="rule"></div>
-        <p class="lead">זה לא טופס. זה מנוע שאלונים שמתאים את עצמו לכל קהל יעד — ומביא אלייך את הנבחנת מפוענחת, לא כדף ריק.</p>
-        <ul class="pts">
-          <li><span class="d"></span><span><b>מקיף. באמת מקיף.</b>נטיות, מניעים, יכולות, אילוצים ורקע — שאלון עשיר שנבנה מקצועית.</span></li>
-          <li><span class="d"></span><span><b>מותאם לקהל היעד</b>בוגרת סמינר, הסבה מקצועית, אשה נשואה — כל קהל מקבל את השאלות שנוגעות דווקא לו.</span></li>
-          <li><span class="d"></span><span><b>ואופציונלי: השאלון הפרטי שלך</b>יש שאלה שאת תמיד שואלת? אפשר להוסיף מקטע ייעודי משלך.</span></li>
-          <li><span class="d"></span><span><b>חוויה שמסיימים עד הסוף</b>שמירה אוטומטית, צירוף קבצים, ועובד מצוין גם מהנייד.</span></li>
-        </ul>
-      </div>
-      <div class="feat-img reveal">
-        <!-- שחזור מסך השאלון -->
-        <div style="border-radius:18px;background:linear-gradient(135deg,#667eea,#764ba2);padding:20px 18px;
-             box-shadow:0 0 0 3px rgba(141,198,63,.45),0 34px 74px -26px rgba(12,35,64,.55),0 0 60px -12px rgba(141,198,63,.35)">
-          <div style="background:#fff;border-radius:13px;overflow:hidden">
-            <div style="background:linear-gradient(45deg,#4facfe,#00f2fe);padding:14px;text-align:center">
-              <div style="display:inline-flex;padding:9px 16px;background:rgba(255,255,255,.95);border-radius:10px">
-                <img src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/%D7%A2%D7%95%D7%AA%D7%A7%20%D7%9C%D7%AA%D7%9E%D7%95%D7%A0%D7%AA%20%D7%A4%D7%A8%D7%95%D7%A4%D7%99%D7%9C%20%D7%A8%D7%97%D7%91%20%D7%91%D7%9C%D7%99%20%D7%A8%D7%A7%D7%A2.png" style="width:118px">
-              </div>
-              <div style="color:#fff;font-weight:700;font-size:14px;margin-top:8px">שאלון אבחון תעסוקתי</div>
-              <div style="color:#fff;font-size:9px;margin-top:6px;opacity:.95">מקטע 3 מתוך 7</div>
-              <div style="height:6px;background:rgba(255,255,255,.22);border-radius:4px;margin-top:5px;overflow:hidden"><i style="display:block;width:43%;height:100%;background:#fff;border-radius:4px"></i></div>
-              <div style="color:#fff;font-size:9px;margin-top:5px;opacity:.9">שאלות שנענו: 6 מתוך 9</div>
-            </div>
-            <div style="padding:14px">
-              <div style="background:#fafafa;border:1px solid #eee;border-radius:11px;padding:13px">
-                <div style="font-size:14px;font-weight:700;color:#334155;border-bottom:3px solid #4facfe;display:inline-block;padding-bottom:4px;margin-bottom:11px">תחומי עניין ונטיות</div>
-                <div style="background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.05);padding:12px;margin-bottom:9px">
-                  <div style="font-size:11.5px;text-align:center;color:#334155;margin-bottom:9px">אני נהנית לארגן ולתכנן אירועים מראש.</div>
-                  <div style="display:flex;align-items:center;justify-content:center;gap:7px">
-                    <span style="font-size:8px;color:#777">כלל לא</span>
-                    <b style="width:26px;height:26px;border:2px solid #ddd;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10.5px;color:#666">1</b>
-                    <b style="width:26px;height:26px;border:2px solid #ddd;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10.5px;color:#666">2</b>
-                    <b style="width:26px;height:26px;border:2px solid #ddd;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10.5px;color:#666">3</b>
-                    <b style="width:26px;height:26px;background:#4facfe;border:2px solid #4facfe;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10.5px;color:#fff;font-weight:700">4</b>
-                    <b style="width:26px;height:26px;border:2px solid #ddd;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10.5px;color:#666">5</b>
-                    <span style="font-size:8px;color:#777">מאוד</span>
-                  </div>
-                </div>
-                <div style="background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.05);padding:12px">
-                  <div style="font-size:11.5px;text-align:center;color:#334155;margin-bottom:8px">אפשר לצרף גיליון ציונים (לא חובה)</div>
-                  <div style="border:2px dashed #ddd;border-radius:8px;background:#f9f9f9;padding:12px;text-align:center">
-                    <div style="font-size:15px;color:#4facfe">📎</div>
-                    <div style="font-size:9.5px;color:#555;margin-top:3px;font-weight:600">גררי קובץ לכאן או לחצי לבחירה</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ QUOTES ============ -->
-<section class="pad" id="quotes" style="background:#fff">
-  <div class="wrap">
-    <div class="feat flip">
-      <div class="feat-txt reveal">
-        <span class="eyebrow">הצפת ציטוטים</span>
-        <h3>המשפט שהיית<br>מפספסת בעמוד 6.</h3>
-        <div class="rule"></div>
-        <p class="lead">בזמן שיועצת אחרת עדיין קוראת את עמוד 4, את כבר יודעת מה השאלה הנכונה לשאול. המערכת מציפה את הציטוטים שבאמת אומרים משהו — ומנמקת כל אחד.</p>
-        <ul class="pts">
-          <li><span class="d"></span><span><b>תמונת מצב בכניסה לתיק</b>מה שחשוב כבר צף למעלה, בלי לקרוא את כל השאלון.</span></li>
-          <li><span class="d"></span><span><b>סתירות שמסומנות בשבילך</b>שתי תשובות שלא מסתדרות — או תשובה שסותרת את הנתונים הכמותיים.</span></li>
-          <li><span class="d"></span><span><b>מניעים, רגש, גבולות</b>המשפטים שחושפים את ה"למה", ואת מה שהיא לא מוכנה אליו.</span></li>
-        </ul>
-      </div>
-      <div class="feat-img reveal">
-        <div class="glass cyan">
-          <div class="bar"><s></s><s></s><s></s><span>nzinuk.com/app</span></div>
-          <div class="body">
-            <div class="mk">
-              <div class="mk-h"><b>✦ מה חשוב לראות מהשאלון</b><span>14 תובנות</span></div>
-              <div class="qbox q-amber">
-                <div class="qh">סתירות לבירור (3)</div>
-                <div class="qb">
-                  <div class="q-item">"הוראה בגן, אני אוהבת ילדים"</div>
-                  <div class="q-vs">— מול —</div>
-                  <div class="q-item">"אני כלל לא נהנית לעבוד בקבוצות גדולות"</div>
-                  <div class="q-note">פער בין הכיוון המבוקש לדיווח על עבודה בקבוצות — כדאי לברר.</div>
-                </div>
-              </div>
-              <div class="qbox q-cyan">
-                <div class="qh">מניעים ורצונות (4)</div>
-                <div class="qb">
-                  <div class="q-item">"שארגיש שאני עוזרת למישהו, לא רק מזיזה ניירות"</div>
-                  <div class="q-note">מניע ערכי מובהק — עוגן מרכזי לניסוח ההמלצות.</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ ANALYSIS + REPORT (mini grid) ============ -->
-<section class="pad" id="analysis">
-  <div class="wrap">
-    <div class="center reveal">
-      <span class="eyebrow">מה יש בפנים</span>
-      <h2 class="h-sec">כל מה שצריך כדי לאבחן<br>לעומק — במקום אחד.</h2>
-    </div>
-    <div class="grid3 stagger reveal">
-      <div class="mcard reveal">
-        <div class="ic ic-cyan"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg></div>
-        <h4>כל התיק במסך אחד</h4>
-        <p>זהות, אבחנה, הערות, מסמכים ותוצרים — בשכבה אחת. ההערות שלך הן הקול שלך בתיק, ומשפיעות על כל דוח שיופק.</p>
-      </div>
-      <div class="mcard reveal">
-        <div class="ic ic-lime"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M9 13a4.5 4.5 0 0 0 3-4"/><path d="M6.003 5.125A3 3 0 0 0 6.401 6.5"/><path d="M3.477 10.896a4 4 0 0 1 .585-.396"/><path d="M6 18a4 4 0 0 1-1.967-.516"/><path d="M12 13h4"/><path d="M12 18h6a2 2 0 0 1 2 2v1"/><path d="M12 8h8"/><path d="M16 8V5a2 2 0 0 1 2-2"/><circle cx="16" cy="13" r=".5"/><circle cx="18" cy="3" r=".5"/><circle cx="20" cy="21" r=".5"/><circle cx="20" cy="8" r=".5"/></svg></div>
-        <h4>חדר התייעצות פנימי</h4>
-        <p>שיח חסוי מול מנוע שקרא כל מילה בתיק. שואלת, מבררת — ובלחיצה הופכת את השיחה למסמך, מכתב או הערה.</p>
-      </div>
-      <div class="mcard reveal">
-        <div class="ic ic-orange"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg></div>
-        <h4>תמונה כמותית ברורה</h4>
-        <p>חלק ממבחן ההולנד מתורגם לתשובה מספרית ומוצג בגרפים — תמונת מבט מהירה, בלי חישוב ידני ובלי טעויות.</p>
-      </div>
-      <div class="mcard reveal">
-        <div class="ic ic-cyan"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg></div>
-        <h4>שלושה תוצרים, בלחיצה</h4>
-        <p>דוח לנבחנת, דוח למנהלת, וכל תוצר עזר שתבקשי — כולם נשענים על אותו תיק ואותה אבחנה.</p>
-      </div>
-      <div class="mcard reveal">
-        <div class="ic ic-lime"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg></div>
-        <h4>שליחה — אחת או כיתה</h4>
-        <p>קישור בודד שאת שולחת בעצמך, או הפקה מרוכזת: כיתת מסיימות שלמה במייל אחד למזכירות.</p>
-      </div>
-      <div class="mcard reveal">
-        <div class="ic ic-orange"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></div>
-        <h4>ארכיון נצחי, שליפה בשנייה</h4>
-        <p>בת חוזרת לייעוץ אחרי שנתיים? מקלידה את שמה — והתיק המלא נפתח מולך תוך שנייה.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ LIVE DEMO TABS ============ -->
-<section class="pad" id="demo" style="background:#fff">
-  <div class="wrap">
-    <div class="center reveal">
-      <span class="eyebrow">מה המערכת עושה בשבילך</span>
-      <h2 class="h-sec">כל מה שלקח שעות,<br>קורה עכשיו ברקע.</h2>
-    </div>
-    <div class="demo-tabs reveal">
-      <div class="dt-bar">
-        <button class="dt-btn on pulse-hint" data-tab="t-quotes"><span class="mk mk-quotes"><img class="ring" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-ring.png" alt="" loading="lazy" decoding="async"><svg class="ov" viewBox="0 0 100 100" fill="none"><g><rect class="rw r1" x="30" y="36" width="40" height="5.4" rx="2.7" fill="#C4D3E1"/><rect class="rw r2" x="30" y="47" width="31" height="5.4" rx="2.7" fill="#C4D3E1"/><rect class="rw r3" x="30" y="58" width="37" height="5.4" rx="2.7" fill="#C4D3E1"/></g><g class="lens" stroke="var(--nc-deep)" stroke-width="3.4" stroke-linecap="round"><circle cx="50" cy="50" r="11" fill="rgba(31,191,222,.15)"/><line x1="58" y1="58" x2="66" y2="66"/></g></svg><img class="arrow" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-arrow.png" alt="" loading="lazy" decoding="async"></span>הצפת ציטוטים</button>
-        <button class="dt-btn" data-tab="t-quant"><span class="mk mk-quant"><img class="ring" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-ring.png" alt="" loading="lazy" decoding="async"><svg class="ov" viewBox="0 0 100 100" fill="none"><g class="bars"><rect class="br b1" x="31" y="34" width="9" height="32" rx="3" fill="var(--nc)"/><rect class="br b2" x="45" y="34" width="9" height="32" rx="3" fill="var(--nl)"/><rect class="br b3" x="59" y="34" width="9" height="32" rx="3" fill="var(--no)"/></g><path class="base" d="M26 68h48" stroke="#9FB3C8" stroke-width="2.4" stroke-linecap="round"/></svg><img class="arrow" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-arrow.png" alt="" loading="lazy" decoding="async"></span>תמונה כמותית</button>
-        <button class="dt-btn" data-tab="t-docs"><span class="mk mk-docs"><img class="ring" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-ring.png" alt="" loading="lazy" decoding="async"><svg class="ov" viewBox="0 0 100 100" fill="none"><g class="sheet"><rect x="34" y="26" width="32" height="42" rx="4" fill="#fff" stroke="#C4D3E1" stroke-width="2"/><path d="M41 38h18M41 47h18M41 56h12" stroke="#C4D3E1" stroke-width="2.6" stroke-linecap="round"/></g><g class="spark" fill="var(--nl)"><circle class="sp s1" cx="50" cy="50" r="3.4"/><circle class="sp s2" cx="36" cy="42" r="2.6"/><circle class="sp s3" cx="64" cy="42" r="2.6"/><circle class="sp s4" cx="36" cy="60" r="2.6"/><circle class="sp s5" cx="64" cy="60" r="2.6"/></g></svg><img class="arrow" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-arrow.png" alt="" loading="lazy" decoding="async"></span>קליטת מסמכים</button>
-        <button class="dt-btn" data-tab="t-chat"><span class="mk mk-chat"><img class="ring" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-ring.png" alt="" loading="lazy" decoding="async"><svg class="ov" viewBox="0 0 100 100" fill="none"><g stroke="var(--nc)" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="30"><line class="ry y1" x1="50" y1="50" x2="27" y2="50"/><line class="ry y2" x1="50" y1="50" x2="73" y2="50"/><line class="ry y3" x1="50" y1="50" x2="31" y2="30"/><line class="ry y4" x1="50" y1="50" x2="69" y2="70"/><line class="ry y5" x1="50" y1="50" x2="69" y2="30"/><line class="ry y6" x1="50" y1="50" x2="31" y2="70"/></g><g fill="var(--nl)"><circle class="nd n1" cx="27" cy="50" r="4"/><circle class="nd n2" cx="73" cy="50" r="4"/><circle class="nd n3" cx="31" cy="30" r="4"/><circle class="nd n4" cx="69" cy="70" r="4"/><circle class="nd n5" cx="69" cy="30" r="4"/><circle class="nd n6" cx="31" cy="70" r="4"/></g><circle class="seed" cx="50" cy="50" r="5.4" fill="var(--nc-deep)"/></svg><img class="arrow" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-arrow.png" alt="" loading="lazy" decoding="async"></span>ניתוח פנימי ← תוצר</button>
-        <button class="dt-btn" data-tab="t-report"><span class="mk mk-report"><img class="ring" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-ring.png" alt="" loading="lazy" decoding="async"><svg class="ov" viewBox="0 0 100 100" fill="none"><rect class="pg" x="32" y="28" width="36" height="44" rx="4.5" fill="#fff" stroke="#C4D3E1" stroke-width="2"/><g stroke="var(--nc)" stroke-width="3" stroke-linecap="round" stroke-dasharray="24"><line class="ik k1" x1="39" y1="40" x2="61" y2="40"/><line class="ik k2" x1="39" y1="50" x2="61" y2="50"/><line class="ik k3" x1="39" y1="60" x2="54" y2="60"/></g><g class="pen"><path d="M50 47 l6 -10 3.4 2 -6 10 -3.7 1.7 z" fill="var(--no)"/><path d="M50 47 l3.7 -1.7 -.7 3 z" fill="var(--navy)"/></g></svg><img class="arrow" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-arrow.png" alt="" loading="lazy" decoding="async"></span>הפקת דוח</button>
-      </div>
-      <div class="dt-stage">
-      <div class="dt-panel on" id="t-quotes">
-        <div class="dt-card wide">
-          <div class="txt">
-            <h4>המערכת סורקת — והציטוטים צפים</h4>
-            <p>המערכת קוראת את כל תשובות הנבחנת ומעלה למעלה רק את מה שבאמת אומר משהו — מילה במילה, עם נימוק לכל ציטוט. תמונת מצב עוד לפני שקראת עמוד אחד.</p>
-            <span class="demo-tag">המחשה לצורך הדגמה</span>
-          </div>
-          <div class="uiscreen">
-            <div class="dt-il" aria-hidden="true"><img alt="" decoding="async"></div>
-            <div class="ui-bar"><s></s><s></s><s></s><span>nzinuk.com/app</span></div>
-            <div class="qz-screen">
-              <div class="qz-head2"><b>✦ מה חשוב לראות מהשאלון</b><span id="qzCount">סורק…</span></div>
-              <div class="qscan" id="qzScan"></div>
-              <div class="qcat amber" id="qc1">
-                <div class="qh2">סתירות לבירור</div>
-                <div class="qbd">
-                  <div class="qline">"הוראה בגן, אני אוהבת ילדים"</div>
-                  <div class="qvs">— מול —</div>
-                  <div class="qline">"אני כלל לא נהנית לעבוד בקבוצות גדולות"</div>
-                  <div class="qwhy">פער בין הכיוון המבוקש לדיווח על עבודה בקבוצות — כדאי לברר בפגישה.</div>
-                </div>
-              </div>
-              <div class="qcat blue" id="qc2">
-                <div class="qh2">מניעים ורצונות</div>
-                <div class="qbd">
-                  <div class="qline">"שארגיש שאני עוזרת למישהו, לא רק מזיזה ניירות"</div>
-                  <div class="qwhy">מניע ערכי מובהק — עוגן מרכזי לניסוח ההמלצות.</div>
-                </div>
-              </div>
-              <div class="qcat rose" id="qc3">
-                <div class="qh2">רגש והתנסות</div>
-                <div class="qbd"><div class="qline">"תמיד הרגשתי הכי חיה כשעמדתי מול כיתה"</div></div>
-              </div>
-              <div class="qcat slate" id="qc4">
-                <div class="qh2">גבולות ואילוצים</div>
-                <div class="qbd"><div class="qline">"אני מחפשת משהו קרוב לבית, בשעות של הילדים"</div></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-<div class="dt-panel" id="t-quant">
-        <div class="dt-card wide">
-          <div class="txt">
-            <h4>תמונה כמותית, בלי לספור כלום</h4>
-            <p>כל תשובה בשאלון נספרת ומשוקללת לקטגוריות. מה שדרש טבלה ידנית ושעה של ספירה מופיע כגרף — ומראה מיד איפה החוזקות ואיפה צריך לברר.</p>
-            <span class="demo-tag">המחשה לצורך הדגמה</span>
-          </div>
-          <div class="uiscreen">
-            <div class="dt-il" aria-hidden="true"><img alt="" decoding="async"></div>
-            <div class="ui-bar"><s></s><s></s><s></s><span>nzinuk.com/app</span></div>
-            <div class="qt">
-              <div class="qt-h"><b>ממוצע דירוג לפי אפיון — קוד הולנד</b><span>רבקה ש. · 84 שאלות</span></div>
-              <div class="qt-chart"><div class="qt-col qt-c1"><span class="qt-val">2.1</span><i class="qt-bar" style="height:42%;background:rgba(239, 68, 68, 0.7)"></i><span class="qt-lbl">ריאליסטי</span></div><div class="qt-col qt-c2"><span class="qt-val">2.8</span><i class="qt-bar" style="height:56%;background:rgba(249, 115, 22, 0.7)"></i><span class="qt-lbl">חקרני</span></div><div class="qt-col qt-c3"><span class="qt-val">4.1</span><i class="qt-bar" style="height:82%;background:rgba(234, 179, 8, 0.7)"></i><span class="qt-lbl">אמנותי</span></div><div class="qt-col qt-c4"><span class="qt-val">4.7</span><i class="qt-bar" style="height:94%;background:rgba(34, 197, 94, 0.7)"></i><span class="qt-lbl">חברתי</span></div><div class="qt-col qt-c5"><span class="qt-val">3.4</span><i class="qt-bar" style="height:68%;background:rgba(59, 130, 246, 0.7)"></i><span class="qt-lbl">יזמי</span></div><div class="qt-col qt-c6"><span class="qt-val">3.6</span><i class="qt-bar" style="height:72%;background:rgba(139, 92, 246, 0.7)"></i><span class="qt-lbl">שיטתי</span></div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-<div class="dt-panel" id="t-docs">
-        <div class="dt-card wide">
-          <div class="txt">
-            <h4>מסמך חיצוני נכנס — ויוצא מנותח</h4>
-            <p>דוח ממכון אחר, אבחון קודם, מכתב ממורה. המערכת קוראת את כל העמודים, שולפת את מה שרלוונטי לתיק, ומוחקת את המקור. את לא קוראת ארבעה עשר עמודים כדי למצוא שתי שורות.</p>
-            <span class="demo-tag">המחשה לצורך הדגמה</span>
-          </div>
-          <div class="uiscreen">
-            <div class="dt-il" aria-hidden="true"><img alt="" decoding="async"></div>
-            <div class="ui-bar"><s></s><s></s><s></s><span>nzinuk.com/app</span></div>
-            <div class="dc">
-              <div class="dc-drop">גררי לכאן מסמך, או בחרי קובץ</div>
-              <div class="dc-file">
-                <span class="dc-ico">PDF</span>
-                <div><b>דוח אבחון חיצוני — מכון תעסוקתי.pdf</b><span>14 עמודים · 2.4MB</span></div>
-              </div>
-              <div class="dc-prog"><i></i></div>
-              <div class="dc-stat">קורא עמודים ומאתר את הרלוונטי…</div>
-              <div class="dc-out">
-                <div class="dc-row dc-r1">נטייה מובהקת לתחומי טיפול וחינוך<s>עמוד 4 · מבחן נטיות תעסוקתיות</s></div>
-                <div class="dc-row dc-r2">ציון גבוה בהבנת הנקרא, בינוני בחשיבה כמותית<s>עמוד 7 · פרופיל קוגניטיבי</s></div>
-                <div class="dc-row dc-r3">המליץ על מסלול לימודים קצר לפני תעסוקה מלאה<s>עמוד 12 · סיכום והמלצות</s></div>
-              </div>
-              <div class="dc-seal"><span>✓ המקור נמחק — שימוש חד-פעמי</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-<div class="dt-panel" id="t-chat">
-        <div class="dt-card wide">
-          <div class="txt">
-            <h4>חדר ההתייעצות — ובלחיצה, תוצר</h4>
-            <p>שיח חסוי מול מנוע שקרא כל מילה בתיק. הכותרת נכתבת לבד, וכשהתובנה מגובשת — לחיצה אחת הופכת את השיחה למסמך מסודר בתיק.</p>
-            <span class="demo-tag">המחשה לצורך הדגמה</span>
-          </div>
-          <div class="uiscreen">
-            <div class="dt-il" aria-hidden="true"><img alt="" decoding="async"></div>
-            <div class="ui-bar"><s></s><s></s><s></s><span>nzinuk.com/app</span></div>
-            <div class="chat">
-              <div class="chat-side">
-                <div class="chat-new">+ התייעצות חדשה</div>
-                <div class="thread-item active" id="thActive">
-                  <div class="tt" id="thTitle">התייעצות חדשה…</div>
-                  <div class="tm" id="thMeta">—</div>
-                </div>
-                <div class="thread-item"><div class="tt">פער בין השאיפות לציונים</div><div class="tm">2 הודעות</div></div>
-                <div class="thread-item"><div class="tt">שאלות לפגישה ראשונה</div><div class="tm">3 הודעות</div></div>
-              </div>
-              <div class="chat-main">
-                <div class="chat-head">
-                  <div class="chat-title"><span id="chTitleTxt">התייעצות חדשה</span><span class="auto" id="chAuto">✦ כותרת אוטומטית</span></div>
-                  <div class="chat-toproduct" id="chProd"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>הפוך לתוצר</div>
-                </div>
-                <div class="chat-body" id="chatBody"></div>
-                <div class="prod-toast" id="prodToast">
-                  <span class="pi"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
-                  <div><b>נוצר תוצר בתיק</b><span>"סיכום התייעצות — מסלול גרפיקה"</span></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-<div class="dt-panel" id="t-report">
-        <div class="dt-card wide">
-          <div class="txt">
-            <h4>הפקת דוח — משקללת את כל התיק</h4>
-            <p>לחיצה אחת, והמערכת שוקללת את השאלון, הנתונים, ההערות והאבחנה לדוח מלא ומנוסח. בזמן שהוא נכתב — את כבר בתיק הבא.</p>
-            <span class="demo-tag">המחשה לצורך הדגמה</span>
-          </div>
-          <div class="uiscreen">
-            <div class="dt-il" aria-hidden="true"><img alt="" decoding="async"></div>
-            <div class="ui-bar"><s></s><s></s><s></s><span>nzinuk.com/app</span></div>
-            <div class="rep-wrap">
-              <div class="rep-progress" id="repProg">
-                <div class="rep-spin-frame"><img class="rep-spin" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/%D7%9C%D7%95%D7%92%D7%95%20%D7%9E%D7%A6%D7%A4%D7%9F%20%D7%A0%D7%A7%D7%95%D7%93%D7%AA%20%D7%96%D7%99%D7%A0%D7%95%D7%A7.png" alt=""></div>
-                <h5>מפיק דוח תלמידה ברקע</h5>
-                <div class="rstep" id="repStep">קורא את השאלון…</div>
-                <div class="rep-track"><i id="repBar"></i></div>
-              </div>
-              <div class="rep-doc" id="repDoc">
-                <div class="rdh"><img src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/%D7%A2%D7%95%D7%AA%D7%A7%20%D7%9C%D7%AA%D7%9E%D7%95%D7%A0%D7%AA%20%D7%A4%D7%A8%D7%95%D7%A4%D7%99%D7%9C%20%D7%A8%D7%97%D7%91%20%D7%91%D7%9C%D7%99%20%D7%A8%D7%A7%D7%A2.png" alt=""></div>
-                <div class="rt">דוח אבחון תעסוקתי</div>
-                <div class="rs">מרים לוינגר · יולי 2026</div>
-                <div class="rcode"><b style="background:#22C55E">S · חברתי</b><b style="background:#EAB308">A · אמנותי</b><b style="background:#3B82F6">E · יזמי</b></div>
-                <div class="rsec">תמונת מצב</div>
-                <div class="rtx">מרים מגיעה עם רצון ברור לעסוק בתחום שיש בו מגע אנושי ותחושת השפעה. לצד זאת עולה נטייה ניהולית־יזמית מובהקת.</div>
-                <div class="rsec">מסלולים מומלצים</div>
-                <div class="rlines"><u></u><u></u><u></u></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  </div>
-</section>
-
-<!-- ============ REPORT IN HAND (strip) ============ -->
-<section class="pad" style="background:#fff">
-  <div class="wrap">
-    <div class="strip reveal">
-      <div class="glow"></div>
-      <div class="strip-grid">
-        <div>
-          <span class="eyebrow" style="color:var(--nc)">התוצר</span>
-          <h3 style="margin-top:12px">היא יוצאת<br>עם דוח ביד.</h3>
-          <p>זה הרגע שמוכר את הייעוץ שלך. היא לא הולכת עם זיכרון מהשיחה — אלא עם מסמך מקצועי, ממותג ומודפס, שנושא את השם שלך.</p>
-          <div class="badge">
-            <span class="ic"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg></span>
-            <div>
-              <b>דוח ממותג, מודפס ומוענק מיד בסיום הפגישה.</b>
-              <span>כמעט אין דבר כזה באבחון תעסוקתי. אצלך זה יהיה הסטנדרט.</span>
-            </div>
-          </div>
-        </div>
-        <div>
-          <div class="doc" style="box-shadow:0 0 0 2px rgba(245,130,31,.4),0 40px 76px -26px rgba(0,0,0,.5),0 0 66px -10px rgba(245,130,31,.32)">
-            <div class="dh">
-              <img src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/%D7%A2%D7%95%D7%AA%D7%A7%20%D7%9C%D7%AA%D7%9E%D7%95%D7%A0%D7%AA%20%D7%A4%D7%A8%D7%95%D7%A4%D7%99%D7%9C%20%D7%A8%D7%97%D7%91%20%D7%91%D7%9C%D7%99%20%D7%A8%D7%A7%D7%A2.png" alt="">
-              <s>הדסה כהן<br>יועצת תעסוקה</s>
-            </div>
-            <h4>דוח אבחון תעסוקתי</h4>
-            <div class="sub">מרים לוינגר · יולי 2026</div>
-            <div class="sec">קוד הנטיות</div>
-            <div class="code"><b style="background:#22C55E">S · חברתי</b><b style="background:#EAB308">A · אמנותי</b><b style="background:#3B82F6">E · יזמי</b></div>
-            <div class="sec">תמונת מצב</div>
-            <div class="tx">מרים מגיעה עם רצון ברור לעסוק בתחום שיש בו מגע אנושי ותחושת השפעה. לצד זאת עולה נטייה ניהולית־יזמית מובהקת.</div>
-            <div class="sec">מסלולים מומלצים</div>
-            <div class="lines"><u></u><u></u><u></u></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ VALUE ============ -->
-<section class="pad" id="value">
-  <div class="wrap">
-    <div class="center reveal">
-      <span class="eyebrow">השורה התחתונה</span>
-      <h2 class="h-sec">מה זה באמת שווה לך?</h2>
-    </div>
-    <div class="vals stagger reveal">
-      <div class="val">
-        <div class="k">עומק</div>
-        <div class="n">תיק שאת מכירה</div>
-        <p>ציטוטים מנומקים, תמונה כמותית וחדר התייעצות. את נכנסת לפגישה כשאת כבר יודעת מה לשאול.</p>
-      </div>
-      <div class="val">
-        <div class="k">היקף ומרחק</div>
-        <div class="n">אבחון מרחוק</div>
-        <p>ההיכרות נבנית עוד לפני המפגש. אפשר לאבחן יותר נבחנות, ולהגיע גם לאלה שלא היו מגיעות פיזית.</p>
-      </div>
-      <div class="val">
-        <div class="k">התוצר</div>
-        <div class="n">דוח כתוב בידיה</div>
-        <p>לא זיכרון מהשיחה, אלא מסמך אבחון מלא — שאפשר לחזור אליו, להראות בבית ולהחליט לפיו.</p>
-      </div>
-    </div>
-    <p class="promise reveal" style="margin-top:36px">המערכת לא מחליפה אותך — היא מעצימה אותך.</p>
-  </div>
-</section>
-
-<!-- ============ FINAL CTA ============ -->
 <!-- ============ TESTIMONIALS ============ -->
-<section class="pad testi" style="background:#fff">
-  <img class="compass-wm2" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/%D7%9C%D7%95%D7%92%D7%95%20%D7%9E%D7%A6%D7%A4%D7%9F%20%D7%A0%D7%A7%D7%95%D7%93%D7%AA%20%D7%96%D7%99%D7%A0%D7%95%D7%A7.png" alt="">
-  <div class="wrap" style="position:relative;z-index:1">
-    <div class="center reveal">
-      <span class="eyebrow">יועצות מספרות</span>
-      <h2 class="h-sec">מה שקורה כשהאבחון מדייק.</h2>
+<section class="testi">
+  <div class="center reveal">
+    <span class="eyebrow">יועצות מספרות</span>
+    <h2 class="h-sec">מה שקורה כשהאבחון מדייק.</h2>
+  </div>
+  <div class="testi-track reveal">
+    <div class="tstm">
+      <span class="quote-ic">”</span>
+      <p>בהתחלה לא הייתי משתמשת בכלי הניתוח. אבל מהרגע שהתחלתי להתייעץ בניתוח הפנימי — ראיתי שאני הרבה יותר מדייקת את האבחון שלי. היום אני כבר לא יכולה בלי.</p>
+      <div class="who"><span class="av av-1">מ</span><div><b>מ. יועצת תעסוקה</b><span>סמינר בירושלים</span></div></div>
     </div>
-    <div class="testi-track reveal">
-      <div class="tcard">
-        <span class="quote-ic">”</span>
-        <p>בהתחלה לא הייתי משתמשת בכלי הניתוח. אבל מהרגע שהתחלתי להתייעץ בניתוח הפנימי — ראיתי שאני הרבה יותר מדייקת את האבחון שלי. היום אני כבר לא יכולה בלי.</p>
-        <div class="who"><span class="av av-1">מ</span><div><b>מ. יועצת תעסוקה</b><span>סמינר בירושלים</span></div></div>
-      </div>
-      <div class="tcard">
-        <span class="quote-ic">”</span>
-        <p>לראות בחורה בפעם הראשונה — ועוד לפני שהיא פותחת את הפה — לספר לה בדיוק מי היא. זה פשוט וואו.</p>
-        <div class="who"><span class="av av-2">ר</span><div><b>ר. יועצת ומאבחנת</b><span>מרכז הכוונה</span></div></div>
-      </div>
-      <div class="tcard">
-        <span class="quote-ic">”</span>
-        <p>אחת ההנאות שלי היא לומר לה משהו שאני בחיים לא הייתי אמורה לדעת עליה — וזה רק בזכות התמונה הרב־מימדית שיש עליה, כי שום פרט מהתשובות שלה לא מתפספס.</p>
-        <div class="who"><span class="av av-3">ח</span><div><b>ח. יועצת קריירה</b><span>אשה נשואה + הסבה</span></div></div>
-      </div>
-      <div class="tcard">
-        <span class="quote-ic">”</span>
-        <p>הדוח הזה הוא דבר עצום. עם העומס של הייעוץ התעסוקתי הרגיל, לא היה נשאר לי זמן לכתוב שמינית ממה שכתוב בדוח.</p>
-        <div class="who"><span class="av av-4">ש</span><div><b>ש. יועצת בכירה</b><span>רשת סמינרים</span></div></div>
-      </div>
-      <div class="tcard">
-        <span class="quote-ic">”</span>
-        <p>החלק הכיפי: תלמידה שייעצתי לה לפני שנה מתקשרת אליי — ובלחיצת כפתור אני כבר מונחת בכל הייעוץ הקודם, ויכולה לתת לה הכוונה מדויקת.</p>
-        <div class="who"><span class="av av-5">ל</span><div><b>ל. יועצת תעסוקה</b><span>קליניקה פרטית</span></div></div>
-      </div>
+    <div class="tstm">
+      <span class="quote-ic">”</span>
+      <p>לראות בחורה בפעם הראשונה — ועוד לפני שהיא פותחת את הפה — לספר לה בדיוק מי היא. זה פשוט וואו.</p>
+      <div class="who"><span class="av av-2">ר</span><div><b>ר. יועצת ומאבחנת</b><span>מרכז הכוונה</span></div></div>
     </div>
-    <div class="testi-hint reveal">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-      החליקו לעוד המלצות
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+    <div class="tstm">
+      <span class="quote-ic">”</span>
+      <p>אחת ההנאות שלי היא לומר לה משהו שאני בחיים לא הייתי אמורה לדעת עליה — וזה רק בזכות התמונה הרב־מימדית שיש עליה, כי שום פרט מהתשובות שלה לא מתפספס.</p>
+      <div class="who"><span class="av av-3">ח</span><div><b>ח. יועצת קריירה</b><span>אשה נשואה + הסבה</span></div></div>
     </div>
+    <div class="tstm">
+      <span class="quote-ic">”</span>
+      <p>הדוח הזה הוא דבר עצום. עם העומס של הייעוץ התעסוקתי הרגיל, לא היה נשאר לי זמן לכתוב שמינית ממה שכתוב בדוח.</p>
+      <div class="who"><span class="av av-4">ש</span><div><b>ש. יועצת בכירה</b><span>רשת סמינרים</span></div></div>
+    </div>
+    <div class="tstm">
+      <span class="quote-ic">”</span>
+      <p>החלק הכיפי: תלמידה שייעצתי לה לפני שנה מתקשרת אליי — ובלחיצת כפתור אני כבר מונחת בכל הייעוץ הקודם, ויכולה לתת לה הכוונה מדויקת.</p>
+      <div class="who"><span class="av av-5">ל</span><div><b>ל. יועצת תעסוקה</b><span>קליניקה פרטית</span></div></div>
+    </div>
+  </div>
+  <div class="testi-hint reveal">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    החליקו לעוד המלצות
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
   </div>
 </section>
 
-<section class="final" id="contact">
-  <img class="compass" src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/57016bbe6960385cca05abab2390b0915e063132/spinner.png.png" alt="">
-  <div class="wrap contact-grid">
-    <div class="contact-copy reveal">
-      <h2>רוצה להרגיש<br>את זה על תיק<br>אמיתי שלך?</h2>
-      <p>השאירי פרטים, ונתאם הדגמה קצרה — נעבור יחד על תיק אמיתי שלך ותראי בדיוק איך זה עובד אצלך.</p>
+<!-- ============ CONTACT ============ -->
+<section class="contact" id="contact">
+  <div class="contact-grid">
+    <div class="contact-intro reveal">
+      <h2>בואי נכיר</h2>
+      <p>מלאי את הפרטים ונחזור אלייך אישית — נבין מה מתאים לך, ונראה לך את המערכת בפעולה.</p>
       <ul class="contact-pts">
-        <li><span class="d"></span> ליווי אישי לאורך ההתאמה</li>
-        <li><span class="d"></span> בלי התחייבות, בלי כרטיס אשראי</li>
+        <li><span class="d"></span> שיחה אישית, בלי התחייבות</li>
+        <li><span class="d"></span> הדגמה חיה של המערכת</li>
         <li><span class="d"></span> נחזור אלייך תוך יום עבודה</li>
       </ul>
-      <div class="mailpill">או ישירות: office@nzinuk.com</div>
     </div>
 
     <div class="contact-card reveal">
@@ -1454,78 +318,86 @@ svg{flex:none}
             <textarea name="message" rows="3" placeholder="לא חובה — כל מה שתרצי שנתכונן אליו"></textarea>
           </label>
         </div>
-        <!-- מלכודת ספאם: שדה נסתר שאמור להישאר ריק -->
         <input type="text" name="company_hp" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
         <button type="submit" class="btn btn-primary form-submit">
-          <span class="lbl">שליחה ותיאום הדגמה</span>
+          <span class="lbl">שליחה — ונחזור אלייך</span>
           <span class="spin" aria-hidden="true"></span>
         </button>
         <p class="form-note" id="formNote" role="status"></p>
       </form>
-      <!-- מסך תודה -->
-      <div class="thanks" id="thanks" hidden>
-        <div class="thanks-anim" id="thanksAnim" aria-hidden="true"><img alt="" id="thanksAnimImg"></div>
-                <div class="thanks-ic">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+
+      <div id="thanks">
+        <div class="mark-ring">
+          <img src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-logo-orbit-once.gif" alt="">
         </div>
-        <h3>קיבלנו! תודה.</h3>
-        <p>נחזור אלייך תוך יום עבודה לתיאום ההדגמה.</p>
+        <h3>קיבלנו! תודה</h3>
+        <p>נחזור אלייך תוך יום עבודה עם הדגמה אישית של המערכת.</p>
       </div>
     </div>
   </div>
 </section>
 
 <footer>
-  <div class="fl">
-    <img src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/%D7%9C%D7%95%D7%92%D7%95%20%D7%9E%D7%A6%D7%A4%D7%9F%20%D7%A0%D7%A7%D7%95%D7%93%D7%AA%20%D7%96%D7%99%D7%A0%D7%95%D7%A7.png" alt="">
-    <b>נקודת זינוק</b>
-  </div>
-  <div>מערכת אבחון תעסוקתי ליועצות · office@nzinuk.com</div>
-  <div style="margin-top:8px;opacity:.6">© 2026 נקודת זינוק. כל הזכויות שמורות.</div>
+  <div class="lg">נקודת זינוק</div>
+  נקודת זינוק © 2026 · מערכת אבחון תעסוקתי
 </footer>
 
 <script>
-  // --- prevent the browser from restoring/animating scroll on load ---
-  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-  // if there's no in-page anchor in the URL, make sure we start at the very top
-  if (!window.location.hash) {
-    window.scrollTo(0, 0);
-    window.addEventListener('load', () => window.scrollTo(0, 0));
-  }
-
-  // sticky + hero-nav state
-  const hdr = document.getElementById('hdr');
-  const hero = document.querySelector('.hero');
-  function onScroll(){
-    const past = window.scrollY > 40;
-    hdr.classList.toggle('scrolled', past);
-    const heroBottom = hero.offsetHeight - 90;
-    hdr.classList.toggle('on-hero', window.scrollY < heroBottom);
-  }
-  window.addEventListener('scroll', onScroll); onScroll();
-
-  // ---------- testimonials: mouse-wheel horizontal scroll ----------
+  /* ===== rotating headline ===== */
   (function(){
-    const track = document.querySelector('.testi-track');
-    if(!track) return;
-    const maxScroll = () => track.scrollWidth - track.clientWidth; // positive magnitude
-    track.addEventListener('wheel', (e)=>{
-      if(Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return; // let real horizontal gestures pass
-      // In RTL, scrollLeft ranges from 0 (start) down to -(maxScroll) (end).
-      const pos = -track.scrollLeft;              // 0..maxScroll as a positive progress value
-      const atStart = pos <= 0;
-      const atEnd = pos >= maxScroll() - 1;
-      if((e.deltaY > 0 && !atEnd) || (e.deltaY < 0 && !atStart)){
-        e.preventDefault();
-        track.scrollLeft -= e.deltaY;             // deltaY>0 → move forward through cards
-      }
-    }, {passive:false});
+    var el = document.getElementById('rot');
+    if(!el) return;
+    var words = ['מקפיצה אותך קדימה','משדרגת את העבודה שלך','חוסכת לך שעות','מגדילה את ההכנסה שלך'];
+    var i = 0;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduce) return;
+    el.style.transition = 'opacity .26s ease';
+    setInterval(function(){
+      i = (i+1) % words.length;
+      el.style.opacity = 0;
+      setTimeout(function(){ el.textContent = words[i]; el.style.opacity = 1; }, 260);
+    }, 2600);
   })();
 
-  // ---------- contact form ----------
-  // ▼▼▼ הדביקי כאן את ה-Web app URL מ-Apps Script ▼▼▼
+  /* ===== background compass — rotates with scroll (as in ivchun.html) ===== */
+  (function(){
+    var el = document.getElementById('scrollCompass');
+    if(!el) return;
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var rot = 0, last = window.scrollY, ticking = false;
+    function apply(){
+      var y = window.scrollY;
+      rot += (y - last) * 0.19;
+      last = y;
+      var drift = Math.sin(y / 560) * 26;
+      el.style.transform = 'translateY(' + drift + 'px) rotate(' + rot + 'deg)';
+      ticking = false;
+    }
+    window.addEventListener('scroll', function(){
+      if(!ticking){ requestAnimationFrame(apply); ticking = true; }
+    }, { passive: true });
+    apply();
+  })();
+
+  /* ===== reveal on scroll ===== */
+  (function(){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, {threshold:.12});
+    document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+  })();
+
+  /* ===== header shrink on scroll ===== */
+  (function(){
+    var hdr = document.getElementById('hdr');
+    window.addEventListener('scroll', function(){
+      hdr.style.background = window.scrollY > 20 ? 'rgba(12,35,64,.92)' : 'transparent';
+      hdr.style.boxShadow  = window.scrollY > 20 ? '0 10px 30px -18px rgba(0,0,0,.6)' : 'none';
+    }, {passive:true});
+  })();
+
+  /* ===== lead form — same endpoint as the full page, marked as initial form ===== */
   const FORM_ENDPOINT = "https://script.google.com/macros/s/AKfycbzaDuhP3dMDau0N_3MiQgAcXD6gUiwEacdEwxffyXZouVzhoFjdzZXHEvrQe0Wzjxg/exec";
-  // ▲▲▲ ראה קובץ nzinuk-contact-form.gs ▲▲▲
 
   const form = document.getElementById('leadForm');
   const note = document.getElementById('formNote');
@@ -1556,337 +428,28 @@ svg{flex:none}
       audience: form.audience.value,
       message: form.message.value.trim(),
       company_hp: form.company_hp.value,
-      source: 'דף נחיתה'
+      source: 'טופס ראשוני'
     };
 
     submitBtn.classList.add('loading');
     submitBtn.disabled = true;
 
-    if (FORM_ENDPOINT.startsWith('PASTE_')) {
-      // מצב הדגמה — עדיין לא חובר ל-Sheets
-      setTimeout(() => { form.hidden = true; thanks.hidden = false; playThanksAnim(); }, 700);
-      return;
-    }
-
     try {
       await fetch(FORM_ENDPOINT, {
         method: 'POST',
         mode: 'no-cors',
-        // text/plain = "simple request" → בלי preflight מול Apps Script
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       });
-      // Apps Script לא מחזיר CORS, אז לא קוראים את התשובה — עצם השליחה הצליחה
-      form.hidden = true;
-      thanks.hidden = false; playThanksAnim();
-      thanks.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      form.style.display = 'none';
+      thanks.classList.add('show');
     } catch (err) {
       submitBtn.classList.remove('loading');
       submitBtn.disabled = false;
-      note.textContent = 'משהו השתבש בשליחה. אפשר לנסות שוב, או לכתוב ל-office@nzinuk.com';
+      note.textContent = 'משהו השתבש בשליחה. אפשר לנסות שוב מאוחר יותר.';
       note.classList.add('bad');
     }
   });
-
-  // ---------- scroll progress bar ----------
-  const sbar = document.getElementById('scrollbar');
-  function updateBar(){
-    const h = document.documentElement;
-    const max = h.scrollHeight - h.clientHeight;
-    sbar.style.width = (max>0 ? (h.scrollTop/max*100) : 0) + '%';
-  }
-  window.addEventListener('scroll', updateBar, {passive:true}); updateBar();
-
-  // ---------- count-up numbers ----------
-  function countUp(el){
-    if(el.dataset.done) return; el.dataset.done = '1';
-    const to = parseFloat(el.dataset.to);
-    const dec = el.dataset.dec ? parseInt(el.dataset.dec) : (Number.isInteger(to)?0:1);
-    const pre = el.dataset.prefix || '';
-    const suf = el.dataset.suffix || '';
-    const span = el.querySelector('span');
-    const dur = 1400; const t0 = performance.now();
-    function tick(now){
-      const p = Math.min((now-t0)/dur, 1);
-      const eased = 1 - Math.pow(1-p, 3);
-      const val = (to*eased).toFixed(dec);
-      span.innerHTML = pre + val + (suf ? '<span class="u">'+suf+'</span>' : '');
-      if(p<1) requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-  }
-
-  // ---------- scroll reveal (with stagger + count-up triggers) ----------
-  const io = new IntersectionObserver((entries)=>{
-    entries.forEach(e=>{
-      if(e.isIntersecting){
-        e.target.classList.add('in');
-        e.target.querySelectorAll && e.target.querySelectorAll('.num[data-to]').forEach(countUp);
-        if(e.target.matches && e.target.matches('.num[data-to]')) countUp(e.target);
-        io.unobserve(e.target);
-      }
-    });
-  }, {threshold:.16});
-  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
-
-  // ---------- giant compass that spins with scroll direction ----------
-  (function(){
-    const el = document.getElementById('scrollCompass');
-    if(!el) return;
-    let rot = 0, last = window.scrollY, ticking = false;
-    function apply(){
-      const y = window.scrollY;
-      rot += (y - last) * 0.28;   // גלילה קדימה=סיבוב, אחורה=הפוך
-      last = y;
-      // drift vertically a touch so it feels alive
-      const drift = Math.sin(y/500) * 30;
-      el.style.transform = 'translateY('+drift+'px) rotate('+rot+'deg)';
-      ticking = false;
-    }
-    window.addEventListener('scroll', ()=>{ if(!ticking){ requestAnimationFrame(apply); ticking=true; } }, {passive:true});
-    apply();
-  })();
-
-
-  // ---------- live-demo tabs with authentic screen playback ----------
-  const tabBtns = document.querySelectorAll('.dt-btn');
-  const tabPanels = document.querySelectorAll('.dt-panel');
-  const timers = [];
-  function clearTimers(){ timers.forEach(t=>clearTimeout(t)); timers.length=0; }
-  function later(fn,ms){ timers.push(setTimeout(fn,ms)); }
-
-  tabBtns.forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      clearTimers();
-      tabBtns.forEach(b=>{ b.classList.remove('on'); b.classList.remove('pulse-hint'); });
-      tabPanels.forEach(p=>p.classList.remove('on'));
-      btn.classList.add('on');
-      document.getElementById(btn.dataset.tab).classList.add('on');
-    });
-  });
-
-// ── לולאת ההדגמה: הרצה, מסך ביניים כהה, והרצה מחדש ──────────────
-  (function(){
-    var IL_GIF = 'https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-logo-orbit-once.gif';
-    var HOLD = { 't-docs':7200, 't-chat':13000, 't-quotes':7800, 't-quant':5600, 't-report':10000 };
-    var IL_MS = 3500;                       // אורך ההנפשה ועוד ההעמעום
-    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    var timer = null, current = null, warmed = false;
-
-    function warm(){
-      if(warmed) return; warmed = true;
-      var pre = new Image(); pre.src = IL_GIF;
-    }
-    function hideIl(){
-      document.querySelectorAll('.dt-il').forEach(function(el){ el.classList.remove('show'); });
-    }
-    function showIl(tab){
-      var panel = document.getElementById(tab);
-      if(!panel) return;
-      var il = panel.querySelector('.dt-il');
-      if(!il) return;
-      var img = il.querySelector('img');
-      img.src = IL_GIF;                     // מהמטמון — מתחיל מפריים 0 בכל מחזור
-      il.classList.add('show');
-    }
-    function fire(tab){
-      clearTimers();                        // מבטל שאריות של הרצה קודמת
-      if(tab === 't-docs' || tab === 't-quant'){
-        var p = document.getElementById(tab);
-        if(!p) return;
-        p.classList.remove('run'); void p.offsetWidth; p.classList.add('run');
-      }
-      else if(tab === 't-chat')   playDemo('chat');
-      else if(tab === 't-quotes') playDemo('quotes');
-      else if(tab === 't-report') playDemo('report');
-    }
-    function cycle(){
-      if(!current) return;
-      hideIl();
-      fire(current);
-      if(reduce) return;                    // הרצה אחת, בלי לולאה ובלי מסך ביניים
-      timer = setTimeout(function(){
-        showIl(current);
-        timer = setTimeout(cycle, IL_MS);
-      }, HOLD[current] || 5000);
-    }
-
-    function stop(){
-      if(timer){ clearTimeout(timer); timer = null; }
-      hideIl();
-    }
-    function start(tab){
-      stop();
-      current = tab;
-      setTimeout(cycle, 40);                // נותן לפאנל להיות גלוי לפני ההנפשה
-    }
-
-    tabBtns.forEach(function(b){
-      b.addEventListener('click', function(){ warm(); start(b.dataset.tab); });
-    });
-
-    // רץ רק כשהסעיף על המסך
-    var section = document.querySelector('.demo-tabs');
-    if(section && 'IntersectionObserver' in window){
-      new IntersectionObserver(function(entries){
-        entries.forEach(function(e){
-          if(e.isIntersecting){
-            warm();
-            var openBtn = document.querySelector('.dt-btn.on');
-            if(openBtn && !current) start(openBtn.dataset.tab);
-            else if(current && !timer) cycle();
-          } else {
-            stop();
-          }
-        });
-      }, { threshold: .25 }).observe(section);
-    }
-  })();
-
-  // ===== DEMO 1: internal analysis chat → product =====
-  const chatScript = [
-    {who:'me', txt:'האם הציונים בדוח החיצוני תומכים במסלול עיצוב גרפי, או שאני מתבססת רק על מה שהיא כתבה?'},
-    {who:'ai', txt:'בדוח בולט <b>ציון גבוה בתפיסה מרחבית</b> שתומך בכיוון. אבל בשאלון היא סימנה חוסר ניסיון בעבודה ממוחשבת, ובשאלה פתוחה כתבה "אני מציירת רק בעפרון". כלומר הנטייה קיימת, אך <b>הפער טכני ולא יצירתי</b> — שווה לבדוק נכונות לקורס תוכנה.'}
-  ];
-  function playChat(){
-    const body=document.getElementById('chatBody');
-    const title=document.getElementById('chTitleTxt');
-    const auto=document.getElementById('chAuto');
-    const prod=document.getElementById('chProd');
-    const thTitle=document.getElementById('thTitle');
-    const thMeta=document.getElementById('thMeta');
-    const toast=document.getElementById('prodToast');
-    body.innerHTML=''; title.textContent='התייעצות חדשה'; auto.classList.remove('show');
-    prod.classList.remove('ready'); toast.classList.remove('show');
-    thTitle.textContent='התייעצות חדשה…'; thMeta.textContent='—';
-
-    // user message
-    later(()=>{ const b=document.createElement('div'); b.className='bub me'; b.innerHTML=chatScript[0].txt; body.appendChild(b); body.scrollTop=body.scrollHeight; }, 400);
-    // typing indicator
-    later(()=>{ const t=document.createElement('div'); t.className='typing'; t.id='typingDots'; t.innerHTML='<s></s><s></s><s></s>'; body.appendChild(t); body.scrollTop=body.scrollHeight; }, 1200);
-    // ai reply
-    later(()=>{ const d=document.getElementById('typingDots'); if(d)d.remove(); const b=document.createElement('div'); b.className='bub ai'; b.innerHTML=chatScript[1].txt; body.appendChild(b); body.scrollTop=body.scrollHeight; }, 2900);
-    // auto title generation
-    later(()=>{ auto.classList.add('show'); title.textContent='התאמה למסלול גרפיקה'; thTitle.textContent='התאמה למסלול גרפיקה'; thMeta.textContent='2 הודעות'; document.getElementById('thActive').classList.add('fresh'); }, 3700);
-    // "to product" becomes ready
-    later(()=>{ prod.classList.add('ready'); }, 4300);
-    // click → product toast
-    later(()=>{ toast.classList.add('show'); }, 5200);
-    later(()=>{ toast.classList.remove('show'); }, 8500);
-  }
-
-  // ===== DEMO 2: quotes scan reveal =====
-  function playQuotes(){
-    const scan=document.getElementById('qzScan');
-    const count=document.getElementById('qzCount');
-    const cats=['qc1','qc2','qc3','qc4'].map(id=>document.getElementById(id));
-    cats.forEach(c=>c.classList.remove('in'));
-    count.textContent='סורק…';
-    scan.classList.remove('run'); void scan.offsetWidth; scan.classList.add('run');
-    cats.forEach((c,i)=> later(()=>{ c.classList.add('in'); }, 900 + i*550));
-    later(()=>{ count.textContent='12 תובנות'; }, 900 + cats.length*550);
-  }
-
-  // ===== DEMO 3: report generation =====
-  const repSteps=['קורא את השאלון…','מצליב נתונים כמותיים…','משקלל הערות ואבחנה…','מנסח את הדוח…'];
-  function playReport(){
-    const prog=document.getElementById('repProg');
-    const step=document.getElementById('repStep');
-    const bar=document.getElementById('repBar');
-    const doc=document.getElementById('repDoc');
-        prog.classList.remove('hide'); doc.classList.remove('show');
-    bar.style.width='0'; step.textContent=repSteps[0];
-    repSteps.forEach((txt,i)=>{
-      later(()=>{ step.textContent=txt; bar.style.width=((i+1)/repSteps.length*100)+'%'; }, 500 + i*900);
-    });
-    later(()=>{ prog.classList.add('hide'); doc.classList.add('show'); }, 500 + repSteps.length*900 + 400);
-  }
-
-  const chProdBtn=document.getElementById('chProd');
-  if(chProdBtn) chProdBtn.addEventListener('click', ()=>{
-    if(!chProdBtn.classList.contains('ready')) return;
-    const toast=document.getElementById('prodToast');
-    toast.classList.add('show');
-    later(()=>toast.classList.remove('show'), 3200);
-  });
-
-  function playDemo(which){
-    if(which==='chat') playChat();
-    else if(which==='quotes') playQuotes();
-    else if(which==='report') playReport();
-  }
-
-  // auto-play the active demo when the section scrolls into view (once)
-  const demoSec=document.getElementById('demo');
-  if(demoSec){
-    const dio=new IntersectionObserver((es)=>{
-      es.forEach(e=>{ if(e.isIntersecting){ dio.unobserve(e.target); } });
-    },{threshold:.3});
-    dio.observe(demoSec);
-  }
-
-  // ---------- hero floating particles ----------
-  (function(){
-    const host = document.getElementById('heroParticles');
-    if(!host) return;
-    const colors = ['#1FBFDE','#8DC63F','#F5821F'];
-    const N = window.innerWidth < 700 ? 14 : 26;
-    for(let i=0;i<N;i++){
-      const s = document.createElement('span');
-      const size = 3 + Math.random()*7;
-      s.style.width = s.style.height = size+'px';
-      s.style.left = Math.random()*100+'%';
-      s.style.bottom = '-'+ (Math.random()*40) +'px';
-      s.style.background = colors[i%3];
-      s.style.animationDuration = (7 + Math.random()*9)+'s';
-      s.style.animationDelay = (Math.random()*8)+'s';
-      s.style.filter = 'blur('+(Math.random()<.5?0:1)+'px)';
-      host.appendChild(s);
-    }
-  })();
-
-  // ---------- subtle parallax on hero screenshot ----------
-  const hshot = document.querySelector('.hero-shot');
-  if(hshot){
-    window.addEventListener('scroll', ()=>{
-      const y = window.scrollY;
-      if(y < 900) hshot.style.marginTop = (y*0.05)+'px';
-    }, {passive:true});
-  }
-
-
-  // ── מסך התודה: הנפשה חד-פעמית ──
-  // נטענת מראש ברגע שנוגעים בטופס, כדי שתהיה מוכנה כשהמסך נפתח.
-  var THANKS_ANIM = 'https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/main/nzinuk-logo-orbit-once.gif';
-  var thanksAnimReady = false, thanksAnimAsked = false;
-
-  function preloadThanksAnim(){
-    if(thanksAnimAsked) return;
-    thanksAnimAsked = true;
-    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    var pre = new Image();
-    pre.onload = function(){ thanksAnimReady = true; };
-    pre.src = THANKS_ANIM;
-  }
-
-  function playThanksAnim(){
-    // או שההנפשה מוכנה ומוצגת מיד, או שנשאר ה-V. אף פעם לא החלפה באיחור.
-    if(!thanksAnimReady) return;
-    var wrap = document.getElementById('thanksAnim');
-    var img  = document.getElementById('thanksAnimImg');
-    var ic   = document.querySelector('#thanks .thanks-ic');
-    if(!wrap || !img) return;
-    if(ic) ic.style.display = 'none';
-    wrap.style.display = 'block';
-    img.src = THANKS_ANIM;   // מהמטמון: מוצג מיידית ומתחיל מפריים 0
-  }
-
-  (function(){
-    var lf = document.getElementById('leadForm');
-    if(lf) lf.addEventListener('focusin', preloadThanksAnim, { once: true });
-  })();
-
 </script>
 </body>
 </html>
