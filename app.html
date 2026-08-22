@@ -151,7 +151,7 @@
 </head>
 <body class="bg-gray-100">
     <div id="nz-boot-loader" style="position:fixed;inset:0;z-index:99998;background:#f7fafc;display:flex;align-items:center;justify-content:center;"><div class="loader"></div></div>
-    <script>var APP_URL = "<?= webAppUrl ?>";</script>
+    <script>var APP_URL = window.location.origin + window.location.pathname;</script>
     <div id="app" class="flex h-screen" style="display:none">
         <aside class="w-1/3 max-w-sm bg-white shadow-lg flex flex-col">
             <div class="p-4 border-b bg-gray-50">
@@ -9995,4 +9995,4 @@ async function buildPromptData(examinee) {
 })();
 </script>
 </body>
-</html> 
+</html>
