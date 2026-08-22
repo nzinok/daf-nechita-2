@@ -2621,19 +2621,14 @@ document.addEventListener('DOMContentLoaded', function() {
      * פונקציית התנתקות סופית: מפנה לכתובת האפליקציה המדויקת.
      */
     // בקובץ Index.html
-    function logout() {
-        var sessionId = localStorage.getItem('sessionId');
-
-        // שלח בקשה לשרת למחוק את הסשן, אבל אל תחכה לתשובה
-        google.script.run.logoutUser(sessionId || '');
-
-        // מיד לאחר מכן, בצע ניתוב מחדש ברמה העליונה של הדפדפן
-        // ההשהיה הקצרה מבטיחה שהבקשה לשרת נשלחה לפני שהדף מתחלף
-        setTimeout(function() {
-            localStorage.removeItem('sessionId');
-            // הפקודה הסופית: ניתוב החלון הראשי לכתובת היציאה
-            window.top.location.href = APP_URL + "?logout=true";
-        }, 250);
+    async function logout() {
+        // ניתוק מלא של ה-session לפני הניתוב — אחרת רענון מחבר מחדש
+        try {
+            if (window._nzForceSignOut) { await window._nzForceSignOut(); }
+            else { await google.script.run.logoutUser(''); }
+        } catch (e) {}
+        try { localStorage.removeItem('sessionId'); } catch (e) {}
+        window.top.location.href = APP_URL + "?logout=true";
     }
     function showWelcomeMessage() {
         currentExaminee = null; // ✨ מנקה את הזיכרון כדי שהסייענית תדע שיצאנו מהתיק
