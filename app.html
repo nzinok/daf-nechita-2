@@ -1066,6 +1066,18 @@
         try { window._nzLogUsage(examineeId, 'הפקת דוח ' + (isPrincipal ? 'מנהלת' : 'תלמידה'), out); } catch (e) {}
         if (upd.error) return { success: false, error: 'שמירת הדוח נכשלה: ' + upd.error.message };
 
+        // זיהוי אוטומטי של קוד הולנד מהדוח — רק בפעם הראשונה (כשאין עדיין קוד)
+        try {
+          var _curH = await supa.from('examinees').select('holland_code').eq('id', examineeId).maybeSingle();
+          if (!_curH.data || !_curH.data.holland_code) {
+            var _hPrompt = 'זהה מתוך הדוח הבא מהו קוד ההולנד (RIASEC) שנקבע לנבחנת. החזר אך ורק את 3 האותיות (לדוגמה: ASE) לפי סדר הדומיננטיות. אל תוסיף שום טקסט אחר.\n\nהדוח:\n' + reportText;
+            var _hInv = await supa.functions.invoke('generate-report', { body: { examineeId: examineeId, action: 'זיהוי קוד הולנד', ownerEmail: window._currentUserEmail, parts: [{ text: _hPrompt }], model: 'gemini-2.5-pro', temperature: 0 } });
+            if (!_hInv.error && _hInv.data && _hInv.data.success) {
+              var _code = String(_hInv.data.report || '').trim().toUpperCase().replace(/[^RIASEC]/g, '').substring(0, 3);
+              if (_code.length >= 2) { await supa.from('examinees').update({ holland_code: _code }).eq('id', examineeId); }
+            }
+          }
+        } catch (he) {}
         return { success: true, report: reportText, docUrl: docUrl };
       } catch (e) {
         return { success: false, error: String(e) };
