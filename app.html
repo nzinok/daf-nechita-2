@@ -3553,8 +3553,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <button id="token-set-btn" class="bg-purple-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-purple-700">קבע ערך</button>
                             </div>
                             <div class="mt-4 pt-3 border-t border-red-100">
-                                <button id="delete-examinee-btn" class="bg-red-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-red-700 flex items-center"><i data-lucide="trash-2" class="w-4 h-4 ml-2"></i>מחק נבחנת זו לצמיתות</button>
-                                <p class="text-xs text-gray-400 mt-1">מוחק את הנבחנת וכל הנתונים שלה (מסמכים, שיחות, תוצרים). בלתי הפיך.</p>
+                                <button id="delete-examinee-btn" class="bg-red-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-red-700 flex items-center"><i data-lucide="trash-2" class="w-4 h-4 ml-2"></i>מחק נבחנת זו</button>
+                                <p class="text-xs text-gray-400 mt-1">הנבחנת תוסתר מהרשימה. הנתונים נשמרים וניתן לשחזר דרך ניהול ← נמחקו.</p>
                             </div>
                         </div>` : ''}
 
@@ -4320,10 +4320,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 };
                 var delBtn = mainContent.querySelector('#delete-examinee-btn');
                 if (delBtn) delBtn.onclick = function () {
-                    if (!confirm('למחוק לצמיתות את הנבחנת "' + (examinee.name || '') + '" וכל הנתונים שלה? פעולה בלתי הפיכה!')) return;
-                    if (!confirm('אישור אחרון — כל המסמכים, השיחות והתוצרים יימחקו. להמשיך?')) return;
+                    if (!confirm('למחוק את הנבחנת "' + (examinee.name || '') + '"? היא תוסתר מהרשימה, וניתן יהיה לשחזר אותה דרך ניהול ← נמחקו.')) return;
                     google.script.run.withSuccessHandler(function (r) {
-                        if (r && r.success) { showToast('הנבחנת נמחקה'); location.reload(); }
+                        if (r && r.success) { showToast('הנבחנת הועברה לנמחקו'); location.reload(); }
                         else showToast('שגיאה במחיקה: ' + ((r && r.error) || ''));
                     }).deleteExamineeBySession(currentSessionId, exId);
                 };
