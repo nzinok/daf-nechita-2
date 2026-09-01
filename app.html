@@ -537,7 +537,7 @@
 
     // רשימת הנבחנות (RLS מסנן אוטומטית — כל יועצת רק את שלה)
     getSheetDataBySession: async function () {
-      const { data, error } = await supa.from('examinees').select('*').order('submission_date', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).order('id', { ascending: true });
+      const { data, error } = await supa.from('examinees').select('*').or('is_deleted.is.null,is_deleted.eq.false').order('submission_date', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).order('id', { ascending: true });
       if (error) return { success: false, error: error.message };
       return { success: true, data: (data || []).map(mapExaminee) };
     },
@@ -632,11 +632,26 @@
       try {
         var me = await supa.from('counselors').select('role').eq('email', window._currentUserEmail).maybeSingle();
         if (!me.data || me.data.role !== 'מנהל-על') return { success: false, error: 'אין הרשאה' };
-        // מחיקת נתונים תלויים ואז הנבחנת
-        try { await supa.from('documents').delete().eq('examinee_id', examineeId); } catch (e) {}
-        try { await supa.from('additional_outputs').delete().eq('examinee_id', examineeId); } catch (e) {}
-        try { await supa.from('consultation_chats').delete().eq('examinee_id', examineeId); } catch (e) {}
-        var res = await supa.from('examinees').delete().eq('id', examineeId);
+        // מחיקה רכה — מסמן כמחוקה (לא נמחק פיזית: הסנכרון לא ייצור מחדש, וניתן לשחזר)
+        var res = await supa.from('examinees').update({ is_deleted: true }).eq('id', examineeId);
+        if (res.error) return { success: false, error: res.error.message };
+        return { success: true };
+      } catch (e) { return { success: false, error: String(e) }; }
+    },
+    getDeletedExamineesBySession: async function (sessionId) {
+      try {
+        var me = await supa.from('counselors').select('role').eq('email', window._currentUserEmail).maybeSingle();
+        if (!me.data || me.data.role !== 'מנהל-על') return { success: false, error: 'אין הרשאה', data: [] };
+        var q = await supa.from('examinees').select('id, name, owner_email, submission_date').eq('is_deleted', true).order('submission_date', { ascending: false, nullsFirst: false });
+        if (q.error) return { success: false, error: q.error.message, data: [] };
+        return { success: true, data: (q.data || []).map(function (e) { return { id: e.id, name: e.name || 'ללא שם', owner: e.owner_email || '', date: e.submission_date || '' }; }) };
+      } catch (e) { return { success: false, error: String(e), data: [] }; }
+    },
+    restoreExamineeBySession: async function (sessionId, examineeId) {
+      try {
+        var me = await supa.from('counselors').select('role').eq('email', window._currentUserEmail).maybeSingle();
+        if (!me.data || me.data.role !== 'מנהל-על') return { success: false, error: 'אין הרשאה' };
+        var res = await supa.from('examinees').update({ is_deleted: false }).eq('id', examineeId);
         if (res.error) return { success: false, error: res.error.message };
         return { success: true };
       } catch (e) { return { success: false, error: String(e) }; }
@@ -2278,7 +2293,8 @@ document.addEventListener('DOMContentLoaded', function() {
             { key: 'clients', label: '👥 לקוחות' },
             { key: 'tags', label: '🏷️ תגיות רקע' },
             { key: 'kb', label: '📖 מאגר הדרכה' },
-            { key: 'usage', label: '📊 דוח שימוש' }
+            { key: 'usage', label: '📊 דוח שימוש' },
+            { key: 'deleted', label: '🗑️ נמחקו' }
         ];
         var setActiveTab = function (key) {
             Array.prototype.forEach.call(tabsBar.children, function (b) {
@@ -2363,11 +2379,38 @@ document.addEventListener('DOMContentLoaded', function() {
             loadTags();
         };
 
+        // ---- לשונית נבחנות שנמחקו ----
+        var renderDeleted = function () {
+            body.innerHTML = '<div id="nz-mgmt-deleted-list" style="color:#64748b;">טוען…</div>';
+            google.script.run.withSuccessHandler(function (res) {
+                var lc = document.getElementById('nz-mgmt-deleted-list');
+                if (!lc) return;
+                if (!res || !res.success) { lc.innerHTML = '<div style="color:#dc2626;">שגיאה בטעינה</div>'; return; }
+                if (!res.data || !res.data.length) { lc.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:24px;">אין נבחנות שנמחקו</div>'; return; }
+                lc.innerHTML = '<p style="color:#64748b;font-size:.85rem;margin-bottom:12px;">נבחנות שנמחקו נשמרות כאן וניתן לשחזר אותן. הנתונים (דוחות, הערות, שיחות) נשמרים במלואם.</p>' + res.data.map(function (e) {
+                    var dt = e.date ? new Date(e.date).toLocaleDateString('he-IL') : '';
+                    return '<div style="border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;">' +
+                        '<div><div style="font-weight:700;color:#0f172a;">' + esc(e.name) + '</div><div style="font-size:.78rem;color:#94a3b8;">' + esc(e.owner) + (dt ? (' · ' + dt) : '') + '</div></div>' +
+                        '<button class="nz-restore-btn" data-id="' + e.id + '" data-name="' + esc(e.name) + '" style="background:#ecfdf5;color:#059669;border:none;border-radius:6px;padding:5px 14px;cursor:pointer;font-size:.82rem;font-weight:600;">↩ שחזר</button></div>';
+                }).join('');
+                lc.querySelectorAll('.nz-restore-btn').forEach(function (b) {
+                    b.onclick = function () {
+                        if (!confirm('לשחזר את הנבחנת "' + b.getAttribute('data-name') + '"?')) return;
+                        google.script.run.withSuccessHandler(function (r) {
+                            if (r && r.success) { showToast('הנבחנת שוחזרה'); renderDeleted(); }
+                            else showToast('שגיאה בשחזור: ' + ((r && r.error) || ''));
+                        }).restoreExamineeBySession(currentSessionId, b.getAttribute('data-id'));
+                    };
+                });
+            }).getDeletedExamineesBySession(currentSessionId);
+        };
+
         var render = function (key) {
             if (key === 'clients') renderClients();
             else if (key === 'tags') renderTags();
             else if (key === 'kb') { body.innerHTML = ''; window.showHelpKbManager(body); }
             else if (key === 'usage') { body.innerHTML = ''; window.showUsageDashboard(body); }
+            else if (key === 'deleted') renderDeleted();
         };
 
         setActiveTab('clients');
