@@ -586,9 +586,14 @@
           (_firstName ? ('(5) שם היועצת שאיתה את מדברת: ' + _firstName + '. את יכולה לפנות אליה בשמה מדי פעם בטבעיות, אך אל תפתחי כל תשובה בשמה. ') : '') +
           'אם המידע אומר שלא נמצא מידע ספציפי, או שהשאלה לא קשורה — אמרי באדיבות שאינך בטוחה והציעי לשאול אחרת או לפנות להנהלה. אל תמציאי כפתורים או פיצ׳רים. ' +
           'המסך הנוכחי: ' + (currentScreen || 'לא ידוע') + '.\n\n**המידע שהמערכת מצאה עבור השאלה:**\n' + knowledge + '\n\n';
-        var hist = (chatHistory || []).map(function (t) { return 'שאלה: ' + t.question + '\nתשובה: ' + t.answer; }).join('\n\n');
-        var prompt = sys + (hist ? (hist + '\n\n') : '') + 'שאלה נוכחית: ' + question;
-        var inv = await supa.functions.invoke('generate-report', { body: { examineeId: null, action: 'עוזר מערכת', ownerEmail: window._currentUserEmail, parts: [{ text: prompt }], model: 'gemini-2.5-flash', temperature: 0.2 } });
+        // מבנה שיחה מובנה: כל תור כ-user/model נפרד + הנחיית מערכת נפרדת (כמו במקור)
+        var contents = [];
+        (chatHistory || []).forEach(function (t) {
+          if (t && t.question) contents.push({ role: 'user', parts: [{ text: String(t.question) }] });
+          if (t && t.answer) contents.push({ role: 'model', parts: [{ text: String(t.answer) }] });
+        });
+        contents.push({ role: 'user', parts: [{ text: String(question) }] });
+        var inv = await supa.functions.invoke('generate-report', { body: { examineeId: null, action: 'עוזר מערכת', ownerEmail: window._currentUserEmail, contents: contents, systemInstruction: sys, model: 'gemini-2.5-flash', temperature: 0.2 } });
         if (inv.error || !inv.data || !inv.data.success) return { success: false, error: (inv.data && inv.data.error) || 'שגיאת עוזר המערכת' };
         try { window._nzLogUsage(null, 'עוזר מערכת', inv.data); } catch (e) {}
         return { success: true, answer: (inv.data.report || '').trim() };
@@ -2463,7 +2468,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 var rowsHtml = (res.data || []).map(function (r) {
                     return '<div class="nz-kb-row" data-id="' + r.id + '" style="border:1px solid #e2e8f0;border-radius:10px;padding:12px;margin-bottom:8px;">' +
                         '<div style="display:flex;justify-content:space-between;gap:8px;"><div style="font-weight:700;color:#0f172a;">' + esc(r.topic) + '</div>' +
-                        '<div style="display:flex;gap:6px;flex-shrink:0;"><span style="font-size:.72rem;background:#f0fdfa;color:#0f766e;padding:2px 8px;border-radius:20px;align-self:center;">' + esc(r.screenId) + '</span>' +
+                        '<div style="display:flex;gap:6px;flex-shrink:0;"><span style="font-size:.72rem;background:#f0fdfa;color:#0f766e;padding:2px 8px;border-radius:20px;align-self:center;">' + esc(nzScreenLabel(r.screenId)) + '</span>' +
                         '<button class="nz-kb-edit" style="background:#eff6ff;color:#2563eb;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:.8rem;">ערוך</button>' +
                         '<button class="nz-kb-del" style="background:#fef2f2;color:#dc2626;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:.8rem;">מחק</button></div></div>' +
                         '<div style="font-size:.85rem;color:#475569;margin-top:6px;white-space:pre-wrap;">' + esc(r.answer) + '</div>' +
@@ -2477,11 +2482,27 @@ document.addEventListener('DOMContentLoaded', function() {
             }).getHelpKbBySession(currentSessionId);
         };
 
+        var NZ_SCREENS = [
+          { id: 'general', label: 'כללי (כל המסכים)' },
+          { id: 'examinees', label: 'רשימת נבחנות' },
+          { id: 'details_examinee', label: 'תיק נבחנת — פרטים' },
+          { id: 'analysis_tab_examinee', label: 'תיק נבחנת — אבחנה' },
+          { id: 'quantitative_tab_examinee', label: 'תיק נבחנת — נתונים כמותיים' },
+          { id: 'modal_ai', label: 'חלון הפקת דוח' },
+          { id: 'modal_refine', label: 'חלון מיקוד דוח' },
+          { id: 'prompts', label: 'ניהול הנחיות' },
+          { id: 'links', label: 'מסך קישורים' },
+          { id: 'manageClients', label: 'מסך ניהול' }
+        ];
+        var nzScreenLabel = function (id) { for (var i = 0; i < NZ_SCREENS.length; i++) { if (NZ_SCREENS[i].id === id) return NZ_SCREENS[i].label; } return id || 'כללי'; };
         var openKbEditor = function (r) {
             r = r || {};
             var f = function (label, id, val, ta) { return '<div style="margin-bottom:10px;"><label style="font-size:.82rem;font-weight:600;color:#475569;display:block;margin-bottom:3px;">' + label + '</label>' + (ta ? ('<textarea id="' + id + '" rows="4" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:8px;box-sizing:border-box;">' + esc(val) + '</textarea>') : ('<input id="' + id + '" value="' + esc(val) + '" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:8px;box-sizing:border-box;">')) + '</div>'; };
             body.innerHTML = '<button id="nz-kb-back" style="background:#f1f5f9;border:none;padding:6px 12px;border-radius:8px;cursor:pointer;margin-bottom:12px;">→ חזרה</button>' +
-                f('מזהה מסך (screen_id — למשל general / examinees)', 'kb-screen', r.screenId || 'general', false) +
+                '<div style="margin-bottom:10px;"><label style="font-size:.82rem;font-weight:600;color:#475569;display:block;margin-bottom:3px;">באיזה מסך ההדרכה תופיע?</label>' +
+                '<select id="kb-screen" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:8px;box-sizing:border-box;background:#fff;">' +
+                NZ_SCREENS.map(function (sc) { return '<option value="' + sc.id + '"' + (((r.screenId || 'general') === sc.id) ? ' selected' : '') + '>' + sc.label + '</option>'; }).join('') +
+                '</select></div>' +
                 f('תגיות (מילות חיפוש, מופרדות בפסיק)', 'kb-tags', r.tags || '', false) +
                 f('נושא / שאלה', 'kb-topic', r.topic || '', false) +
                 f('תשובה / הדרכה', 'kb-answer', r.answer || '', true) +
