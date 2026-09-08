@@ -577,9 +577,13 @@
         if (!window._currentUserEmail) return { success: false, error: 'החיבור פג. יש להתחבר מחדש כדי להשתמש במדריכה.' };
         try { var _s = await supa.auth.getSession(); if (!_s || !_s.data || !_s.data.session) return { success: false, error: 'החיבור פג. יש להתחבר מחדש.' }; } catch (se) { return { success: false, error: 'החיבור פג. יש להתחבר מחדש.' }; }
         var knowledge = await window._nzGetHelperKnowledge(currentScreen, question);
+        var _firstName = '';
+        try { var _meN = await supa.from('counselors').select('name').eq('email', window._currentUserEmail).maybeSingle(); if (_meN.data && _meN.data.name) _firstName = String(_meN.data.name).trim().split(' ')[0]; } catch (e) {}
         var sys = 'את "מדריכת המערכת" של מכון "נקודת זינוק", מוטמעת בתוך המערכת כדי ללוות את היועצות התעסוקתיות. ' +
           'הנחיות: (1) אל תזכירי בשום אופן שאת בינה מלאכותית או מודל שפה — התייחסי לעצמך כ"מדריכת המערכת". ' +
           '(2) עני בעברית, בקצרה, בגובה העיניים ובנימה תומכת. (3) בססי את תשובתך אך ורק על "המידע שהמערכת מצאה" למטה. ' +
+          '(4) אל תפתחי את התשובה בהצגה עצמית או בברכה חוזרת כמו "היי, מדריכת המערכת כאן" — עני ישירות לעניין ובטבעיות, כאילו את באמצע שיחה מתמשכת. ' +
+          (_firstName ? ('(5) שם היועצת שאיתה את מדברת: ' + _firstName + '. את יכולה לפנות אליה בשמה מדי פעם בטבעיות, אך אל תפתחי כל תשובה בשמה. ') : '') +
           'אם המידע אומר שלא נמצא מידע ספציפי, או שהשאלה לא קשורה — אמרי באדיבות שאינך בטוחה והציעי לשאול אחרת או לפנות להנהלה. אל תמציאי כפתורים או פיצ׳רים. ' +
           'המסך הנוכחי: ' + (currentScreen || 'לא ידוע') + '.\n\n**המידע שהמערכת מצאה עבור השאלה:**\n' + knowledge + '\n\n';
         var hist = (chatHistory || []).map(function (t) { return 'שאלה: ' + t.question + '\nתשובה: ' + t.answer; }).join('\n\n');
