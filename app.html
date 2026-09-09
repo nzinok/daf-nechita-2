@@ -502,6 +502,7 @@
       name: row.name || rv('שם') || '',
       phone: rv('טלפון'),
       email: rv('מייל') || row.owner_email || '',
+      ownerEmail: row.owner_email || '',
       institution: rv('Institution_Group'),
       handwritingUrl: rv('מיקום הקישור לכתב יד'),
       drawingUrl: rv('מיקום הקישור לציור'),
@@ -643,6 +644,25 @@
         if (!me.data || me.data.role !== 'מנהל-על') return { success: false, error: 'אין הרשאה' };
         // מחיקה רכה — מסמן כמחוקה (לא נמחק פיזית: הסנכרון לא ייצור מחדש, וניתן לשחזר)
         var res = await supa.from('examinees').update({ is_deleted: true }).eq('id', examineeId);
+        if (res.error) return { success: false, error: res.error.message };
+        return { success: true };
+      } catch (e) { return { success: false, error: String(e) }; }
+    },
+    getCounselorsForAssignBySession: async function () {
+      try {
+        var me = await supa.from('counselors').select('role').eq('email', window._currentUserEmail).maybeSingle();
+        if (!me.data || me.data.role !== 'מנהל-על') return { success: false, data: [] };
+        var q = await supa.from('counselors').select('email, name').order('name');
+        if (q.error) return { success: false, data: [] };
+        return { success: true, data: (q.data || []).map(function (c) { return { email: c.email, name: c.name || c.email }; }) };
+      } catch (e) { return { success: false, data: [] }; }
+    },
+    reassignExamineeBySession: async function (sessionId, examineeId, newOwnerEmail) {
+      try {
+        var me = await supa.from('counselors').select('role').eq('email', window._currentUserEmail).maybeSingle();
+        if (!me.data || me.data.role !== 'מנהל-על') return { success: false, error: 'אין הרשאה' };
+        if (!newOwnerEmail) return { success: false, error: 'לא נבחרה יועצת' };
+        var res = await supa.from('examinees').update({ owner_email: newOwnerEmail }).eq('id', examineeId);
         if (res.error) return { success: false, error: res.error.message };
         return { success: true };
       } catch (e) { return { success: false, error: String(e) }; }
@@ -3577,6 +3597,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <input id="token-set-input" type="number" min="0" placeholder="ערך חדש" class="w-28 p-1.5 border border-gray-300 rounded-md text-sm">
                                 <button id="token-set-btn" class="bg-purple-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-purple-700">קבע ערך</button>
                             </div>
+                            <div class="mt-4 pt-3 border-t border-indigo-100">
+                                <div class="text-sm text-gray-600 mb-2 flex items-center"><i data-lucide="user-cog" class="w-4 h-4 ml-2 text-indigo-500"></i>שיוך ליועצת: <span id="examinee-owner-display" class="font-bold text-indigo-700 mr-1">${examinee.ownerEmail || '—'}</span></div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <select id="reassign-select" class="p-1.5 border border-gray-300 rounded-md text-sm" style="min-width:180px;"><option value="">טוען יועצות…</option></select>
+                                    <button id="reassign-btn" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-indigo-700">שנה שיוך</button>
+                                </div>
+                            </div>
                             <div class="mt-4 pt-3 border-t border-red-100">
                                 <button id="delete-examinee-btn" class="bg-red-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-red-700 flex items-center"><i data-lucide="trash-2" class="w-4 h-4 ml-2"></i>מחק נבחנת זו</button>
                                 <p class="text-xs text-gray-400 mt-1">הנבחנת תוסתר מהרשימה. הנתונים נשמרים וניתן לשחזר דרך ניהול ← נמחקו.</p>
@@ -4351,6 +4378,29 @@ document.addEventListener('DOMContentLoaded', function() {
                         else showToast('שגיאה במחיקה: ' + ((r && r.error) || ''));
                     }).deleteExamineeBySession(currentSessionId, exId);
                 };
+                // שיוך ליועצת (מנהל)
+                var reSel = mainContent.querySelector('#reassign-select');
+                var reBtn = mainContent.querySelector('#reassign-btn');
+                if (reSel && reBtn) {
+                    google.script.run.withSuccessHandler(function (r) {
+                        if (!r || !r.success || !r.data) { reSel.innerHTML = '<option value="">שגיאה בטעינה</option>'; return; }
+                        var cur = (examinee.ownerEmail || '').toLowerCase();
+                        reSel.innerHTML = r.data.map(function (c) {
+                            var sel = (String(c.email).toLowerCase() === cur) ? ' selected' : '';
+                            return '<option value="' + c.email + '"' + sel + '>' + (c.name || c.email) + '</option>';
+                        }).join('');
+                    }).getCounselorsForAssignBySession();
+                    reBtn.onclick = function () {
+                        var newOwner = reSel.value;
+                        if (!newOwner) { showToast('נא לבחור יועצת'); return; }
+                        if (newOwner.toLowerCase() === (examinee.ownerEmail || '').toLowerCase()) { showToast('הנבחנת כבר משויכת ליועצת זו'); return; }
+                        if (!confirm('להעביר את הנבחנת "' + (examinee.name || '') + '" ליועצת שנבחרה?')) return;
+                        google.script.run.withSuccessHandler(function (r) {
+                            if (r && r.success) { showToast('השיוך עודכן'); location.reload(); }
+                            else showToast('שגיאה: ' + ((r && r.error) || ''));
+                        }).reassignExamineeBySession(currentSessionId, exId, newOwner);
+                    };
+                }
             })();
             mainContent.querySelector('#status-select')?.addEventListener('change', function() {
                 var newStatus = this.value;
