@@ -594,7 +594,7 @@
           if (t && t.answer) contents.push({ role: 'model', parts: [{ text: String(t.answer) }] });
         });
         contents.push({ role: 'user', parts: [{ text: String(question) }] });
-        var inv = await supa.functions.invoke('generate-report', { body: { examineeId: null, action: 'עוזר מערכת', ownerEmail: window._currentUserEmail, contents: contents, systemInstruction: sys, model: 'gemini-2.5-flash', temperature: 0.2 } });
+        var inv = await supa.functions.invoke('generate-report', { body: { examineeId: null, action: 'עוזר מערכת', ownerEmail: window._currentUserEmail, contents: contents, systemInstruction: sys, model: 'gemini-3.7-flash', temperature: 0.2 } });
         if (inv.error || !inv.data || !inv.data.success) return { success: false, error: (inv.data && inv.data.error) || 'שגיאת עוזר המערכת' };
         try { window._nzLogUsage(null, 'עוזר מערכת', inv.data); } catch (e) {}
         return { success: true, answer: (inv.data.report || '').trim() };
@@ -889,7 +889,7 @@
           // חילוץ ע"י Gemini (PDF/תמונה)
           try {
             var inv = await supa.functions.invoke('generate-report', {
-              body: { examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: 'חילוץ טקסט ממסמך', ownerEmail: window._currentUserEmail, parts: [{ text: 'חלץ את כל הטקסט מהמסמך המצורף. החזר רק את הטקסט הגולמי, בלי הקדמות.' }, { inline_data: { mime_type: fileObject.mimeType || 'application/pdf', data: fileObject.base64 } }], model: 'gemini-2.5-flash', temperature: 0 }
+              body: { examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: 'חילוץ טקסט ממסמך', ownerEmail: window._currentUserEmail, parts: [{ text: 'חלץ את כל הטקסט מהמסמך המצורף. החזר רק את הטקסט הגולמי, בלי הקדמות.' }, { inline_data: { mime_type: fileObject.mimeType || 'application/pdf', data: fileObject.base64 } }], model: 'gemini-3.7-flash', temperature: 0 }
             });
             if (!inv.error && inv.data && inv.data.success && isValid(inv.data.report)) { extracted = inv.data.report || ''; try { window._nzLogUsage(examineeId, 'חילוץ טקסט ממסמך', inv.data); } catch (e) {} }
           } catch (ge) {}
@@ -1035,7 +1035,7 @@
         }
         var _parts = extraCtx ? (parts || []).concat([{ text: extraCtx }]) : (parts || []);
         var inv = await supa.functions.invoke('generate-report', {
-          body: { examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: (reportType === 'custom' ? 'תוצר עזר' : ('הפקת דוח ' + ((reportType === 'principal' || reportType === 'manager' || reportType === 'מנהלת') ? 'מנהלת' : 'תלמידה'))), ownerEmail: window._currentUserEmail, parts: _parts, model: 'gemini-2.5-pro' }
+          body: { examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: (reportType === 'custom' ? 'תוצר עזר' : ('הפקת דוח ' + ((reportType === 'principal' || reportType === 'manager' || reportType === 'מנהלת') ? 'מנהלת' : 'תלמידה'))), ownerEmail: window._currentUserEmail, parts: _parts, model: 'gemini-3.1-pro-preview', temperature: 0.7 }
         });
         if (inv.error) return { success: false, error: 'שגיאת שרת AI: ' + inv.error.message };
         var out = inv.data || {};
@@ -1115,7 +1115,7 @@
           var _curH = await supa.from('examinees').select('holland_code').eq('id', examineeId).maybeSingle();
           if (!_curH.data || !_curH.data.holland_code) {
             var _hPrompt = 'זהה מתוך הדוח הבא מהו קוד ההולנד (RIASEC) שנקבע לנבחנת. החזר אך ורק את 3 האותיות (לדוגמה: ASE) לפי סדר הדומיננטיות. אל תוסיף שום טקסט אחר.\n\nהדוח:\n' + reportText;
-            var _hInv = await supa.functions.invoke('generate-report', { body: { examineeId: examineeId, action: 'זיהוי קוד הולנד', ownerEmail: window._currentUserEmail, parts: [{ text: _hPrompt }], model: 'gemini-2.5-pro', temperature: 0 } });
+            var _hInv = await supa.functions.invoke('generate-report', { body: { examineeId: examineeId, action: 'זיהוי קוד הולנד', ownerEmail: window._currentUserEmail, parts: [{ text: _hPrompt }], model: 'gemini-3.1-pro-preview', temperature: 0 } });
             if (!_hInv.error && _hInv.data && _hInv.data.success) {
               var _code = String(_hInv.data.report || '').trim().toUpperCase().replace(/[^RIASEC]/g, '').substring(0, 3);
               if (_code.length >= 2) { await supa.from('examinees').update({ holland_code: _code }).eq('id', examineeId); }
@@ -1157,7 +1157,7 @@
           '--- תשובות הנבחנת ---\n' + corpus.join('\n');
 
         var inv = await supa.functions.invoke('generate-report', {
-          body: { examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: 'חילוץ ציטוטים', ownerEmail: window._currentUserEmail, parts: [{ text: prompt }], model: 'gemini-2.5-flash', temperature: 0.2, jsonMode: true }
+          body: { examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: 'חילוץ ציטוטים', ownerEmail: window._currentUserEmail, parts: [{ text: prompt }], model: 'gemini-3.7-flash', temperature: 0.2, jsonMode: true }
         });
         if (inv.error) return { success: false, error: 'שגיאת AI: ' + inv.error.message };
         var out = inv.data || {};
@@ -1226,7 +1226,7 @@
           'ORIGINAL REPORT:\n---\n' + (previousReport || '') + '\n---'
         }];
 
-        var inv = await supa.functions.invoke('generate-report', { body: { examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: 'מיקוד דוח', ownerEmail: window._currentUserEmail, parts: refineParts, model: 'gemini-2.5-pro' } });
+        var inv = await supa.functions.invoke('generate-report', { body: { examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: 'מיקוד דוח', ownerEmail: window._currentUserEmail, parts: refineParts, model: 'gemini-3.1-pro-preview' } });
         if (inv.error) return { success: false, error: 'שגיאת שרת AI: ' + inv.error.message };
         var out = inv.data || {};
         if (!out.success) return { success: false, error: out.error || 'המיקוד נכשל' };
@@ -1278,7 +1278,7 @@
           { text: TIL_PROMPT },
           { inline_data: { mime_type: fileObject.mimeType || 'application/pdf', data: fileObject.base64 } }
         ];
-        var inv = await supa.functions.invoke('generate-report', { body: { examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: 'עיבוד דוח תיל', ownerEmail: window._currentUserEmail, parts: parts, model: 'gemini-2.5-pro', temperature: 0, jsonMode: true } });
+        var inv = await supa.functions.invoke('generate-report', { body: { examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: 'עיבוד דוח תיל', ownerEmail: window._currentUserEmail, parts: parts, model: 'gemini-3.1-pro-preview', temperature: 0, jsonMode: true } });
         if (inv.error) return { success: false, error: 'שגיאת AI: ' + inv.error.message };
         var out = inv.data || {};
         if (!out.success) return { success: false, error: out.error || 'חילוץ הנתונים נכשל' };
@@ -1401,7 +1401,7 @@
         } else {
           // גיבוי ללא זרימה — פרומפט נקי בלי הוראת החשיבה, כדי שהתשובה לא תכיל את החשיבה
           var cleanPrompt = ctx + '\n' + (histText ? ('--- היסטוריית ההתייעצות ---\n' + histText + '\n\n') : '') + '--- שאלת המשתמש ---\n' + newQuestion;
-          var inv = await supa.functions.invoke('generate-report', { body: { examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: 'התייעצות', ownerEmail: window._currentUserEmail, parts: [{ text: cleanPrompt }].concat(_imgParts || []), model: 'gemini-2.5-pro', temperature: 1.0 } });
+          var inv = await supa.functions.invoke('generate-report', { body: { examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: 'התייעצות', ownerEmail: window._currentUserEmail, parts: [{ text: cleanPrompt }].concat(_imgParts || []), model: 'gemini-3.1-pro-preview', temperature: 1.0 } });
           if (inv.error) return { success: false, error: 'שגיאת AI: ' + inv.error.message };
           out = inv.data || {};
           if (!out.success) return { success: false, error: out.error || 'ההתייעצות נכשלה' };
@@ -1417,7 +1417,7 @@
         if (!finalTitle && isNewThread) {
           try {
             var tInv = await supa.functions.invoke('generate-report', {
-              body: { examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: 'כותרת התייעצות', ownerEmail: window._currentUserEmail, parts: [{ text: 'צור כותרת קצרה (3-5 מילים, בעברית) שמתארת את נושא ההתייעצות הבא. החזר רק את הכותרת עצמה, בלי מרכאות ובלי הקדמה:\n\nשאלה: ' + newQuestion + '\nתשובה: ' + answer.slice(0, 400) }], model: 'gemini-2.5-flash', temperature: 0.4 }
+              body: { examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: 'כותרת התייעצות', ownerEmail: window._currentUserEmail, parts: [{ text: 'צור כותרת קצרה (3-5 מילים, בעברית) שמתארת את נושא ההתייעצות הבא. החזר רק את הכותרת עצמה, בלי מרכאות ובלי הקדמה:\n\nשאלה: ' + newQuestion + '\nתשובה: ' + answer.slice(0, 400) }], model: 'gemini-3.7-flash', temperature: 0.4 }
             });
             if (!tInv.error && tInv.data && tInv.data.success) finalTitle = (tInv.data.report || '').trim().replace(/^["\'']|["\'']$/g, '').split('\n')[0].slice(0, 50);
           } catch (te) {}
@@ -1480,7 +1480,7 @@
         var finalTitle = (threadTitle && threadTitle !== 'שיחה חדשה' && threadTitle !== 'התייעצות כללית') ? threadTitle : null;
         if (!finalTitle && isNewThread) {
           try {
-            var tInv = await supa.functions.invoke('generate-report', { body: { examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: 'כותרת התייעצות', ownerEmail: window._currentUserEmail, parts: [{ text: 'צור כותרת קצרה (3-5 מילים, בעברית) שמתארת את נושא ההתייעצות הבא. החזר רק את הכותרת עצמה, בלי מרכאות ובלי הקדמה:\n\nשאלה: ' + question + '\nתשובה: ' + String(answer).slice(0, 400) }], model: 'gemini-2.5-flash', temperature: 0.4 } });
+            var tInv = await supa.functions.invoke('generate-report', { body: { examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: 'כותרת התייעצות', ownerEmail: window._currentUserEmail, parts: [{ text: 'צור כותרת קצרה (3-5 מילים, בעברית) שמתארת את נושא ההתייעצות הבא. החזר רק את הכותרת עצמה, בלי מרכאות ובלי הקדמה:\n\nשאלה: ' + question + '\nתשובה: ' + String(answer).slice(0, 400) }], model: 'gemini-3.7-flash', temperature: 0.4 } });
             if (!tInv.error && tInv.data && tInv.data.success) finalTitle = (tInv.data.report || '').trim().replace(/^["\'']|["\'']$/g, '').split('\n')[0].slice(0, 50);
           } catch (te) {}
         }
@@ -1527,7 +1527,7 @@
         }
         var prompt = systemPrompt + '\n\n--- תמליל ההתייעצות ---\n' + chatText;
 
-        var inv = await supa.functions.invoke('generate-report', { body: { examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: 'שיחה לתוצר', ownerEmail: window._currentUserEmail, parts: [{ text: prompt }], model: 'gemini-2.5-pro', temperature: 0.7 } });
+        var inv = await supa.functions.invoke('generate-report', { body: { examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: 'שיחה לתוצר', ownerEmail: window._currentUserEmail, parts: [{ text: prompt }], model: 'gemini-3.1-pro-preview', temperature: 0.7 } });
         if (inv.error) return { success: false, error: 'שגיאת AI: ' + inv.error.message };
         var out = inv.data || {};
         if (!out.success) return { success: false, error: out.error || 'הניסוח נכשל' };
@@ -1559,7 +1559,7 @@
         var chatText = (chatHistory || []).map(function (t) { return 'יועצת: ' + (t.question || '') + '\nמערכת: ' + (t.answer || ''); }).join('\n\n');
         var prompt = 'לפניך שיחת התייעצות מקצועית בין יועצת תעסוקתית למערכת ניתוח. ' +
           'תמצת אותה להערה קצרה ומקצועית לתיק הנבחנת - 2 עד 3 משפטים בלבד, בשפה עניינית ותמציתית, בלי כותרות ובלי הקדמות. החזר רק את טקסט ההערה עצמו.\n\n' + chatText;
-        var inv = await supa.functions.invoke('generate-report', { body: { examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: 'תמצות שיחה', ownerEmail: window._currentUserEmail, parts: [{ text: prompt }], model: 'gemini-2.5-flash', temperature: 0.3 } });
+        var inv = await supa.functions.invoke('generate-report', { body: { examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: 'תמצות שיחה', ownerEmail: window._currentUserEmail, parts: [{ text: prompt }], model: 'gemini-3.7-flash', temperature: 0.3 } });
         if (inv.error) return { success: false, error: inv.error.message };
         var out = inv.data || {};
         if (!out.success) return { success: false, error: out.error || 'התמצות נכשל' };
@@ -1952,7 +1952,7 @@
       var res = await fetch(SUPABASE_URL + '/functions/v1/generate-report-stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (sess ? sess.access_token : ''), 'apikey': SUPABASE_KEY },
-        body: JSON.stringify({ examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: 'התייעצות', ownerEmail: window._currentUserEmail, parts: [{ text: prompt }].concat(extraParts || []), model: 'gemini-2.5-pro', rawMode: true, temperature: 1.0 })
+        body: JSON.stringify({ examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: 'התייעצות', ownerEmail: window._currentUserEmail, parts: [{ text: prompt }].concat(extraParts || []), model: 'gemini-3.1-pro-preview', rawMode: true, temperature: 1.0 })
       });
       if (!res.ok || !res.body) return { success: false };
       var reader = res.body.getReader(), decoder = new TextDecoder();
@@ -7995,6 +7995,10 @@ async function buildPromptData(examinee) {
 
     var dataString = "\n\n--- נתוני רקע על הנבחנת ---\n";
     dataString += `שם הנבחנת: ${examinee.name}\n\n`;
+    // פרטי היועצת המאבחנת — חיוני כדי שה-AI לא ימציא שם יועצת (כמו במקור)
+    if (typeof currentUser !== 'undefined' && currentUser && currentUser.name) {
+      dataString += '--- פרטי המאבחנת (Counselor Info) ---\nשם היועצת המאבחנת בתיק זה: ' + currentUser.name + '\n(נתון זה מועבר לידיעתך לצורך ניסוח הדוח, במידה וההנחיה דורשת זאת).\n-------------------------------------\n\n';
+    }
     dataString += "הערות המאבחן/ת:\n" + (examinee.rawData['הערות'] || 'אין') + '\n\n';
 
     var tilCheckbox = document.getElementById('include-til');
