@@ -5220,8 +5220,8 @@ document.addEventListener('DOMContentLoaded', function() {
             threadsList.innerHTML = allExamineeThreads.slice().reverse().map(function(thread) {
                 var isActive = thread.id === activeThreadId ? 'bg-blue-50 border-r-blue-500 border-blue-200' : 'bg-white border-transparent hover:bg-gray-50 border-gray-100 border';
                 var displayTitle = thread.title === 'שיחה חדשה' ? '<div class="h-3 w-24 bg-gray-200 rounded animate-pulse inline-block align-middle"></div>' : thread.title;
-                var isAdmin = (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'מנהל-על');
-                var delBtnHtml = isAdmin ? `<button class="thread-del-btn text-gray-300 hover:text-red-500 transition p-0.5" data-thread-id="${thread.id}" title="מחק התכתבות"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>` : '';
+                var isAdmin = (typeof currentUser !== 'undefined' && currentUser && String(currentUser.role || '').trim() === 'מנהל-על');
+                var delBtnHtml = isAdmin ? `<button class="thread-del-btn text-red-400 hover:text-red-600 transition flex-shrink-0" data-thread-id="${thread.id}" title="מחק התכתבות" style="font-size:14px;line-height:1;padding:2px;">🗑</button>` : '';
                 return `
                 <div class="thread-card ${isActive} rounded-lg p-2 mb-2 cursor-pointer border-r-4 shadow-sm transition-all" data-thread-id="${thread.id}">
                     <div class="flex items-start justify-between gap-1">
