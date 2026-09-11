@@ -5220,7 +5220,7 @@ document.addEventListener('DOMContentLoaded', function() {
             threadsList.innerHTML = allExamineeThreads.slice().reverse().map(function(thread) {
                 var isActive = thread.id === activeThreadId ? 'bg-blue-50 border-r-blue-500 border-blue-200' : 'bg-white border-transparent hover:bg-gray-50 border-gray-100 border';
                 var displayTitle = thread.title === 'שיחה חדשה' ? '<div class="h-3 w-24 bg-gray-200 rounded animate-pulse inline-block align-middle"></div>' : thread.title;
-                var isAdmin = (typeof currentUser !== 'undefined' && currentUser && String(currentUser.role || '').trim() === 'מנהל-על');
+                var isAdmin = (String((typeof window._nzUserRole !== 'undefined' ? window._nzUserRole : (typeof currentUser !== 'undefined' && currentUser ? currentUser.role : '')) || '').trim() === 'מנהל-על');
                 var delBtnHtml = isAdmin ? `<button class="thread-del-btn text-red-400 hover:text-red-600 transition flex-shrink-0" data-thread-id="${thread.id}" title="מחק התכתבות" style="font-size:14px;line-height:1;padding:2px;">🗑</button>` : '';
                 return `
                 <div class="thread-card ${isActive} rounded-lg p-2 mb-2 cursor-pointer border-r-4 shadow-sm transition-all" data-thread-id="${thread.id}">
@@ -6302,9 +6302,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         threadsList.innerHTML = allExamineeThreads.slice().reverse().map(function(thread) {
             var isActive = thread.id === activeThreadId ? 'bg-blue-50 border-r-blue-500 border-blue-200' : 'bg-white border-transparent hover:bg-gray-50 border-gray-100 border';
+            var isAdmin = (String((typeof window._nzUserRole !== 'undefined' ? window._nzUserRole : (currentUser ? currentUser.role : '')) || '').trim() === 'מנהל-על');
+            var delBtnHtml = isAdmin ? `<button class="thread-del-btn text-red-400 hover:text-red-600 transition flex-shrink-0" data-thread-id="${thread.id}" title="מחק התכתבות" style="font-size:14px;line-height:1;padding:2px;">🗑</button>` : '';
             return `
             <div class="thread-card ${isActive} rounded-lg p-2 mb-2 cursor-pointer border-r-4 shadow-sm transition-all" data-thread-id="${thread.id}">
-                <div class="text-xs font-bold ${thread.id === activeThreadId ? 'text-blue-800' : 'text-gray-700'}">${thread.title === 'שיחה חדשה' ? '<div class="h-3 w-24 bg-gray-200 rounded animate-pulse inline-block align-middle"></div>' : thread.title}</div>
+                <div class="flex items-start justify-between gap-1"><div class="text-xs font-bold ${thread.id === activeThreadId ? 'text-blue-800' : 'text-gray-700'} flex-grow">${thread.title === 'שיחה חדשה' ? '<div class="h-3 w-24 bg-gray-200 rounded animate-pulse inline-block align-middle"></div>' : thread.title}</div>${delBtnHtml}</div>
                 <div class="text-[10px] text-gray-500 mt-1 flex items-center gap-1"><i data-lucide="message-square" class="w-3 h-3"></i> ${thread.messages ? thread.messages.length : 0} הודעות</div>
             </div>`;
         }).join('');
@@ -6314,6 +6316,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 var selectedId = this.dataset.threadId;
                 var thread = allExamineeThreads.find(t => t.id === selectedId);
                 if (thread) selectThread(thread);
+            });
+        });
+        document.querySelectorAll('.thread-del-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var tid = this.dataset.threadId;
+                var th = allExamineeThreads.find(t => t.id === tid);
+                if (!confirm('למחוק את ההתכתבות "' + ((th && th.title) || '') + '" לצמיתות? פעולה זו אינה הפיכה.')) return;
+                google.script.run.withSuccessHandler(function(r) {
+                    if (r && r.success) {
+                        showToast('ההתכתבות נמחקה');
+                        allExamineeThreads = allExamineeThreads.filter(t => t.id !== tid);
+                        if (activeThreadId === tid) { activeThreadId = null; if (typeof startNewThreadUI === 'function') startNewThreadUI(); }
+                        renderThreadsSidebar();
+                    } else showToast('שגיאה במחיקה: ' + ((r && r.error) || ''));
+                }).deleteConsultationThreadBySession(currentSessionId, (currentExaminee && currentExaminee.id), tid);
             });
         });
         if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -6889,7 +6907,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 // 2. רענון תצוגת הקרדיטים למעלה (הקוד האמיתי והבטוח)
                                 google.script.run.withSuccessHandler(function(updatedUser) {
                                     if (updatedUser) {
-                                        currentUser = updatedUser; // עדכון המשתנה הגלובלי
+                                        currentUser = updatedUser; window._nzUserRole = (updatedUser && updatedUser.role) || null; // עדכון המשתנה הגלובלי
                                         var creditsText = currentUser.credits === 'ללא הגבלה' ? 'ללא הגבלה' : currentUser.credits;
                                         var displayEl = document.getElementById('user-info-display');
                                         if (displayEl) {
@@ -7990,7 +8008,7 @@ function attachEventListeners() {
                         if (typeof fetchAndRenderLinksStatus === 'function') fetchAndRenderLinksStatus();
                         google.script.run.withSuccessHandler(function(updatedUser) {
                             if (updatedUser) {
-                                currentUser = updatedUser; // עדכון המשתנה הגלובלי
+                                currentUser = updatedUser; window._nzUserRole = (updatedUser && updatedUser.role) || null; // עדכון המשתנה הגלובלי
                                 var creditsText = currentUser.credits === 'ללא הגבלה' ? 'ללא הגבלה' : currentUser.credits;
                                 var displayEl = document.getElementById('user-info-display');
                                 if (displayEl) {
@@ -8259,7 +8277,7 @@ async function buildPromptData(examinee) {
         google.script.run
             .withSuccessHandler(function(userResponse) {
                 if (userResponse) {
-                    currentUser = userResponse;
+                    currentUser = userResponse; window._nzUserRole = (userResponse && userResponse.role) || null;
                     var creditsText = currentUser.credits === 'ללא הגבלה' ? 'ללא הגבלה' : currentUser.credits;
                     document.getElementById('user-info-display').innerHTML = `שלום, <b>${currentUser.name}</b> | יתרת קישורים: <b>${creditsText}</b>`;
                     document.getElementById('user-info-display').style.display = 'block';
