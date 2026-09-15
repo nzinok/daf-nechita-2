@@ -648,6 +648,24 @@
         return { success: true };
       } catch (e) { return { success: false, error: String(e) }; }
     },
+    getErrorLogBySession: async function () {
+      try {
+        var me = await supa.from('counselors').select('role').eq('email', window._currentUserEmail).maybeSingle();
+        if (!me.data || me.data.role !== 'מנהל-על') return { success: false, data: [] };
+        var q = await supa.from('error_log').select('*').order('created_at', { ascending: false }).limit(100);
+        if (q.error) return { success: false, error: q.error.message, data: [] };
+        return { success: true, data: q.data || [] };
+      } catch (e) { return { success: false, error: String(e), data: [] }; }
+    },
+    clearErrorLogBySession: async function () {
+      try {
+        var me = await supa.from('counselors').select('role').eq('email', window._currentUserEmail).maybeSingle();
+        if (!me.data || me.data.role !== 'מנהל-על') return { success: false, error: 'אין הרשאה' };
+        var res = await supa.from('error_log').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        if (res.error) return { success: false, error: res.error.message };
+        return { success: true };
+      } catch (e) { return { success: false, error: String(e) }; }
+    },
     getCounselorsForAssignBySession: async function () {
       try {
         var me = await supa.from('counselors').select('role').eq('email', window._currentUserEmail).maybeSingle();
@@ -1558,7 +1576,8 @@
         // לסגנון "פנייה לנבחנת" — כפתור 'שלח' עם מילוי אוטומטי של מייל הנבחנת
         var allowPdf = (style === 'direct');
         var pdfRecipient = allowPdf ? 'examinee' : null;
-        await supa.from('additional_outputs').insert({ examinee_id: examineeId, owner_email: ownerEmail, prompt_name: finalTitle, doc_url: docUrl, allow_pdf: allowPdf, pdf_recipient: pdfRecipient });
+        var _insRes = await supa.from('additional_outputs').insert({ examinee_id: examineeId, owner_email: ownerEmail, prompt_name: finalTitle, doc_url: docUrl, allow_pdf: allowPdf, pdf_recipient: pdfRecipient });
+        if (_insRes && _insRes.error) return { success: false, error: 'שמירת התוצר נכשלה: ' + _insRes.error.message };
         return { success: true, docUrl: docUrl };
       } catch (e) { return { success: false, error: String(e) }; }
     },
@@ -1622,8 +1641,21 @@
             return;
           }
           Promise.resolve().then(function () { return handler.apply(null, args); })
-            .then(function (result) { onSuccess(result); })
-            .catch(function (err) { onFailure(err); });
+            .then(function (result) {
+              // תיעוד מרכזי: כל תוצאה עם success:false (למעט מקרים שגרתיים) נרשמת ליומן השגיאות
+              try {
+                if (result && result.success === false && result.error &&
+                    String(result.error).indexOf('not_implemented_yet') === -1) {
+                  if (window._nzLogError) window._nzLogError(prop, result.error, 'handler returned success:false');
+                }
+              } catch (le) {}
+              onSuccess(result);
+            })
+            .catch(function (err) {
+              // תיעוד מרכזי: כל חריגה שנזרקת מ-handler
+              try { if (window._nzLogError) window._nzLogError(prop, (err && err.message) || String(err), 'handler exception'); } catch (le) {}
+              onFailure(err);
+            });
         };
       }
     });
@@ -1718,6 +1750,17 @@
   window._nzLogUsage = async function () {
     // התיעוד + עדכון הטוקנים מתבצעים כעת בשרת (פונקציות ה-AI, service_role) — לא ניתן לזיוף מהלקוח
     return;
+  };
+  // תיעוד שגיאות למסד — כדי שהמנהל יראה שגיאות שיועצות נתקלות בהן, בלי גישה לקונסול
+  window._nzLogError = async function (action, message, context) {
+    try {
+      await supa.from('error_log').insert({
+        owner_email: window._currentUserEmail || null,
+        action: action || '',
+        error_message: String(message == null ? '' : message).slice(0, 2000),
+        context: String(context == null ? '' : context).slice(0, 2000)
+      });
+    } catch (e) {}
   };
   // (הרחבת {{SYSTEM_PROMPT}} בפונקציית הקצה בלבד — חיסיון)
   window._nzFetchDriveImagePartById = async function (fileId) {
@@ -2331,7 +2374,8 @@ document.addEventListener('DOMContentLoaded', function() {
             { key: 'tags', label: '🏷️ תגיות רקע' },
             { key: 'kb', label: '📖 מאגר הדרכה' },
             { key: 'usage', label: '📊 דוח שימוש' },
-            { key: 'deleted', label: '🗑️ נמחקו' }
+            { key: 'deleted', label: '🗑️ נמחקו' },
+            { key: 'errors', label: '⚠️ שגיאות' }
         ];
         var setActiveTab = function (key) {
             Array.prototype.forEach.call(tabsBar.children, function (b) {
@@ -2442,12 +2486,37 @@ document.addEventListener('DOMContentLoaded', function() {
             }).getDeletedExamineesBySession(currentSessionId);
         };
 
+        // ---- לשונית שגיאות ----
+        var renderErrors = function () {
+            body.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div style="font-size:.85rem;color:#64748b;">שגיאות שיועצות נתקלו בהן (100 אחרונות). עוזר לאבחון בלי גישה לקונסול.</div><button id="nz-clear-errors" style="background:#fef2f2;color:#dc2626;border:none;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:.8rem;">נקה יומן</button></div><div id="nz-errors-list" style="color:#64748b;">טוען…</div>';
+            document.getElementById('nz-clear-errors').onclick = function () {
+                if (!confirm('לנקות את כל יומן השגיאות?')) return;
+                google.script.run.withSuccessHandler(function (r) { showToast(r && r.success ? 'היומן נוקה' : 'שגיאה'); if (r && r.success) renderErrors(); }).clearErrorLogBySession();
+            };
+            google.script.run.withSuccessHandler(function (res) {
+                var lc = document.getElementById('nz-errors-list');
+                if (!lc) return;
+                if (!res || !res.success) { lc.innerHTML = '<div style="color:#dc2626;">שגיאה בטעינה</div>'; return; }
+                if (!res.data || !res.data.length) { lc.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:24px;">אין שגיאות מתועדות 🎉</div>'; return; }
+                lc.innerHTML = res.data.map(function (e) {
+                    var dt = e.created_at ? new Date(e.created_at).toLocaleString('he-IL') : '';
+                    return '<div style="border:1px solid #fee2e2;background:#fffbfb;border-radius:10px;padding:10px 12px;margin-bottom:8px;">' +
+                        '<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;"><span style="font-weight:700;color:#b91c1c;">' + esc(e.action || 'לא ידוע') + '</span><span style="font-size:.75rem;color:#94a3b8;">' + esc(dt) + '</span></div>' +
+                        '<div style="font-size:.85rem;color:#334155;margin-top:4px;direction:ltr;text-align:left;">' + esc(e.error_message || '') + '</div>' +
+                        (e.context ? ('<div style="font-size:.72rem;color:#94a3b8;margin-top:2px;">' + esc(e.context) + '</div>') : '') +
+                        (e.owner_email ? ('<div style="font-size:.72rem;color:#64748b;margin-top:2px;">יועצת: ' + esc(e.owner_email) + '</div>') : '') +
+                        '</div>';
+                }).join('');
+            }).getErrorLogBySession();
+        };
+
         var render = function (key) {
             if (key === 'clients') renderClients();
             else if (key === 'tags') renderTags();
             else if (key === 'kb') { body.innerHTML = ''; window.showHelpKbManager(body); }
             else if (key === 'usage') { body.innerHTML = ''; window.showUsageDashboard(body); }
             else if (key === 'deleted') renderDeleted();
+            else if (key === 'errors') renderErrors();
         };
 
         setActiveTab('clients');
