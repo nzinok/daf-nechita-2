@@ -1423,7 +1423,8 @@
           'חלק א — תהליך החשיבה: כתוב את מהלך המחשבה בעברית, מחולק לשלבים עם כותרת מודגשת בפורמט **כותרת** לכל שלב. כאן אתה שוקל לעומק את כל הצדדים.\n' +
           'חלק ב — כתוב בשורה נפרדת, לבדו, את המפריד המדויק: ###תשובה###\n' +
           'ומתחתיו את התשובה הסופית — מלאה, מנומקת ומפורטת (לא רק מסקנה קצרה), הפונה ישירות למשתמש. התחל מיד בתוכן, בלי מילות פתיחה כמו "לסיכום" או "הנה התשובה", ובלי לתאר מחדש את שלבי החשיבה.\n\n';
-        var prompt = _thinkInstr + ctx + '\n' +
+        // חשיבה אמיתית (includeThoughts) מטופלת בקצה — הפרומפט נקי, בלי הוראת פורמט חשיבה
+        var prompt = ctx + '\n' +
           (histText ? ('--- היסטוריית ההתייעצות ---\n' + histText + '\n\n') : '') +
           '--- שאלת המשתמש ---\n' + newQuestion;
 
@@ -2022,12 +2023,11 @@
       var res = await fetch(SUPABASE_URL + '/functions/v1/generate-report-stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (sess ? sess.access_token : ''), 'apikey': SUPABASE_KEY },
-        body: JSON.stringify({ examineeId: examineeId || null, action: 'התייעצות', ownerEmail: window._currentUserEmail, parts: [{ text: prompt }].concat(extraParts || []), model: 'gemini-3.1-pro-preview', rawMode: true, temperature: 1.0 })
+        body: JSON.stringify({ examineeId: examineeId || null, action: 'התייעצות', ownerEmail: window._currentUserEmail, parts: [{ text: prompt }].concat(extraParts || []), model: 'gemini-3.1-pro-preview', rawMode: false, temperature: 1.0 })
       });
       if (!res.ok || !res.body) return { success: false };
       var reader = res.body.getReader(), decoder = new TextDecoder();
-      var buffer = '', full = '', answer = '', tokensUsed = 0, _in = 0, _out = 0, _think = 0;
-      var SEP = '###תשובה###';
+      var buffer = '', thinking = '', answer = '', tokensUsed = 0, _in = 0, _out = 0, _think = 0;
       while (true) {
         var r = await reader.read(); if (r.done) break;
         buffer += decoder.decode(r.value, { stream: true });
@@ -2037,19 +2037,20 @@
           if (!line) continue;
           try {
             var evt = JSON.parse(line);
-            if (evt.type === 'text') {
-              full += evt.text;
-              var idx = full.indexOf(SEP);
-              if (idx === -1) { if (onThought) onThought(full); }
-              else { if (onThought) onThought(full.slice(0, idx)); answer = full.slice(idx + SEP.length); }
-            } else if (evt.type === 'done') { tokensUsed = evt.tokensUsed || 0; _in = evt.inputTokens || 0; _out = evt.outputTokens || 0; _think = evt.thinkingTokens || 0; }
+            if (evt.type === 'thought') {
+              // מחשבה אמיתית של המודל, מתורגמת לעברית — מוצגת חיה תוך כדי חשיבה
+              thinking += evt.text;
+              if (onThought) onThought(thinking);
+            } else if (evt.type === 'text') {
+              // תוכן התשובה
+              answer += evt.text;
+            } else if (evt.type === 'done') {
+              tokensUsed = evt.tokensUsed || 0; _in = evt.inputTokens || 0; _out = evt.outputTokens || 0; _think = evt.thinkingTokens || 0;
+            }
           } catch (e) {}
         }
       }
-      // אם המודל לא הוציא מפריד — הכל תשובה (גיבוי)
-      if (full.indexOf(SEP) === -1) { answer = full; }
-      var thinking = (full.indexOf(SEP) > -1) ? full.slice(0, full.indexOf(SEP)).trim() : '';
-      return { success: !!answer.trim(), answer: answer.trim(), thinking: thinking, tokensUsed: tokensUsed, inputTokens: _in, outputTokens: _out, thinkingTokens: _think, hadSeparator: full.indexOf(SEP) > -1 };
+      return { success: !!answer.trim(), answer: answer.trim(), thinking: thinking.trim(), tokensUsed: tokensUsed, inputTokens: _in, outputTokens: _out, thinkingTokens: _think, hadSeparator: true };
     } catch (e) { return { success: false }; }
   };
 
