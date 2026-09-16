@@ -470,8 +470,23 @@
 (function () {
   const SUPABASE_URL = "https://szgarnmqgkhjfqkgrsma.supabase.co";
   const SUPABASE_KEY = "sb_publishable_LCsl6FnGAQlcm_OBq8ILRw_LmNwxgt8";
-  const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true }
+  });
   window._supa = supa;
+  // מוודא token טרי לפני פעולות — מונע פקיעת session שקטה (401) אחרי פעולות ארוכות
+  window._nzEnsureFreshSession = async function () {
+    try {
+      var s = await supa.auth.getSession();
+      var sess = s && s.data && s.data.session;
+      if (!sess) return;
+      var expMs = (sess.expires_at || 0) * 1000;
+      // אם ה-token פג או קרוב לפקיעה (פחות מ-3 דקות) — מרעננים יזומה
+      if (!expMs || (expMs - Date.now()) < 180000) {
+        await supa.auth.refreshSession();
+      }
+    } catch (e) {}
+  };
   window._currentUserEmail = null;
 
   // ממיר תשובות מאובייקט (שאלה→תשובה) לרשימת הקבוצות שהקוד המקורי מצפה לה
@@ -1643,7 +1658,7 @@
             Promise.resolve().then(function(){ onSuccess({ success: false, error: 'not_implemented_yet: ' + prop, data: [] }); });
             return;
           }
-          Promise.resolve().then(function () { return handler.apply(null, args); })
+          Promise.resolve().then(function () { return (window._nzEnsureFreshSession ? window._nzEnsureFreshSession() : null); }).then(function () { return handler.apply(null, args); })
             .then(function (result) {
               // תיעוד מרכזי: כל תוצאה עם success:false (למעט מקרים שגרתיים) נרשמת ליומן השגיאות
               try {
@@ -2002,6 +2017,7 @@
   // זרימת התייעצות — מזרים מחשבות ומחזיר תשובה
   window._nzStreamConsultInline = async function (prompt, onThought, extraParts, examineeId) {
     try {
+      if (window._nzEnsureFreshSession) { try { await window._nzEnsureFreshSession(); } catch (e) {} }
       var sess = (await supa.auth.getSession()).data.session;
       var res = await fetch(SUPABASE_URL + '/functions/v1/generate-report-stream', {
         method: 'POST',
