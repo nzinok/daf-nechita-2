@@ -1417,7 +1417,7 @@
         var _panel = window._nzCreateThinkingPanel();
         var _imgParts = [];
         try { _imgParts = await window._nzGetTaggedImageParts(examineeId, tagged); } catch (ie) {}
-        var streamRes = await window._nzStreamConsultInline(prompt, function (th) { window._nzUpdateThinkingPanel(_panel, th); }, _imgParts);
+        var streamRes = await window._nzStreamConsultInline(prompt, function (th) { window._nzUpdateThinkingPanel(_panel, th); }, _imgParts, examineeId);
         window._nzFinalizeThinkingPanel(_panel);
         var _thinking = '';
         if (streamRes && streamRes.success && streamRes.answer) {
@@ -1450,12 +1450,15 @@
         }
         if (!finalTitle) finalTitle = threadTitle || (newQuestion.slice(0, 30) + (newQuestion.length > 30 ? '…' : ''));
 
-        // שמירה
-        await supa.from('consultation_chats').insert({
+        // שמירה — עם בדיקת שגיאה (כשל שקט כאן גרם להתייעצויות "להיעלם")
+        var _cRes = await supa.from('consultation_chats').insert({
           examinee_id: examineeId, owner_email: ownerEmail,
           thread_id: threadId || 'default', thread_title: finalTitle,
           question: newQuestion, answer: answer, thinking: _thinking
         });
+        if (_cRes && _cRes.error) {
+          return { success: false, error: 'התשובה נוצרה אך שמירת ההתייעצות נכשלה: ' + _cRes.error.message + ' — נסי לשלוח שוב.', answer: answer };
+        }
         // ספירת טוקנים
         // (עדכון הטוקנים מתבצע בשרת)
         try { window._nzLogUsage(examineeId, 'התייעצות', out); } catch (e) {}
@@ -1997,13 +2000,13 @@
   };
 
   // זרימת התייעצות — מזרים מחשבות ומחזיר תשובה
-  window._nzStreamConsultInline = async function (prompt, onThought, extraParts) {
+  window._nzStreamConsultInline = async function (prompt, onThought, extraParts, examineeId) {
     try {
       var sess = (await supa.auth.getSession()).data.session;
       var res = await fetch(SUPABASE_URL + '/functions/v1/generate-report-stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (sess ? sess.access_token : ''), 'apikey': SUPABASE_KEY },
-        body: JSON.stringify({ examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: 'התייעצות', ownerEmail: window._currentUserEmail, parts: [{ text: prompt }].concat(extraParts || []), model: 'gemini-3.1-pro-preview', rawMode: true, temperature: 1.0 })
+        body: JSON.stringify({ examineeId: examineeId || null, action: 'התייעצות', ownerEmail: window._currentUserEmail, parts: [{ text: prompt }].concat(extraParts || []), model: 'gemini-3.1-pro-preview', rawMode: true, temperature: 1.0 })
       });
       if (!res.ok || !res.body) return { success: false };
       var reader = res.body.getReader(), decoder = new TextDecoder();
