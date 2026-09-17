@@ -1369,13 +1369,13 @@
     },
     getInternalAnalysis: async function (sessionId, examineeId, chatHistory, newQuestion, confidentialFileObject, threadId, threadTitle, taggedDocs, localTilText) {
       try {
-        var ex = await supa.from('examinees').select('answers, raw_data, notes, student_report, principal_report, owner_email, tokens_used, til_data').eq('id', examineeId).maybeSingle();
+        var ex = await supa.from('examinees').select('name, answers, raw_data, notes, student_report, principal_report, owner_email, tokens_used, til_data').eq('id', examineeId).maybeSingle();
         if (ex.error || !ex.data) return { success: false, error: 'נבחנת לא נמצאה' };
         var d = ex.data;
         var ownerEmail = d.owner_email || window._currentUserEmail;
 
         // בניית הקשר על הנבחנת
-        var ctx = 'להלן כל המידע על הנבחנת:\n\n';
+        var ctx = 'להלן כל המידע על הנבחנת' + (d.name ? (' בשם ' + d.name) : '') + '. כל השאלות שלהלן מתייחסות אליה.\n\n';
         var groups = Array.isArray(d.answers) ? d.answers : [];
         groups.forEach(function (g) {
           if (!g || g.isConfidential) return;
@@ -1424,8 +1424,9 @@
           'חלק ב — כתוב בשורה נפרדת, לבדו, את המפריד המדויק: ###תשובה###\n' +
           'ומתחתיו את התשובה הסופית — מלאה, מנומקת ומפורטת (לא רק מסקנה קצרה), הפונה ישירות למשתמש. התחל מיד בתוכן, בלי מילות פתיחה כמו "לסיכום" או "הנה התשובה", ובלי לתאר מחדש את שלבי החשיבה.\n\n';
         // חשיבה אמיתית (includeThoughts) מוצגת בנפרד — מנחים את המודל לתת רק את התשובה הסופית
-        var _answerInstr = 'חשוב: תהליך החשיבה שלך מוצג למשתמש בנפרד. לכן בתשובתך ענה ישירות עם התוכן הסופי בלבד — אל תתאר מחדש את שלבי החשיבה, אל תפתח ב"תהליך החשיבה", "סיכום מחשבות" או רשימת שלבים, ואל תוסיף מילות פתיחה. התחל מיד בתשובה עצמה.\n\n';
-        var prompt = _answerInstr + ctx + '\n' +
+        var _persona = 'אתה יועץ/ת מומחה/ית לאבחון והכוונה תעסוקתית. המשתמש/ת שמדבר/ת איתך הוא/היא יועצ/ת תעסוקתית שמתייעצת איתך לגבי נבחנת שלה (צד שלישי) — אתה לא מדבר עם הנבחנת עצמה. לכן: התייחס תמיד לנבחנת בגוף שלישי ("היא", "הנבחנת", בשמה), וענה ישירות ליועצת המתייעצת. לעולם אל תפנה לנבחנת בגוף שני ("את").\n\n';
+        var _answerInstr = 'חשוב: תהליך החשיבה שלך מוצג למשתמש בנפרד. לכן בתשובתך אל תתאר מחדש את שלבי החשיבה, אל תפתח ב"תהליך החשיבה", "סיכום מחשבות" או רשימת שלבים, ואל תוסיף מילות פתיחה — התחל מיד בתשובה עצמה. עם זאת, התשובה עצמה חייבת להיות מלאה, מפורטת, מעמיקה ומנומקת במלואה — אל תקצר בתוכן או בפירוט.\n\n';
+        var prompt = _persona + _answerInstr + ctx + '\n' +
           (histText ? ('--- היסטוריית ההתייעצות ---\n' + histText + '\n\n') : '') +
           '--- שאלת המשתמש ---\n' + newQuestion;
 
