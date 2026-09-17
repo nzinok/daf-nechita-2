@@ -2016,7 +2016,7 @@
   };
 
   // זרימת התייעצות — מזרים מחשבות ומחזיר תשובה
-  window._nzStreamConsultInline = async function (prompt, onThought, extraParts, examineeId) {
+  window._nzStreamConsultInline = async function (prompt, onThought, extraParts, examineeId, onAnswer) {
     try {
       if (window._nzEnsureFreshSession) { try { await window._nzEnsureFreshSession(); } catch (e) {} }
       var sess = (await supa.auth.getSession()).data.session;
@@ -2041,9 +2041,10 @@
               // מחשבה אמיתית של המודל, מתורגמת לעברית — מוצגת חיה תוך כדי חשיבה
               thinking += evt.text;
               if (onThought) onThought(thinking);
-            } else if (evt.type === 'text') {
-              // תוכן התשובה
+            } else if (evt.type === 'answer' || evt.type === 'text') {
+              // תוכן התשובה (הקצה שולח 'answer'; 'text' לתאימות לאחור)
               answer += evt.text;
+              if (onAnswer) onAnswer(answer);
             } else if (evt.type === 'done') {
               tokensUsed = evt.tokensUsed || 0; _in = evt.inputTokens || 0; _out = evt.outputTokens || 0; _think = evt.thinkingTokens || 0;
             }
