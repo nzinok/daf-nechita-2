@@ -1425,8 +1425,11 @@
           'ומתחתיו את התשובה הסופית — מלאה, מנומקת ומפורטת (לא רק מסקנה קצרה), הפונה ישירות למשתמש. התחל מיד בתוכן, בלי מילות פתיחה כמו "לסיכום" או "הנה התשובה", ובלי לתאר מחדש את שלבי החשיבה.\n\n';
         // חשיבה אמיתית (includeThoughts) מוצגת בנפרד — מנחים את המודל לתת רק את התשובה הסופית
         var _persona = 'אתה יועץ/ת מומחה/ית לאבחון והכוונה תעסוקתית. המשתמש/ת שמדבר/ת איתך הוא/היא יועצ/ת תעסוקתית שמתייעצת איתך לגבי נבחנת שלה (צד שלישי) — אתה לא מדבר עם הנבחנת עצמה. לכן: התייחס תמיד לנבחנת בגוף שלישי ("היא", "הנבחנת", בשמה), וענה ישירות ליועצת המתייעצת. לעולם אל תפנה לנבחנת בגוף שני ("את").\n\n';
-        var _answerInstr = 'ענה ליועצת בעברית, בתשובה מלאה, מפורטת, מעמיקה ומנומקת. התחל ישירות בתוכן.\n\n';
-        var prompt = _persona + _answerInstr + ctx + '\n' +
+        var _formatInstr = 'ענה במבנה המדויק הבא, בעברית בלבד:\n' +
+          '1) תחילה — תהליך החשיבה: כתוב את מהלך המחשבה שלך, מחולק לשלבים עם כותרות מודגשות בפורמט **כותרת**. שקול לעומק את כל הצדדים והנתונים.\n' +
+          '2) לאחר מכן — בשורה נפרדת לבדה, כתוב בדיוק את המפריד הזה: ###תשובה###\n' +
+          '3) ולבסוף — התשובה ליועצת: מלאה, מפורטת, מעמיקה ומנומקת. אל תכתוב דבר אחרי התשובה.\n\n';
+        var prompt = _persona + _formatInstr + ctx + '\n' +
           (histText ? ('--- היסטוריית ההתייעצות ---\n' + histText + '\n\n') : '') +
           '--- שאלת המשתמש ---\n' + newQuestion;
 
@@ -1979,14 +1982,13 @@
     var loader = document.getElementById('chat-loader'); if (loader) loader.classList.add('hidden');
     var panel = document.createElement('div');
     panel.className = 'nz-thinking-panel';
-    panel.style.cssText = 'background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:9px 12px;font-size:12px;color:#64748b;margin-bottom:2px;';
-    panel.style.cssText = 'background:linear-gradient(135deg,#eff6ff,#f8fafc);border:1px solid #dbeafe;border-radius:12px;padding:14px 16px;margin-bottom:6px;';
+    panel.style.cssText = 'background:linear-gradient(135deg,#eff6ff,#f8fafc);border:1px solid #dbeafe;border-radius:12px;padding:12px 14px;font-size:12px;color:#64748b;margin-bottom:4px;';
     panel.innerHTML =
-      '<div style="display:flex;align-items:center;gap:11px;">' +
-        '<div class="nz-load-spin" style="width:22px;height:22px;border:3px solid #dbeafe;border-top-color:#3b82f6;border-radius:50%;animation:nzspin 0.8s linear infinite;flex-shrink:0;"></div>' +
-        '<div><div style="font-weight:700;color:#1e40af;font-size:13px;">מעבד את ההתייעצות…</div>' +
-        '<div class="nz-load-sub" style="font-size:11.5px;color:#64748b;margin-top:2px;">קורא את נתוני הנבחנת</div></div>' +
-      '</div>';
+      '<div class="nz-th-header" style="display:flex;align-items:center;gap:8px;font-weight:700;color:#1e40af;padding-bottom:4px;">' +
+        '<div class="nz-load-spin" style="width:18px;height:18px;border:2px solid #dbeafe;border-top-color:#3b82f6;border-radius:50%;animation:nzspin 0.8s linear infinite;flex-shrink:0;"></div>' +
+        '<span class="nz-th-title">מנתח את המידע…</span>' +
+      '</div>' +
+      '<div class="nz-th-body" style="max-height:220px;overflow-y:auto;"></div>';
     c.appendChild(panel);
     c.scrollTop = c.scrollHeight;
     if (!document.getElementById('nz-spin-style')) {
@@ -1994,20 +1996,21 @@
       st.textContent = '@keyframes nzspin{to{transform:rotate(360deg)}}';
       document.head.appendChild(st);
     }
-    var msgs = ['קורא את נתוני הנבחנת…', 'מנתח נטיות ותחומי עניין…', 'מצליב ציונים, חוזקות והערות…', 'שוקל את כל ההיבטים לעומק…', 'מגבש תשובה מקצועית ומנומקת…'];
-    var mi = 0;
-    var sub = panel.querySelector('.nz-load-sub');
-    panel._nzInterval = setInterval(function () { mi = (mi + 1) % msgs.length; if (sub) sub.textContent = msgs[mi]; }, 2300);
     return panel;
   };
   window._nzUpdateThinkingPanel = function (panel, thoughts) {
-    // אין הצגת חשיבה — אנימציית הטעינה רצה לבד. נשאר לתאימות.
-    return;
+    if (!panel) return;
+    var title = panel.querySelector('.nz-th-title'); if (title) title.textContent = 'חושב…';
+    window._nzRenderThoughtSegs(panel, thoughts, true);
   };
   window._nzFinalizeThinkingPanel = function (panel) {
     if (!panel) return;
-    if (panel._nzInterval) { try { clearInterval(panel._nzInterval); } catch (e) {} }
-    panel.remove();
+    var spin = panel.querySelector('.nz-load-spin'); if (spin) spin.remove();
+    var cont = panel.querySelector('.nz-th-body');
+    if (!cont || !cont.textContent.trim()) { panel.remove(); return; }
+    var t = panel.querySelector('.nz-th-title'); if (t) t.textContent = 'תהליך החשיבה';
+    cont.querySelectorAll('.nz-seg-b').forEach(function (b) { b.style.display = 'none'; });
+    cont.querySelectorAll('.nz-seg-chev').forEach(function (ch) { ch.style.transform = ''; });
   };
   // הצגת חשיבה שמורה (מההיסטוריה) כאקורדיון מכווץ
   window._nzAppendSavedThinking = function (thinking) {
@@ -2031,7 +2034,8 @@
       });
       if (!res.ok || !res.body) return { success: false };
       var reader = res.body.getReader(), decoder = new TextDecoder();
-      var buffer = '', answer = '', tokensUsed = 0, _in = 0, _out = 0, _think = 0;
+      var buffer = '', full = '', thinking = '', answer = '', tokensUsed = 0, _in = 0, _out = 0, _think = 0;
+      var SEP = '###תשובה###';
       while (true) {
         var r = await reader.read(); if (r.done) break;
         buffer += decoder.decode(r.value, { stream: true });
@@ -2044,17 +2048,20 @@
           try {
             var evt = JSON.parse(line);
             if (evt.type === 'text' || evt.type === 'answer') {
-              answer += evt.text;
-              if (onAnswer) onAnswer(answer);
+              full += evt.text;
+              var idx = full.indexOf(SEP);
+              if (idx === -1) { thinking = full; if (onThought) onThought(thinking); }
+              else { thinking = full.slice(0, idx).trim(); answer = full.slice(idx + SEP.length); if (onThought) onThought(thinking); if (onAnswer) onAnswer(answer); }
             } else if (evt.type === 'thought') {
-              // אין הצגת חשיבה
+              thinking += evt.text; if (onThought) onThought(thinking);
             } else if (evt.type === 'done') {
               tokensUsed = evt.tokensUsed || 0; _in = evt.inputTokens || 0; _out = evt.outputTokens || 0; _think = evt.thinkingTokens || 0;
             }
           } catch (e) {}
         }
       }
-      return { success: !!answer.trim(), answer: answer.trim(), thinking: '', tokensUsed: tokensUsed, inputTokens: _in, outputTokens: _out, thinkingTokens: _think };
+      if (full.indexOf(SEP) === -1) { answer = full.trim(); thinking = ''; }
+      return { success: !!answer.trim(), answer: answer.trim(), thinking: thinking, tokensUsed: tokensUsed, inputTokens: _in, outputTokens: _out, thinkingTokens: _think };
     } catch (e) { return { success: false }; }
   };
 
