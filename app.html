@@ -2001,12 +2001,12 @@
       qb.innerHTML = String(st.question).replace(/\[הנחיית הקשר אוטומטית:.*?\]\n\n/g, '').replace(/\n/g, '<br>');
       c.appendChild(qb);
     }
-    // פאנל חשיבה
-    if (st.thinking) {
+    // פאנל חשיבה — מוצג מיד (ספינר + "מנתח"), מתמלא כשמגיעה חשיבה, מתקפל כשמגיעה תשובה
+    if (!st.done) {
       var panel = c.querySelector('.nz-active-th');
-      if (!panel) { panel = window._nzCreateThinkingPanel(); if (panel) panel.classList.add('nz-active-th'); }
+      if (!panel && !st.answer) { panel = window._nzCreateThinkingPanel(); if (panel) panel.classList.add('nz-active-th'); }
       if (panel && !panel.dataset.collapsed) {
-        window._nzUpdateThinkingPanel(panel, st.thinking);
+        if (st.thinking) window._nzUpdateThinkingPanel(panel, st.thinking);
         if (st.answer) { window._nzFinalizeThinkingPanel(panel); panel.dataset.collapsed = '1'; }
       }
     }
@@ -6290,6 +6290,7 @@ document.addEventListener('DOMContentLoaded', function() {
           if (_lastQ) _lastQ.classList.add('nz-active-q');
           window._nzViewingThreadId = activeThreadId;
           window._nzActiveConsult[activeThreadId] = { question: cleanQuestionForUI, thinking: '', answer: '', done: false };
+          window._nzRenderActiveConsult(activeThreadId);
         } catch (e) {}
         document.getElementById('chat-loader').classList.remove('hidden');
         chatInput.value = '';
@@ -6623,7 +6624,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderChatHistory() {
         var chatContainer = document.getElementById('chat-history-container');
         chatContainer.innerHTML = '';
-        if (currentChatHistory.length === 0) {
+        // האם יש התייעצות פעילה (בתהליך) בשיחה הנוכחית?
+        var _activeSt = (window._nzActiveConsult && activeThreadId) ? window._nzActiveConsult[activeThreadId] : null;
+        var _hasActive = _activeSt && !_activeSt.done;
+        if (currentChatHistory.length === 0 && !_hasActive) {
             startNewThreadUI();
             return;
         }
@@ -6632,6 +6636,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (turn.thinking) window._nzAppendSavedThinking(turn.thinking);
             appendChatMessage(turn.answer, 'ai', false, true); // false, true -> לא שגיאה, וזה מההיסטוריה (מיד)
         });
+        // הצגת המצב הפעיל (חשיבה/תשובה בתהליך) — בכל מסלול הצגה, כולל חזרה מטאב אחר
+        if (_hasActive) {
+            window._nzViewingThreadId = activeThreadId;
+            window._nzRenderActiveConsult(activeThreadId);
+        }
     }
     // ==========================================================
     //     ⬇️ הוסף את פונקציית העזר החדשה הזו ⬇️
