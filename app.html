@@ -6199,11 +6199,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // ✨ יצירת הכרטיסייה בעמודה הימנית אוטומטית אם זו שאלה ראשונה
         if (currentChatHistory.length === 0) {
             activeThreadId = 'thread_' + Date.now();
-            activeThreadTitle = "שיחה חדשה"; // שם זמני לסרגל הצד
+            activeThreadTitle = cleanQuestionForUI.slice(0, 30) + (cleanQuestionForUI.length > 30 ? '…' : '');
             
             var titleEl = document.getElementById('current-thread-title');
             // במקום טקסט, נשים אנימציית הבהוב חלקה (Skeleton)
-            if (titleEl) titleEl.innerHTML = '<div class="h-4 w-32 bg-gray-200 rounded animate-pulse inline-block align-middle"></div>';
+            if (titleEl) titleEl.textContent = activeThreadTitle;
             
             currentChatHistory = []; // איפוס ודאי
 
