@@ -1367,6 +1367,18 @@
         return { success: true };
       } catch (e) { return { success: false, error: String(e) }; }
     },
+    refreshThreadTitleBySession: async function (sessionId, examineeId, threadId, question, answer) {
+      try {
+        var tInv = await supa.functions.invoke('generate-report', {
+          body: { examineeId: examineeId || null, action: 'כותרת התייעצות', ownerEmail: window._currentUserEmail, parts: [{ text: 'צור כותרת קצרה (3-5 מילים, בעברית) שמתארת את נושא ההתייעצות הבא. החזר רק את הכותרת עצמה, בלי מרכאות ובלי הקדמה:\n\nשאלה: ' + question + '\nתשובה: ' + String(answer || '').slice(0, 400) }], model: 'gemini-3.7-flash', temperature: 0.4 }
+        });
+        if (tInv.error || !tInv.data || !tInv.data.success) return { success: false };
+        var title = (tInv.data.report || '').trim().replace(/^["\'']|["\'']$/g, '').split('\n')[0].slice(0, 50);
+        if (!title) return { success: false };
+        try { await supa.from('consultation_chats').update({ thread_title: title }).eq('examinee_id', examineeId).eq('thread_id', threadId); } catch (ue) {}
+        return { success: true, title: title };
+      } catch (e) { return { success: false }; }
+    },
     getInternalAnalysis: async function (sessionId, examineeId, chatHistory, newQuestion, confidentialFileObject, threadId, threadTitle, taggedDocs, localTilText) {
       try {
         var ex = await supa.from('examinees').select('name, answers, raw_data, notes, student_report, principal_report, owner_email, tokens_used, til_data').eq('id', examineeId).maybeSingle();
@@ -1458,18 +1470,11 @@
           if (_si > -1) answer = answer.slice(_si + '###תשובה###'.length).trim();
         }
 
-        // כותרת חכמה לשיחה חדשה — נוצרת ע"י Gemini
-        var finalTitle = threadTitle && threadTitle !== 'שיחה חדשה' && threadTitle !== 'התייעצות כללית' ? threadTitle : null;
+        // כותרת זמנית מיידית (מילות השאלה) — הכותרת החכמה נוצרת ברקע אחרי התשובה (refreshThreadTitleBySession)
         var isNewThread = !(chatHistory && chatHistory.length);
-        if (!finalTitle && isNewThread) {
-          try {
-            var tInv = await supa.functions.invoke('generate-report', {
-              body: { examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: 'כותרת התייעצות', ownerEmail: window._currentUserEmail, parts: [{ text: 'צור כותרת קצרה (3-5 מילים, בעברית) שמתארת את נושא ההתייעצות הבא. החזר רק את הכותרת עצמה, בלי מרכאות ובלי הקדמה:\n\nשאלה: ' + newQuestion + '\nתשובה: ' + answer.slice(0, 400) }], model: 'gemini-3.7-flash', temperature: 0.4 }
-            });
-            if (!tInv.error && tInv.data && tInv.data.success) finalTitle = (tInv.data.report || '').trim().replace(/^["\'']|["\'']$/g, '').split('\n')[0].slice(0, 50);
-          } catch (te) {}
-        }
-        if (!finalTitle) finalTitle = threadTitle || (newQuestion.slice(0, 30) + (newQuestion.length > 30 ? '…' : ''));
+        var finalTitle = (threadTitle && threadTitle !== 'שיחה חדשה' && threadTitle !== 'התייעצות כללית')
+          ? threadTitle
+          : (newQuestion.slice(0, 30) + (newQuestion.length > 30 ? '…' : ''));
 
         // שמירה — עם בדיקת שגיאה (כשל שקט כאן גרם להתייעצויות "להיעלם")
         var _cRes = await supa.from('consultation_chats').insert({
@@ -1484,7 +1489,7 @@
         // (עדכון הטוקנים מתבצע בשרת)
         try { window._nzLogUsage(examineeId, 'התייעצות', out); } catch (e) {}
 
-        return { success: true, answer: answer, newTitle: finalTitle, thinking: _thinking };
+        return { success: true, answer: answer, newTitle: finalTitle, thinking: _thinking, needsTitle: isNewThread };
       } catch (e) {
         return { success: false, error: String(e) };
       }
@@ -2017,9 +2022,11 @@
     if (!thinking || !String(thinking).trim()) return;
     var panel = window._nzCreateThinkingPanel();
     if (!panel) return;
-    var dots = panel.querySelector('.nz-th-dots'); if (dots) dots.remove();
+    var spin = panel.querySelector('.nz-load-spin'); if (spin) spin.remove();
     var t = panel.querySelector('.nz-th-title'); if (t) t.textContent = 'תהליך החשיבה';
     window._nzRenderThoughtSegs(panel, thinking, false);
+    var cont = panel.querySelector('.nz-th-body');
+    if (cont) { cont.querySelectorAll('.nz-seg-b').forEach(function (b) { b.style.display = 'none'; }); cont.querySelectorAll('.nz-seg-chev').forEach(function (ch) { ch.style.transform = ''; }); }
   };
 
   // זרימת התייעצות — מזרים מחשבות ומחזיר תשובה
@@ -6341,6 +6348,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (titleEl) titleEl.textContent = activeThreadTitle;
                     
                     renderThreadsSidebar(); // מרענן מיד את הכותרת ואת כמות ההודעות!
+
+                    // כותרת חכמה ברקע — מחליפה את הזמנית אחרי שהתשובה כבר מוצגת
+                    if (response.needsTitle && isStillHere) {
+                        var _tThreadId = requestThreadId, _tThread = thread;
+                        google.script.run.withSuccessHandler(function (tr) {
+                            if (tr && tr.success && tr.title) {
+                                if (_tThread) _tThread.title = tr.title;
+                                if (activeThreadId === _tThreadId) {
+                                    activeThreadTitle = tr.title;
+                                    var te = document.getElementById('current-thread-title');
+                                    if (te) te.textContent = tr.title;
+                                }
+                                renderThreadsSidebar();
+                            }
+                        }).refreshThreadTitleBySession(currentSessionId, requestExamineeId, requestThreadId, question, response.answer);
+                    }
                     
                     // חשיפת כפתור "הפוך לתוצר" לאחר תשובה
                     var pushBtn = document.getElementById('push-to-output-btn');
