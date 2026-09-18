@@ -1991,7 +1991,7 @@
   window._nzRenderActiveConsult = function (threadId) {
     var st = window._nzActiveConsult[threadId];
     if (!st) return;
-    if (typeof activeThreadId === 'undefined' || activeThreadId !== threadId) return; // רק כשצופים בשיחה הזו
+    if (window._nzViewingThreadId !== threadId) return; // רק כשצופים בשיחה הזו
     var c = document.getElementById('chat-history-container'); if (!c) return;
     if (c.innerHTML.indexOf('אין היסטוריית שיחה') > -1 || c.innerHTML.indexOf('התחילי שיחה חדשה') > -1) c.innerHTML = '';
     // בועת שאלה
@@ -6262,6 +6262,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // ✨ יצירת הכרטיסייה בעמודה הימנית אוטומטית אם זו שאלה ראשונה
         if (currentChatHistory.length === 0) {
             activeThreadId = 'thread_' + Date.now();
+            window._nzViewingThreadId = activeThreadId;
             activeThreadTitle = cleanQuestionForUI.slice(0, 30) + (cleanQuestionForUI.length > 30 ? '…' : '');
             
             var titleEl = document.getElementById('current-thread-title');
@@ -6287,6 +6288,7 @@ document.addEventListener('DOMContentLoaded', function() {
           var _allQ = document.querySelectorAll('#chat-history-container .chat-bubble-user');
           var _lastQ = _allQ.length ? _allQ[_allQ.length - 1] : null;
           if (_lastQ) _lastQ.classList.add('nz-active-q');
+          window._nzViewingThreadId = activeThreadId;
           window._nzActiveConsult[activeThreadId] = { question: cleanQuestionForUI, thinking: '', answer: '', done: false };
         } catch (e) {}
         document.getElementById('chat-loader').classList.remove('hidden');
@@ -6536,6 +6538,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function selectThread(thread) {
         activeThreadId = thread.id;
+        window._nzViewingThreadId = thread.id;
         activeThreadTitle = thread.title;
         currentChatHistory = thread.messages || [];
         var titleEl = document.getElementById('current-thread-title');
@@ -6578,6 +6581,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function startNewThreadUI() {
         activeThreadId = null;
+        window._nzViewingThreadId = null;
         activeThreadTitle = null;
         currentChatHistory = [];
         if (typeof selectedContexts !== 'undefined') {
