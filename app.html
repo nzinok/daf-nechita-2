@@ -1447,20 +1447,16 @@
 
         // זרימה עם חשיבה בזמן אמת (פאנל מתקפל), עם נפילה חזרה לרגיל
         var out, answer;
-        var _panel = window._nzCreateThinkingPanel();
         var _imgParts = [];
         try { _imgParts = await window._nzGetTaggedImageParts(examineeId, tagged); } catch (ie) {}
-        var _answerBubble = null;
+        // אתחול רישום המצב הפעיל (אם לא נרשם בשליחה) + רינדור ראשוני
+        if (!window._nzActiveConsult[threadId]) window._nzActiveConsult[threadId] = { question: newQuestion, thinking: '', answer: '', done: false };
+        window._nzRenderActiveConsult(threadId);
         var streamRes = await window._nzStreamConsultInline(prompt,
-          function (th) { window._nzUpdateThinkingPanel(_panel, th); },
+          function (th) { var _a = window._nzActiveConsult[threadId]; if (_a) { _a.thinking = th; window._nzRenderActiveConsult(threadId); } },
           _imgParts, examineeId,
-          function (ans) {
-            // כשמתחילה התשובה: מכווצים את פאנל החשיבה ויוצרים בועת תשובה חיה
-            if (!_answerBubble) { window._nzFinalizeThinkingPanel(_panel); _answerBubble = window._nzCreateAnswerBubble(); }
-            window._nzUpdateAnswerBubble(_answerBubble, ans);
-          }
+          function (ans) { var _a = window._nzActiveConsult[threadId]; if (_a) { _a.answer = ans; window._nzRenderActiveConsult(threadId); } }
         );
-        window._nzFinalizeThinkingPanel(_panel);
         var _thinking = '';
         if (streamRes && streamRes.success && streamRes.answer) {
           answer = streamRes.answer;
@@ -1498,7 +1494,7 @@
         // (עדכון הטוקנים מתבצע בשרת)
         try { window._nzLogUsage(examineeId, 'התייעצות', out); } catch (e) {}
 
-        return { success: true, answer: answer, newTitle: finalTitle, thinking: _thinking, needsTitle: isNewThread, answerRenderedLive: !!_answerBubble };
+        return { success: true, answer: answer, newTitle: finalTitle, thinking: _thinking, needsTitle: isNewThread, answerRenderedLive: true };
       } catch (e) {
         return { success: false, error: String(e) };
       }
@@ -1989,6 +1985,45 @@
     });
     if (typeof lucide !== 'undefined') { try { lucide.createIcons(); } catch (e) {} }
     var c = document.getElementById('chat-history-container'); if (c && live) c.scrollTop = c.scrollHeight;
+  };
+  // ===== רישום התייעצות פעילה — כדי שתשרוד מעבר בין מסכים/שיחות =====
+  window._nzActiveConsult = {};
+  window._nzRenderActiveConsult = function (threadId) {
+    var st = window._nzActiveConsult[threadId];
+    if (!st) return;
+    if (typeof activeThreadId === 'undefined' || activeThreadId !== threadId) return; // רק כשצופים בשיחה הזו
+    var c = document.getElementById('chat-history-container'); if (!c) return;
+    if (c.innerHTML.indexOf('אין היסטוריית שיחה') > -1 || c.innerHTML.indexOf('התחילי שיחה חדשה') > -1) c.innerHTML = '';
+    // בועת שאלה
+    if (st.question && !c.querySelector('.nz-active-q')) {
+      var qb = document.createElement('div');
+      qb.className = 'chat-bubble chat-bubble-user nz-active-q';
+      qb.innerHTML = String(st.question).replace(/\[הנחיית הקשר אוטומטית:.*?\]\n\n/g, '').replace(/\n/g, '<br>');
+      c.appendChild(qb);
+    }
+    // פאנל חשיבה
+    if (st.thinking) {
+      var panel = c.querySelector('.nz-active-th');
+      if (!panel) { panel = window._nzCreateThinkingPanel(); if (panel) panel.classList.add('nz-active-th'); }
+      if (panel && !panel.dataset.collapsed) {
+        window._nzUpdateThinkingPanel(panel, st.thinking);
+        if (st.answer) { window._nzFinalizeThinkingPanel(panel); panel.dataset.collapsed = '1'; }
+      }
+    }
+    // בועת תשובה
+    if (st.answer) {
+      var bubble = c.querySelector('.nz-active-ans');
+      if (!bubble) { bubble = window._nzCreateAnswerBubble(); if (bubble) bubble.classList.add('nz-active-ans'); }
+      if (bubble) window._nzUpdateAnswerBubble(bubble, st.answer);
+    }
+  };
+  // ניקוי סימוני הפעיל בסיום (האלמנטים נשארים כתצוגה סופית)
+  window._nzClearActiveConsult = function (threadId) {
+    delete window._nzActiveConsult[threadId];
+    var c = document.getElementById('chat-history-container'); if (!c) return;
+    ['.nz-active-q', '.nz-active-th', '.nz-active-ans'].forEach(function (sel) {
+      var el = c.querySelector(sel); if (el) el.classList.remove(sel.slice(1));
+    });
   };
   // בועת תשובה חיה — מתמלאת תוך כדי הזרמת התשובה
   window._nzCreateAnswerBubble = function () {
@@ -6247,6 +6282,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         appendChatMessage(cleanQuestionForUI, 'user'); 
+        // רישום מצב פעיל — כדי שההתייעצות תשרוד מעבר בין מסכים/שיחות
+        try {
+          var _allQ = document.querySelectorAll('#chat-history-container .chat-bubble-user');
+          var _lastQ = _allQ.length ? _allQ[_allQ.length - 1] : null;
+          if (_lastQ) _lastQ.classList.add('nz-active-q');
+          window._nzActiveConsult[activeThreadId] = { question: cleanQuestionForUI, thinking: '', answer: '', done: false };
+        } catch (e) {}
         document.getElementById('chat-loader').classList.remove('hidden');
         chatInput.value = '';
         chatInput.style.height = 'auto';
@@ -6356,10 +6398,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             toastMsg = 'התקבלה תשובה אצל ' + requestExamineeName + (toastThreadTitle ? ' בהתייעצות "' + toastThreadTitle + '"' : '');
                         }
                         showToast(toastMsg);
+                        try { delete window._nzActiveConsult[requestThreadId]; } catch (e) {}
                         if (sameExaminee) renderThreadsSidebar();
                         return;
                     }
                     if (!response.answerRenderedLive) { appendChatMessage(response.answer, 'ai', false, false); }
+                    try { window._nzClearActiveConsult(requestThreadId); } catch (e) {}
                     
                     var thread = allExamineeThreads.find(t => t.id === activeThreadId);
                     if (thread) {
@@ -6399,6 +6443,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         pushBtn.classList.remove('hidden');
                     }
                 } else {
+                    try { window._nzClearActiveConsult(requestThreadId); } catch (e) {}
                     appendChatMessage('שגיאה: ' + response.error, 'ai', true);
                 }
                 
@@ -6411,6 +6456,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .withFailureHandler(function(error) {
                 document.getElementById('chat-loader').classList.add('hidden');
                 chatSubmitBtn.disabled = false; 
+                try { delete window._nzActiveConsult[requestThreadId]; } catch (e) {}
                 handleServerError(error);
             })
             .getInternalAnalysis(currentSessionId, examinee.id, conversationForApi, question, confidentialFileObject, activeThreadId, activeThreadTitle, selectedContexts.map(function(c) { return c.name.trim(); }), tilLocalTextForChat);
@@ -6496,6 +6542,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (titleEl) titleEl.textContent = activeThreadTitle;
         renderThreadsSidebar(); 
         renderChatHistory();
+        // אם יש התייעצות פעילה בשיחה הזו — מציגים את מצבה הנוכחי (וממשיכים לעדכן חי)
+        if (window._nzActiveConsult && window._nzActiveConsult[thread.id] && !window._nzActiveConsult[thread.id].done) {
+            window._nzRenderActiveConsult(thread.id);
+        }
         
         var pushBtn = document.getElementById('push-to-output-btn');
         if (pushBtn) {
