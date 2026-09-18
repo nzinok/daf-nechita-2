@@ -1450,7 +1450,16 @@
         var _panel = window._nzCreateThinkingPanel();
         var _imgParts = [];
         try { _imgParts = await window._nzGetTaggedImageParts(examineeId, tagged); } catch (ie) {}
-        var streamRes = await window._nzStreamConsultInline(prompt, function (th) { window._nzUpdateThinkingPanel(_panel, th); }, _imgParts, examineeId);
+        var _answerBubble = null;
+        var streamRes = await window._nzStreamConsultInline(prompt,
+          function (th) { window._nzUpdateThinkingPanel(_panel, th); },
+          _imgParts, examineeId,
+          function (ans) {
+            // כשמתחילה התשובה: מכווצים את פאנל החשיבה ויוצרים בועת תשובה חיה
+            if (!_answerBubble) { window._nzFinalizeThinkingPanel(_panel); _answerBubble = window._nzCreateAnswerBubble(); }
+            window._nzUpdateAnswerBubble(_answerBubble, ans);
+          }
+        );
         window._nzFinalizeThinkingPanel(_panel);
         var _thinking = '';
         if (streamRes && streamRes.success && streamRes.answer) {
@@ -1489,7 +1498,7 @@
         // (עדכון הטוקנים מתבצע בשרת)
         try { window._nzLogUsage(examineeId, 'התייעצות', out); } catch (e) {}
 
-        return { success: true, answer: answer, newTitle: finalTitle, thinking: _thinking, needsTitle: isNewThread };
+        return { success: true, answer: answer, newTitle: finalTitle, thinking: _thinking, needsTitle: isNewThread, answerRenderedLive: !!_answerBubble };
       } catch (e) {
         return { success: false, error: String(e) };
       }
@@ -1980,6 +1989,25 @@
     });
     if (typeof lucide !== 'undefined') { try { lucide.createIcons(); } catch (e) {} }
     var c = document.getElementById('chat-history-container'); if (c && live) c.scrollTop = c.scrollHeight;
+  };
+  // בועת תשובה חיה — מתמלאת תוך כדי הזרמת התשובה
+  window._nzCreateAnswerBubble = function () {
+    var c = document.getElementById('chat-history-container');
+    if (!c) return null;
+    if (c.innerHTML.indexOf('אין היסטוריית שיחה') > -1 || c.innerHTML.indexOf('התחילי שיחה חדשה') > -1) c.innerHTML = '';
+    var bubble = document.createElement('div');
+    bubble.className = 'chat-bubble chat-bubble-ai';
+    bubble.innerHTML = '';
+    c.appendChild(bubble);
+    c.scrollTop = c.scrollHeight;
+    return bubble;
+  };
+  window._nzUpdateAnswerBubble = function (bubble, text) {
+    if (!bubble) return;
+    var clean = String(text || '').replace(/\[הנחיית הקשר אוטומטית:.*?\]\n\n/g, '');
+    bubble.innerHTML = clean.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    var c = document.getElementById('chat-history-container');
+    if (c) { var atBottom = (c.scrollHeight - c.scrollTop) <= (c.clientHeight + 80); if (atBottom) c.scrollTop = c.scrollHeight; }
   };
   window._nzCreateThinkingPanel = function () {
     var c = document.getElementById('chat-history-container');
@@ -6331,7 +6359,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (sameExaminee) renderThreadsSidebar();
                         return;
                     }
-                    appendChatMessage(response.answer, 'ai', false, false);
+                    if (!response.answerRenderedLive) { appendChatMessage(response.answer, 'ai', false, false); }
                     
                     var thread = allExamineeThreads.find(t => t.id === activeThreadId);
                     if (thread) {
