@@ -1822,10 +1822,10 @@
       var desc = (document.getElementById('nz-tech-desc').value || '').trim();
       var q = (document.getElementById('nz-tech-q').value || '').trim();
       var note = document.getElementById('nz-tech-note');
-      if (!desc) { note.style.color = '#dc2626'; note.textContent = 'נא לתאר את הבעיה.'; return; }
+      if (!desc && !q) { note.style.color = '#dc2626'; note.textContent = 'נא לכתוב תיאור בעיה או שאלה.'; return; }
       btn.disabled = true; btn.textContent = 'שולח…';
-      var msg = 'תיאור הבעיה:\n' + desc +
-                '\n\n— — —\nשאלה אחרונה למדריכה:\n' + (q || '(לא צוינה)') +
+      var msg = (desc ? ('תיאור הבעיה:\n' + desc + '\n\n— — —\n') : '') +
+                'שאלה אחרונה למדריכה:\n' + (q || '(לא צוינה)') +
                 '\n\nתשובת המדריכה:\n' + (helperAnswer ? String(helperAnswer).slice(0, 1500) : '(אין)');
       var payload = { name: uName || 'יועצת', email: uEmail || '', phone: '', audience: '', message: msg, source: 'פנייה טכנית — מדריכת המערכת', company_hp: '' };
       try {
