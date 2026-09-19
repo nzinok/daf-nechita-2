@@ -1790,8 +1790,8 @@
   window._NZ_LEADS_ENDPOINT = "https://script.google.com/macros/s/AKfycbzaDuhP3dMDau0N_3MiQgAcXD6gUiwEacdEwxffyXZouVzhoFjdzZXHEvrQe0Wzjxg/exec";
   window._nzOpenTechTicket = function (lastQuestion, helperAnswer) {
     if (document.getElementById('nz-tech-overlay')) return;
-    var uName = '', uEmail = window._currentUserEmail || '';
-    try { if (typeof currentUser !== 'undefined' && currentUser) { uName = currentUser.name || ''; uEmail = currentUser.email || uEmail; } } catch (e) {}
+    var uName = window._nzUserName || '';
+    var uEmail = window._nzUserEmail || window._currentUserEmail || '';
     var ov = document.createElement('div');
     ov.id = 'nz-tech-overlay';
     ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;';
@@ -8544,7 +8544,7 @@ async function buildPromptData(examinee) {
         google.script.run
             .withSuccessHandler(function(userResponse) {
                 if (userResponse) {
-                    currentUser = userResponse; window._nzUserRole = (userResponse && userResponse.role) || null;
+                    currentUser = userResponse; window._nzUserRole = (userResponse && userResponse.role) || null; window._nzUserName = (userResponse && userResponse.name) || null; window._nzUserEmail = (userResponse && userResponse.email) || window._currentUserEmail || null;
                     var creditsText = currentUser.credits === 'ללא הגבלה' ? 'ללא הגבלה' : currentUser.credits;
                     document.getElementById('user-info-display').innerHTML = `שלום, <b>${currentUser.name}</b> | יתרת קישורים: <b>${creditsText}</b>`;
                     document.getElementById('user-info-display').style.display = 'block';
