@@ -7952,7 +7952,20 @@ function attachEventListeners() {
                                 if (currentExaminee && currentExaminee.id === examineeId) {
                                     currentExaminee.rawData = currentExaminee.rawData || {};
                                     currentExaminee.rawData['תדריך נבחנת'] = br.briefing;
-                                    if (currentView === 'examinees') renderExamineeDetails(currentExaminee);
+                                    // עדכון כרטיס התדריך בלבד (בלי לרנדר את כל התיק — לא מוציא את היועצת ממקומה)
+                                    try {
+                                        var _oldCard = document.getElementById('summary-container');
+                                        if (_oldCard && window._nzRenderBriefingCard) {
+                                            var _tmp = document.createElement('div');
+                                            _tmp.innerHTML = window._nzRenderBriefingCard(currentExaminee);
+                                            var _newCard = _tmp.firstElementChild;
+                                            if (_newCard) {
+                                                _oldCard.replaceWith(_newCard);
+                                                if (typeof lucide !== 'undefined') lucide.createIcons();
+                                                if (window._nzWireBriefingCard) window._nzWireBriefingCard();
+                                            }
+                                        }
+                                    } catch (e) {}
                                 }
                             }
                         }).generateBriefingBySession(currentSessionId, examineeId);
@@ -8175,7 +8188,20 @@ function attachEventListeners() {
                                 if (currentExaminee && currentExaminee.id === examineeId) {
                                     currentExaminee.rawData = currentExaminee.rawData || {};
                                     currentExaminee.rawData['תדריך נבחנת'] = br.briefing;
-                                    if (currentView === 'examinees') renderExamineeDetails(currentExaminee);
+                                    // עדכון כרטיס התדריך בלבד (בלי לרנדר את כל התיק — לא מוציא את היועצת ממקומה)
+                                    try {
+                                        var _oldCard = document.getElementById('summary-container');
+                                        if (_oldCard && window._nzRenderBriefingCard) {
+                                            var _tmp = document.createElement('div');
+                                            _tmp.innerHTML = window._nzRenderBriefingCard(currentExaminee);
+                                            var _newCard = _tmp.firstElementChild;
+                                            if (_newCard) {
+                                                _oldCard.replaceWith(_newCard);
+                                                if (typeof lucide !== 'undefined') lucide.createIcons();
+                                                if (window._nzWireBriefingCard) window._nzWireBriefingCard();
+                                            }
+                                        }
+                                    } catch (e) {}
                                 }
                             }
                         }).generateBriefingBySession(currentSessionId, examineeId);
