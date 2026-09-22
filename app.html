@@ -552,10 +552,18 @@
     },
 
     // רשימת הנבחנות (RLS מסנן אוטומטית — כל יועצת רק את שלה)
+    getExamineeByIdBySession: async function (sessionId, examineeId) {
+      try {
+        var q = await supa.from('examinees').select('*').eq('id', examineeId).maybeSingle();
+        if (q.error || !q.data) return null;
+        return mapExaminee(q.data);
+      } catch (e) { return null; }
+    },
     getSheetDataBySession: async function () {
-      const { data, error } = await supa.from('examinees').select('*').or('is_deleted.is.null,is_deleted.eq.false').order('submission_date', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).order('id', { ascending: true });
+      // רשימה: שולפים רק עמודות קטנות (שם/סטטוס/תאריכים) — הדוחות הכבדים נטענים רק בפתיחת נבחנת
+      const { data, error } = await supa.from('examinees').select('id, name, status, owner_email, submission_date, created_at, holland_code, is_deleted').or('is_deleted.is.null,is_deleted.eq.false').order('submission_date', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).order('id', { ascending: true });
       if (error) return { success: false, error: error.message };
-      return { success: true, data: (data || []).map(mapExaminee) };
+      return { success: true, data: (data || []).map(function (r) { var m = mapExaminee(r); m._light = true; return m; }) };
     },
 
     // מכסת טוקנים לנבחנת
@@ -3671,6 +3679,19 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     // ========================================================
     function renderExamineeDetails(examinee) {
+        // אם הנבחנת נטענה מהרשימה בלי הדוחות (קלה) — טוענים את המלאה ואז מרנדרים
+        if (examinee && examinee.id && examinee._light) {
+            var _mc = document.getElementById('main-content');
+            if (_mc && !/spinner/i.test(_mc.innerHTML)) { try { _mc.innerHTML = getSpinnerHtml(); } catch (e) {} }
+            google.script.run
+                .withSuccessHandler(function (full) {
+                    if (full && full.id) { renderExamineeDetails(full); }
+                    else { examinee._light = false; renderExamineeDetails(examinee); }
+                })
+                .withFailureHandler(function () { examinee._light = false; renderExamineeDetails(examinee); })
+                .getExamineeByIdBySession((typeof currentSessionId !== 'undefined' ? currentSessionId : ''), examinee.id);
+            return;
+        }
         currentExaminee = examinee; // שומרים את הנבחנת הנוכחית כדי שנוכל "לנקות" אותה אם צריך
         isExamineeDirty = false;
         // --- הזלגת נתוני תיל מקומיים אל rawData, לפני בניית הריבוע ---
@@ -4335,7 +4356,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     var recType = this.dataset.recipient;
                     var docName = this.dataset.name;
                     var targetEmail = (recType === 'examinee') ? (currentExaminee.rawData['מייל'] || "") : "";
-                    
                     appConfirm({
                         title: 'שליחת תוצר כ-PDF',
                         message: 'לאיזו כתובת מייל לשלוח את "' + docName + '"?',
@@ -4428,11 +4448,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     var recType = this.dataset.recipient;
                     var docName = this.dataset.name;
                     var targetEmail = "";
-                    
-                    if (recType === 'examinee') {
-                        targetEmail = currentExaminee.rawData['מייל'] || "";
-                    }
-                    
+                    if (recType === 'examinee') { targetEmail = currentExaminee.rawData['מייל'] || ""; }
                     appConfirm({
                         title: 'שליחת תוצר כ-PDF',
                         message: 'לאיזו כתובת מייל לשלוח את "' + docName + '"?',
