@@ -3252,8 +3252,13 @@ document.addEventListener('DOMContentLoaded', function() {
                             renderExamineeDetails(examinee);
 
                             if (isOutput) {
-                                setTimeout(() => {
-                                    document.getElementById('tab-details').click();
+                                var _oTries = 0;
+                                var _oWait = setInterval(function () {
+                                    _oTries++;
+                                    var _td = document.getElementById('tab-details');
+                                    if (!_td) { if (_oTries > 40) clearInterval(_oWait); return; }
+                                    clearInterval(_oWait);
+                                    _td.click();
                                     setTimeout(() => {
                                         const outContainer = document.getElementById('additional-outputs-container');
                                         if (outContainer) {
@@ -3275,19 +3280,26 @@ document.addEventListener('DOMContentLoaded', function() {
                                     }, 100);
                                 }, 300);
                             } else if (reportModeForScroll === 'student' || reportModeForScroll === 'principal') {
-                                setTimeout(() => {
-                                    document.getElementById('tab-details').click();
-                                    setTimeout(() => {
-                                        const cardEl = document.getElementById('report-card-' + reportModeForScroll);
-                                        if (cardEl) {
-                                            cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                            setTimeout(() => {
-                                                cardEl.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50', 'transition-all', 'duration-500');
-                                                setTimeout(() => cardEl.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50'), 2500);
-                                            }, 700);
-                                        }
-                                    }, 300);
-                                }, 300);
+                                // ממתינים שהתיק יסיים להיטען (הטעינה-העצמית אסינכרונית) לפני הלחיצה
+                                var _clickTries = 0;
+                                var _clickWait = setInterval(function () {
+                                    _clickTries++;
+                                    var _td = document.getElementById('tab-details');
+                                    if (_td) {
+                                        clearInterval(_clickWait);
+                                        _td.click();
+                                        setTimeout(function () {
+                                            var cardEl = document.getElementById('report-card-' + reportModeForScroll);
+                                            if (cardEl) {
+                                                cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                setTimeout(function () {
+                                                    cardEl.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50', 'transition-all', 'duration-500');
+                                                    setTimeout(function () { cardEl.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50'); }, 2500);
+                                                }, 700);
+                                            }
+                                        }, 300);
+                                    } else if (_clickTries > 40) { clearInterval(_clickWait); }
+                                }, 150);
                             }
                         })
                         .getDocumentsForExamineeBySession(currentSessionId, examineeId);
