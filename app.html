@@ -1169,7 +1169,7 @@
           try {
             var ct = await supa.from('examinees').select('tokens_used').eq('id', examineeId).maybeSingle();
             // (עדכון הטוקנים מתבצע בשרת ע"י פונקציית ה-AI)
-            try { window._nzLogUsage(examineeId, 'תוצר עזר', out); } catch (e) {}
+            try { window._nzLogUsage(examineeId, 'תוצר עזר', {}); } catch (e) {}
           } catch (te) {}
           return { success: true, docUrl: cDocUrl };
         }
@@ -1202,11 +1202,10 @@
         var raw = (cur.data && cur.data.raw_data) || {};
         raw[rawKey] = reportText;
         if (docUrl) raw[linkKey] = docUrl;
-        var newTokens = ((cur.data && cur.data.tokens_used) || 0) + (out.tokensUsed || 0);
         var patch = { raw_data: raw };  // הטוקנים מתעדכנים בשרת
         patch[col] = reportText;
         var upd = await supa.from('examinees').update(patch).eq('id', examineeId);
-        try { window._nzLogUsage(examineeId, 'הפקת דוח ' + (isPrincipal ? 'מנהלת' : 'תלמידה'), out); } catch (e) {}
+        try { window._nzLogUsage(examineeId, 'הפקת דוח ' + (isPrincipal ? 'מנהלת' : 'תלמידה'), {}); } catch (e) {}
         if (upd.error) return { success: false, error: 'שמירת הדוח נכשלה: ' + upd.error.message };
 
         // זיהוי אוטומטי של קוד הולנד מהדוח — רק בפעם הראשונה (כשאין עדיין קוד)
