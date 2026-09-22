@@ -7803,7 +7803,16 @@ function attachEventListeners() {
         event.preventDefault();
         var btn = document.getElementById('generate-ai-report-btn');
         var examineeId = aiModal.dataset.examineeId; // UUID (טקסט)
-        var examinee = allExamineesData.find(e => e.id === examineeId);
+        var examinee = null;
+        if (currentExaminee && currentExaminee.id === examineeId && currentExaminee.answers && currentExaminee.answers.length) {
+            examinee = currentExaminee;
+        } else {
+            examinee = await new Promise(function (resolve) {
+                google.script.run.withSuccessHandler(resolve).withFailureHandler(function () { resolve(null); })
+                    .getExamineeByIdBySession((typeof currentSessionId !== 'undefined' ? currentSessionId : ''), examineeId);
+            });
+        }
+        if (!examinee) { examinee = allExamineesData.find(e => e.id === examineeId); }
 
         if (!examinee) {
             showToast("שגיאה: לא נמצאה נבחנת פעילה.");
@@ -8043,7 +8052,17 @@ function attachEventListeners() {
         event.preventDefault();
         var btn = document.getElementById('submit-refinement-btn');
         var examineeId = refineModal.dataset.examineeId; // UUID (טקסט)
-        var examinee = allExamineesData.find(e => e.id === examineeId);
+        // נבחנת מלאה (הרשימה קלה) — לצורך מיקוד הדוח
+        var examinee = null;
+        if (currentExaminee && currentExaminee.id === examineeId && currentExaminee.answers && currentExaminee.answers.length) {
+            examinee = currentExaminee;
+        } else {
+            examinee = await new Promise(function (resolve) {
+                google.script.run.withSuccessHandler(resolve).withFailureHandler(function () { resolve(null); })
+                    .getExamineeByIdBySession((typeof currentSessionId !== 'undefined' ? currentSessionId : ''), examineeId);
+            });
+        }
+        if (!examinee) { examinee = allExamineesData.find(e => e.id === examineeId); }
         const reportMode = refineModal.dataset.reportMode || 'student'; // משיכת סוג הדוח
 
         if (!examinee) {
