@@ -1112,14 +1112,35 @@
           }
         }
         var _parts = extraCtx ? (parts || []).concat([{ text: extraCtx }]) : (parts || []);
-        var inv = await supa.functions.invoke('generate-report', {
-          body: { examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: (reportType === 'custom' ? 'תוצר עזר' : ('הפקת דוח ' + ((reportType === 'principal' || reportType === 'manager' || reportType === 'מנהלת') ? 'מנהלת' : 'תלמידה'))), ownerEmail: window._currentUserEmail, parts: _parts, model: 'gemini-3.1-pro-preview', temperature: 0.7 }
-        });
-        if (inv.error) return { success: false, error: 'שגיאת שרת AI: ' + inv.error.message };
-        var out = inv.data || {};
-        if (!out.success) return { success: false, error: out.error || 'הפקת הדוח נכשלה' };
-
-        var reportText = out.report || '';
+        var _action = (reportType === 'custom' ? 'תוצר עזר' : ('הפקת דוח ' + ((reportType === 'principal' || reportType === 'manager' || reportType === 'מנהלת') ? 'מנהלת' : 'תלמידה')));
+        // הפקה דרך הזרם (streaming) — נמנע מ-timeout של הקצה הלא-זורם בדוחות ארוכים
+        var reportText = '';
+        try {
+          if (window._nzEnsureFreshSession) { try { await window._nzEnsureFreshSession(); } catch (e) {} }
+          var _sess = (await supa.auth.getSession()).data.session;
+          var _res = await fetch(SUPABASE_URL + '/functions/v1/generate-report-stream', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (_sess ? _sess.access_token : ''), 'apikey': SUPABASE_KEY },
+            body: JSON.stringify({ examineeId: (typeof examineeId!=='undefined'?examineeId:null), action: _action, ownerEmail: window._currentUserEmail, parts: _parts, model: 'gemini-3.1-pro-preview', rawMode: true, temperature: 0.7 })
+          });
+          if (!_res.ok || !_res.body) { var _t = await _res.text(); return { success: false, error: 'שגיאת שרת AI: ' + _t.slice(0, 200) }; }
+          var _reader = _res.body.getReader(), _dec = new TextDecoder(), _buf = '';
+          while (true) {
+            var _r = await _reader.read(); if (_r.done) break;
+            _buf += _dec.decode(_r.value, { stream: true });
+            var _nl;
+            while ((_nl = _buf.indexOf('\n')) >= 0) {
+              var _line = _buf.slice(0, _nl).trim(); _buf = _buf.slice(_nl + 1);
+              if (!_line) continue;
+              if (_line.indexOf('data:') === 0) _line = _line.slice(5).trim();
+              if (!_line || _line === '[DONE]') continue;
+              try { var _evt = JSON.parse(_line); if (_evt.type === 'text' || _evt.type === 'answer') reportText += _evt.text; else if (_evt.type === 'error') return { success: false, error: 'שגיאת AI: ' + (_evt.error || '') }; } catch (e) {}
+            }
+          }
+        } catch (streamErr) {
+          return { success: false, error: 'שגיאת זרימה: ' + String(streamErr) };
+        }
+        if (!reportText || !reportText.trim()) return { success: false, error: 'הפקת הדוח נכשלה (התקבל דוח ריק)' };
 
         // בעלת התיק (לתבנית ולשיתוף)
         var ownerQ0 = await supa.from('examinees').select('owner_email').eq('id', examineeId).maybeSingle();
