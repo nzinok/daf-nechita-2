@@ -567,7 +567,8 @@
         if (!force && rawExisting['תדריך נבחנת']) return { success: true, briefing: rawExisting['תדריך נבחנת'], skipped: true };
         var prompt = 'להלן דוח אבחון תעסוקתי של נבחנת. הפק ממנו "תדריך נבחנת" תמציתי וממוקד ליועצת, בפורמט JSON בלבד — בלי שום טקסט נוסף ובלי markdown. המבנה המדויק:\n' +
           '{"holland":"קוד הולנד אם מופיע בדוח אחרת ריק","strengths":["חוזקה","חוזקה","חוזקה"],"attention":["נקודה לתשומת לב אם באמת עולה מהדוח"],"recommendations":[{"text":"המלצה תעסוקתית ממוקדת","reason":"נימוק תמציתי במשפט אחד"}]}\n' +
-          'הנחיות: 3-4 חוזקות קצרות (2-4 מילים כל אחת). 0-2 נקודות תשומת לב (רק אם רלוונטי). 2-3 המלצות תעסוקתיות ממוקדות, כל אחת עם נימוק תמציתי. הכל בעברית. החזר אך ורק JSON תקין.\n\n--- הדוח ---\n' + String(reportText).slice(0, 12000);
+          'כלל-על מחייב: הסתמך אך ורק על מה שכתוב במפורש בדוח שלהלן. אסור בהחלט להוסיף, להסיק או להמציא מקצועות, חוזקות או המלצות מתוך ידע כללי (למשל על סמך קוד הולנד לבדו) — כל פריט חייב להתבסס על אמירה מפורשת בדוח. אם המידע לא מופיע בדוח, אל תכלול אותו (עדיף רשימה קצרה ומדויקת מרשימה מנופחת). ' +
+          'הנחיות: 3-4 חוזקות קצרות (2-4 מילים כל אחת) — רק כאלה שנאמרו בדוח. 0-2 נקודות תשומת לב (רק אם עולות מפורשות מהדוח). 2-3 המלצות תעסוקתיות — רק כאלה שהדוח עצמו מציין או תומך בהן במפורש, כל אחת עם נימוק המצטט/מתבסס על הדוח. אם הדוח אינו כולל המלצות תעסוקתיות מפורשות — החזר recommendations ריק. הכל בעברית. החזר אך ורק JSON תקין.\n\n--- הדוח ---\n' + String(reportText).slice(0, 12000);
         var inv = await supa.functions.invoke('generate-report', { body: { examineeId: examineeId || null, action: 'תדריך נבחנת', ownerEmail: window._currentUserEmail, parts: [{ text: prompt }], model: 'gemini-3.7-flash', temperature: 0.3 } });
         if (inv.error) return { success: false, error: 'שגיאת AI: ' + inv.error.message };
         var out = inv.data || {};
@@ -587,6 +588,23 @@
         if (upd.error) return { success: false, error: 'שמירה נכשלה: ' + upd.error.message };
         try { window._nzLogUsage(examineeId, 'תדריך נבחנת', out); } catch (e) {}
         return { success: true, briefing: brief };
+      } catch (e) { return { success: false, error: String(e) }; }
+    },
+    saveBriefingBySession: async function (sessionId, examineeId, briefing) {
+      try {
+        if (!examineeId || !briefing || typeof briefing !== 'object') return { success: false, error: 'נתונים חסרים' };
+        var clean = {
+          holland: String(briefing.holland || ''),
+          strengths: Array.isArray(briefing.strengths) ? briefing.strengths.map(function (x) { return String(x); }).filter(Boolean).slice(0, 8) : [],
+          attention: Array.isArray(briefing.attention) ? briefing.attention.map(function (x) { return String(x); }).filter(Boolean).slice(0, 6) : [],
+          recommendations: Array.isArray(briefing.recommendations) ? briefing.recommendations.slice(0, 8).map(function (r) { return { text: String((r && r.text) || ''), reason: String((r && r.reason) || '') }; }).filter(function (r) { return r.text; }) : []
+        };
+        var cur = await supa.from('examinees').select('raw_data').eq('id', examineeId).maybeSingle();
+        var raw = (cur.data && cur.data.raw_data) || {};
+        raw['תדריך נבחנת'] = clean;
+        var upd = await supa.from('examinees').update({ raw_data: raw }).eq('id', examineeId);
+        if (upd.error) return { success: false, error: upd.error.message };
+        return { success: true, briefing: clean };
       } catch (e) { return { success: false, error: String(e) }; }
     },
     getExamineeByIdBySession: async function (sessionId, examineeId) {
@@ -3765,6 +3783,7 @@ document.addEventListener('DOMContentLoaded', function() {
             '<h5 class="font-bold flex items-center" style="color:#3730a3;"><i data-lucide="clipboard-list" class="w-5 h-5 ml-2"></i>תדריך נבחנת</h5>' +
             '<div style="display:flex;align-items:center;gap:8px;">' +
               (b.holland ? '<span style="background:#3730a3;color:#fff;font-weight:800;font-size:13px;padding:3px 12px;border-radius:8px;letter-spacing:1px;">' + esc(b.holland) + '</span>' : '') +
+              '<button id="nz-brief-edit" title="עריכת התדריך" style="background:#fff;border:1px solid #c7d2fe;color:#4338ca;border-radius:8px;padding:3px 8px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>' +
               '<button id="nz-brief-regen" title="הפק תדריך מחדש מהדוח" style="background:#fff;border:1px solid #c7d2fe;color:#4338ca;border-radius:8px;padding:3px 8px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i></button>' +
             '</div>' +
             '</div>' +
@@ -3830,6 +3849,72 @@ document.addEventListener('DOMContentLoaded', function() {
         cont.querySelectorAll('.nz-brief-from').forEach(function (b2) {
             b2.onclick = function () { if (chooseBox) chooseBox.style.display = 'none'; window._nzDoRegenBriefing(this.dataset.t); };
         });
+        var editBtn = document.getElementById('nz-brief-edit');
+        if (editBtn) { editBtn.onclick = function () { window._nzEditBriefing(); }; }
+    };
+    // טופס עריכת התדריך (הוסף/מחק/שנה צ'יפים)
+    window._nzEditBriefing = function () {
+        var exx = (typeof currentExaminee !== 'undefined' && currentExaminee) ? currentExaminee : null;
+        if (!exx) return;
+        var cont = document.getElementById('summary-container');
+        if (!cont) return;
+        var b = (exx.rawData && exx.rawData['תדריך נבחנת']) || { holland: '', strengths: [], attention: [], recommendations: [] };
+        var esc = function (t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
+        var inp = 'width:100%;padding:6px 9px;border:1px solid #c7d2fe;border-radius:7px;font-size:12.5px;font-family:inherit;box-sizing:border-box;';
+        var delBtn = 'background:#fee2e2;color:#dc2626;border:none;border-radius:6px;width:26px;flex-shrink:0;cursor:pointer;font-weight:700;';
+        var addBtn = 'background:#e0e7ff;color:#3730a3;border:none;border-radius:7px;padding:4px 10px;font-size:11.5px;font-weight:600;cursor:pointer;margin-top:4px;';
+        var lineRow = function (val) { return '<div class="nz-ed-row" style="display:flex;gap:5px;margin-bottom:5px;"><input class="nz-ed-val" style="' + inp + '" value="' + esc(val) + '"><button class="nz-ed-del" style="' + delBtn + '">✕</button></div>'; };
+        var recRow = function (r) { return '<div class="nz-ed-rec" style="border:1px dashed #c7d2fe;border-radius:8px;padding:7px;margin-bottom:6px;"><div style="display:flex;gap:5px;margin-bottom:4px;"><input class="nz-ed-rtext" placeholder="המלצה" style="' + inp + '" value="' + esc(r.text) + '"><button class="nz-ed-recdel" style="' + delBtn + '">✕</button></div><input class="nz-ed-rreason" placeholder="נימוק (לא חובה)" style="' + inp + 'background:#f8fafc;" value="' + esc(r.reason) + '"></div>'; };
+
+        var html = '<div id="summary-container" class="mb-4 p-4 rounded-xl" style="background:#f5f3ff;border:1px solid #ddd6fe;">';
+        html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><h5 class="font-bold" style="color:#3730a3;">✏️ עריכת תדריך</h5><div style="display:flex;gap:6px;"><button id="nz-ed-save" style="background:#4338ca;color:#fff;border:none;border-radius:7px;padding:5px 14px;font-weight:700;font-size:12.5px;cursor:pointer;">שמור</button><button id="nz-ed-cancel" style="background:#fff;color:#64748b;border:1px solid #cbd5e1;border-radius:7px;padding:5px 12px;font-weight:600;font-size:12.5px;cursor:pointer;">ביטול</button></div></div>';
+        html += '<label style="font-size:11px;font-weight:700;color:#4338ca;">קוד הולנד</label><input id="nz-ed-holland" style="' + inp + 'margin-bottom:9px;width:120px;" value="' + esc(b.holland) + '">';
+        html += '<div style="font-size:11px;font-weight:700;color:#059669;margin-bottom:3px;">💪 חוזקות</div><div id="nz-ed-strengths">' + (b.strengths || []).map(lineRow).join('') + '</div><button class="nz-ed-add" data-target="nz-ed-strengths" style="' + addBtn + '">+ הוסף חוזקה</button>';
+        html += '<div style="font-size:11px;font-weight:700;color:#d97706;margin:10px 0 3px;">⚠️ לתשומת לב</div><div id="nz-ed-attention">' + (b.attention || []).map(lineRow).join('') + '</div><button class="nz-ed-add" data-target="nz-ed-attention" style="' + addBtn + '">+ הוסף נקודה</button>';
+        html += '<div style="font-size:11px;font-weight:700;color:#2563eb;margin:10px 0 3px;">🎯 המלצות</div><div id="nz-ed-recs">' + (b.recommendations || []).map(recRow).join('') + '</div><button id="nz-ed-addrec" style="' + addBtn + '">+ הוסף המלצה</button>';
+        html += '</div>';
+
+        var tmp = document.createElement('div'); tmp.innerHTML = html;
+        var newCard = tmp.firstElementChild;
+        cont.replaceWith(newCard);
+        var root = document.getElementById('summary-container');
+
+        // הוספת שורות
+        root.querySelectorAll('.nz-ed-add').forEach(function (btn) {
+            btn.onclick = function () { var box = document.getElementById(this.dataset.target); if (box) { var d = document.createElement('div'); d.innerHTML = lineRow(''); box.appendChild(d.firstElementChild); wireDel(); } };
+        });
+        var addRecBtn = document.getElementById('nz-ed-addrec');
+        if (addRecBtn) addRecBtn.onclick = function () { var box = document.getElementById('nz-ed-recs'); if (box) { var d = document.createElement('div'); d.innerHTML = recRow({ text: '', reason: '' }); box.appendChild(d.firstElementChild); wireDel(); } };
+        function wireDel() {
+            root.querySelectorAll('.nz-ed-del').forEach(function (x) { x.onclick = function () { this.closest('.nz-ed-row').remove(); }; });
+            root.querySelectorAll('.nz-ed-recdel').forEach(function (x) { x.onclick = function () { this.closest('.nz-ed-rec').remove(); }; });
+        }
+        wireDel();
+
+        // ביטול — חזרה לתצוגה
+        document.getElementById('nz-ed-cancel').onclick = function () {
+            var d = document.createElement('div'); d.innerHTML = window._nzRenderBriefingCard(exx);
+            var vc = d.firstElementChild; if (vc) { document.getElementById('summary-container').replaceWith(vc); if (typeof lucide !== 'undefined') lucide.createIcons(); if (window._nzWireBriefingCard) window._nzWireBriefingCard(); }
+        };
+        // שמירה
+        document.getElementById('nz-ed-save').onclick = function () {
+            var newB = { holland: (document.getElementById('nz-ed-holland').value || '').trim(), strengths: [], attention: [], recommendations: [] };
+            document.querySelectorAll('#nz-ed-strengths .nz-ed-val').forEach(function (i) { var v = (i.value || '').trim(); if (v) newB.strengths.push(v); });
+            document.querySelectorAll('#nz-ed-attention .nz-ed-val').forEach(function (i) { var v = (i.value || '').trim(); if (v) newB.attention.push(v); });
+            document.querySelectorAll('#nz-ed-recs .nz-ed-rec').forEach(function (row) { var t = (row.querySelector('.nz-ed-rtext').value || '').trim(); var rs = (row.querySelector('.nz-ed-rreason').value || '').trim(); if (t) newB.recommendations.push({ text: t, reason: rs }); });
+            var saveBtn = this; saveBtn.disabled = true; saveBtn.textContent = 'שומר…';
+            google.script.run
+                .withSuccessHandler(function (r) {
+                    if (r && r.success) {
+                        exx.rawData = exx.rawData || {}; exx.rawData['תדריך נבחנת'] = r.briefing;
+                        var d = document.createElement('div'); d.innerHTML = window._nzRenderBriefingCard(exx);
+                        var vc = d.firstElementChild; if (vc) { document.getElementById('summary-container').replaceWith(vc); if (typeof lucide !== 'undefined') lucide.createIcons(); if (window._nzWireBriefingCard) window._nzWireBriefingCard(); }
+                        showToast('התדריך נשמר');
+                    } else { showToast('שגיאה: ' + ((r && r.error) || '')); saveBtn.disabled = false; saveBtn.textContent = 'שמור'; }
+                })
+                .withFailureHandler(function (err) { showToast('שגיאה: ' + (err && err.message || '')); saveBtn.disabled = false; saveBtn.textContent = 'שמור'; })
+                .saveBriefingBySession((typeof currentSessionId !== 'undefined' ? currentSessionId : ''), exx.id, newB);
+        };
     };
     // הפקת תדריך מחדש + עדכון הכרטיס במקום
     window._nzDoRegenBriefing = function (reportType) {
