@@ -552,6 +552,43 @@
     },
 
     // רשימת הנבחנות (RLS מסנן אוטומטית — כל יועצת רק את שלה)
+    generateBriefingBySession: async function (sessionId, examineeId, reportType, force) {
+      try {
+        // שולפים את הדוח מהמסד. reportType: 'principal' / 'student' / ריק (אוטומטי: מנהלת אם קיים)
+        var rq = await supa.from('examinees').select('student_report, principal_report').eq('id', examineeId).maybeSingle();
+        var rd = rq.data || {};
+        var reportText = '';
+        if (reportType === 'principal') reportText = rd.principal_report || rd.student_report || '';
+        else if (reportType === 'student') reportText = rd.student_report || rd.principal_report || '';
+        else reportText = rd.principal_report || rd.student_report || '';
+        if (!reportText || !String(reportText).trim()) return { success: false, error: 'אין דוח להפקת תדריך' };
+        var curRaw = await supa.from('examinees').select('raw_data').eq('id', examineeId).maybeSingle();
+        var rawExisting = (curRaw.data && curRaw.data.raw_data) || {};
+        if (!force && rawExisting['תדריך נבחנת']) return { success: true, briefing: rawExisting['תדריך נבחנת'], skipped: true };
+        var prompt = 'להלן דוח אבחון תעסוקתי של נבחנת. הפק ממנו "תדריך נבחנת" תמציתי וממוקד ליועצת, בפורמט JSON בלבד — בלי שום טקסט נוסף ובלי markdown. המבנה המדויק:\n' +
+          '{"holland":"קוד הולנד אם מופיע בדוח אחרת ריק","strengths":["חוזקה","חוזקה","חוזקה"],"attention":["נקודה לתשומת לב אם באמת עולה מהדוח"],"recommendations":[{"text":"המלצה תעסוקתית ממוקדת","reason":"נימוק תמציתי במשפט אחד"}]}\n' +
+          'הנחיות: 3-4 חוזקות קצרות (2-4 מילים כל אחת). 0-2 נקודות תשומת לב (רק אם רלוונטי). 2-3 המלצות תעסוקתיות ממוקדות, כל אחת עם נימוק תמציתי. הכל בעברית. החזר אך ורק JSON תקין.\n\n--- הדוח ---\n' + String(reportText).slice(0, 12000);
+        var inv = await supa.functions.invoke('generate-report', { body: { examineeId: examineeId || null, action: 'תדריך נבחנת', ownerEmail: window._currentUserEmail, parts: [{ text: prompt }], model: 'gemini-3.7-flash', temperature: 0.3 } });
+        if (inv.error) return { success: false, error: 'שגיאת AI: ' + inv.error.message };
+        var out = inv.data || {};
+        if (!out.success) return { success: false, error: out.error || 'ההפקה נכשלה' };
+        var txt = (out.report || '').trim().replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```\s*$/, '').trim();
+        var brief = null;
+        try { brief = JSON.parse(txt); } catch (e) { var m = txt.match(/\{[\s\S]*\}/); if (m) { try { brief = JSON.parse(m[0]); } catch (e2) {} } }
+        if (!brief || typeof brief !== 'object') return { success: false, error: 'תשובת ה-AI לא בפורמט תקין' };
+        brief = {
+          holland: String(brief.holland || ''),
+          strengths: Array.isArray(brief.strengths) ? brief.strengths.map(function (x) { return String(x); }).filter(Boolean).slice(0, 5) : [],
+          attention: Array.isArray(brief.attention) ? brief.attention.map(function (x) { return String(x); }).filter(Boolean).slice(0, 3) : [],
+          recommendations: Array.isArray(brief.recommendations) ? brief.recommendations.slice(0, 4).map(function (r) { return { text: String((r && r.text) || r || ''), reason: String((r && r.reason) || '') }; }).filter(function (r) { return r.text; }) : []
+        };
+        rawExisting['תדריך נבחנת'] = brief;
+        var upd = await supa.from('examinees').update({ raw_data: rawExisting }).eq('id', examineeId);
+        if (upd.error) return { success: false, error: 'שמירה נכשלה: ' + upd.error.message };
+        try { window._nzLogUsage(examineeId, 'תדריך נבחנת', out); } catch (e) {}
+        return { success: true, briefing: brief };
+      } catch (e) { return { success: false, error: String(e) }; }
+    },
     getExamineeByIdBySession: async function (sessionId, examineeId) {
       try {
         var q = await supa.from('examinees').select('*').eq('id', examineeId).maybeSingle();
@@ -3678,6 +3715,63 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     // ========================================================
+    window._nzRenderBriefingCard = function (examinee) {
+        var b = examinee && examinee.rawData && examinee.rawData['תדריך נבחנת'];
+        // תאימות לאחור: אם אין תדריך מובנה אבל יש תקציר טקסט ישן — מציגים אותו
+        if (!b || typeof b !== 'object') {
+            var oldTxt = examinee && examinee.rawData && examinee.rawData['תקציר הדוח'];
+            if (oldTxt) {
+                return '<div id="summary-container" class="mb-4 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">' +
+                    '<h5 class="font-bold text-indigo-800 flex items-center mb-2"><i data-lucide="sparkles" class="w-5 h-5 ml-2"></i>עיקרי הדברים</h5>' +
+                    '<div class="text-indigo-900 text-sm space-y-1">' + String(oldTxt).replace(/\n/g, '<br>') + '</div></div>';
+            }
+            return '';
+        }
+        var esc = function (t) { return String(t == null ? '' : t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+        var html = '<div id="summary-container" class="mb-4 p-4 rounded-xl" style="background:linear-gradient(135deg,#eef2ff,#f8fafc);border:1px solid #e0e7ff;">';
+        html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">' +
+            '<h5 class="font-bold flex items-center" style="color:#3730a3;"><i data-lucide="clipboard-list" class="w-5 h-5 ml-2"></i>תדריך נבחנת</h5>' +
+            (b.holland ? '<span style="background:#3730a3;color:#fff;font-weight:800;font-size:13px;padding:3px 12px;border-radius:8px;letter-spacing:1px;">' + esc(b.holland) + '</span>' : '') +
+            '</div>';
+        if (b.strengths && b.strengths.length) {
+            html += '<div style="margin-bottom:9px;"><div style="font-size:11px;font-weight:700;color:#059669;margin-bottom:4px;">💪 חוזקות מרכזיות</div>' +
+                b.strengths.map(function (x) { return '<span style="display:inline-block;padding:4px 11px;border-radius:999px;font-size:12px;font-weight:600;margin:0 0 6px 6px;background:#d1fae5;color:#065f46;">' + esc(x) + '</span>'; }).join('') + '</div>';
+        }
+        if (b.attention && b.attention.length) {
+            html += '<div style="margin-bottom:9px;"><div style="font-size:11px;font-weight:700;color:#d97706;margin-bottom:4px;">⚠️ לתשומת לב</div>' +
+                b.attention.map(function (x) { return '<span style="display:inline-block;padding:4px 11px;border-radius:999px;font-size:12px;font-weight:600;margin:0 0 6px 6px;background:#fef3c7;color:#92400e;">' + esc(x) + '</span>'; }).join('') + '</div>';
+        }
+        if (b.recommendations && b.recommendations.length) {
+            html += '<div><div style="font-size:11px;font-weight:700;color:#2563eb;margin-bottom:4px;">🎯 המלצות תעסוקתיות</div>';
+            html += b.recommendations.map(function (r, i) {
+                return '<div class="nz-rec-chip" data-i="' + i + '" style="display:inline-block;padding:4px 11px;border-radius:999px;font-size:12px;font-weight:600;margin:0 0 6px 6px;background:#dbeafe;color:#1e40af;cursor:pointer;" title="לחצי לנימוק">' + esc(r.text) + (r.reason ? ' <span style="opacity:.6;">ℹ️</span>' : '') + '</div>';
+            }).join('');
+            // אזור נימוק (נפתח בלחיצה)
+            html += '<div id="nz-rec-reason" style="display:none;font-size:12.5px;color:#334155;background:#fff;border:1px solid #dbeafe;border-radius:8px;padding:8px 11px;margin-top:2px;"></div>';
+        }
+        html += '</div>';
+        return html;
+    };
+    // צביעת צ'יפ החוזקות בירוק (הוחל אחרי הרינדור)
+    window._nzWireBriefingCard = function () {
+        var cont = document.getElementById('summary-container');
+        if (!cont) return;
+        // נימוק המלצה בלחיצה
+        var ex = (typeof currentExaminee !== 'undefined' && currentExaminee) ? currentExaminee : null;
+        var recs = (ex && ex.rawData && ex.rawData['תדריך נבחנת'] && ex.rawData['תדריך נבחנת'].recommendations) || [];
+        var reasonBox = document.getElementById('nz-rec-reason');
+        cont.querySelectorAll('.nz-rec-chip').forEach(function (chip) {
+            chip.onclick = function () {
+                var i = parseInt(this.dataset.i, 10);
+                var r = recs[i];
+                if (!r || !r.reason || !reasonBox) return;
+                if (reasonBox.style.display === 'block' && reasonBox.dataset.i === String(i)) { reasonBox.style.display = 'none'; return; }
+                reasonBox.textContent = '💡 ' + r.reason;
+                reasonBox.dataset.i = String(i);
+                reasonBox.style.display = 'block';
+            };
+        });
+    };
     function renderExamineeDetails(examinee) {
         // אם הנבחנת נטענה מהרשימה בלי הדוחות (קלה) — טוענים את המלאה ואז מרנדרים
         if (examinee && examinee.id && examinee._light) {
@@ -3745,15 +3839,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var tilHasData = !!tilRawJson;
         // -------------------
         
-        var summaryHtml = '';
-        var summaryText = examinee.rawData['תקציר הדוח'];
-        if (summaryText) {
-            summaryHtml = `
-                <div id="summary-container" class="mb-4 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
-                    <h5 class="font-bold text-indigo-800 flex items-center mb-2"><i data-lucide="sparkles" class="w-5 h-5 ml-2"></i>עיקרי הדברים</h5>
-                    <div class="text-indigo-900 text-sm space-y-1">${summaryText.replace(/\n/g, '<br>')}</div>
-                </div>`;
-        }
+        var summaryHtml = window._nzRenderBriefingCard(examinee);
         
         var importantDocsHtml = '';
         if (currentExamineeDocs && currentExamineeDocs.length > 0) {
@@ -4087,6 +4173,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (typeof lucide !== 'undefined') lucide.createIcons();
         attachExamineeDetailsEventListeners(examinee);
         if (typeof lucide !== 'undefined') lucide.createIcons();
+        if (window._nzWireBriefingCard) { try { window._nzWireBriefingCard(); } catch (e) {} }
         // "לחיצה" וירטואלית על טאב הדוחות כדי לבנות את תוכנו בכניסה
         setTimeout(function() {
             var dt = document.getElementById('tab-details');
@@ -7817,6 +7904,18 @@ function attachEventListeners() {
                         return;
                     }
 
+                    // הפקת תדריך אוטומטית אחרי דוח (רק אם עוד אין תדריך — לא דורס עריכות)
+                    try {
+                        google.script.run.withSuccessHandler(function (br) {
+                            if (br && br.success && br.briefing && !br.skipped) {
+                                if (currentExaminee && currentExaminee.id === examineeId) {
+                                    currentExaminee.rawData = currentExaminee.rawData || {};
+                                    currentExaminee.rawData['תדריך נבחנת'] = br.briefing;
+                                    if (currentView === 'examinees') renderExamineeDetails(currentExaminee);
+                                }
+                            }
+                        }).generateBriefingBySession(currentSessionId, examineeId);
+                    } catch (e) {}
                     // במקום להדליק בועה ירוקה ישר, אנחנו מושכים קודם את הטקסט האמיתי מהשרת
                     var taskInfoSnapshot = activeTasks[examineeId];
                     google.script.run.withSuccessHandler(function(examineesResponse) {
@@ -8018,6 +8117,18 @@ function attachEventListeners() {
                         return;
                     }
 
+                    // הפקת תדריך אוטומטית אחרי דוח (רק אם עוד אין תדריך — לא דורס עריכות)
+                    try {
+                        google.script.run.withSuccessHandler(function (br) {
+                            if (br && br.success && br.briefing && !br.skipped) {
+                                if (currentExaminee && currentExaminee.id === examineeId) {
+                                    currentExaminee.rawData = currentExaminee.rawData || {};
+                                    currentExaminee.rawData['תדריך נבחנת'] = br.briefing;
+                                    if (currentView === 'examinees') renderExamineeDetails(currentExaminee);
+                                }
+                            }
+                        }).generateBriefingBySession(currentSessionId, examineeId);
+                    } catch (e) {}
                     // במקום להדליק בועה ירוקה ישר, אנחנו מושכים קודם את הטקסט האמיתי מהשרת
                     var taskInfoSnapshot = activeTasks[examineeId];
                     google.script.run.withSuccessHandler(function(examineesResponse) {
