@@ -1152,7 +1152,7 @@
               if (!_line) continue;
               if (_line.indexOf('data:') === 0) _line = _line.slice(5).trim();
               if (!_line || _line === '[DONE]') continue;
-              try { var _evt = JSON.parse(_line); if (_evt.type === 'text' || _evt.type === 'answer') reportText += _evt.text; else if (_evt.type === 'error') return { success: false, error: 'שגיאת AI: ' + (_evt.error || '') }; } catch (e) {}
+              try { var _evt = JSON.parse(_line); if (_evt.type === 'text' || _evt.type === 'answer') { reportText += _evt.text; if (window._nzUpdateLiveReport) { try { window._nzUpdateLiveReport(examineeId, reportText); } catch (le) {} } } else if (_evt.type === 'error') return { success: false, error: 'שגיאת AI: ' + (_evt.error || '') }; } catch (e) {}
             }
           }
         } catch (streamErr) {
@@ -3947,6 +3947,69 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (regenBtn) { regenBtn.disabled = false; regenBtn.innerHTML = '<i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>'; if (typeof lucide !== 'undefined') lucide.createIcons(); }
             })
             .generateBriefingBySession((typeof currentSessionId !== 'undefined' ? currentSessionId : ''), exx.id, reportType, true);
+    };
+    // כרטיס דוח חי — מתמלא תוך כדי הזרמה
+    window._nzUpdateLiveReport = function (examineeId, text) {
+        if (typeof currentExaminee === 'undefined' || !currentExaminee || currentExaminee.id !== examineeId) return;
+        var container = document.getElementById('action-buttons-container');
+        if (!container) return;
+        var card = document.getElementById('nz-live-report');
+        if (!card) {
+            card = document.createElement('div');
+            card.id = 'nz-live-report';
+            card.className = 'col-span-1 lg:col-span-3 bg-white border border-blue-200 rounded-xl p-4 shadow-sm mt-1';
+            card.style.cssText += 'max-height:420px;overflow-y:auto;';
+            var banner = document.getElementById('nz-gen-banner-' + examineeId);
+            if (banner && banner.parentNode === container) container.insertBefore(card, banner.nextSibling);
+            else container.insertAdjacentHTML('afterbegin', card.outerHTML), card = document.getElementById('nz-live-report');
+        }
+        var clean = String(text || '').replace(/\[הנחיית הקשר אוטומטית:.*?\]\n\n/g, '');
+        card.innerHTML = clean.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        card.scrollTop = card.scrollHeight;
+    };
+    window._nzRemoveLiveReport = function () { var c = document.getElementById('nz-live-report'); if (c) c.remove(); };
+    // באנר "בהפקה" — מוצג בלי לגעת בכפתורים (כדי לא לאבד את המאזינים שלהם)
+    window._nzShowGenBanner = function (examinee) {
+        if (!examinee || !activeTasks[examinee.id]) return;
+        var container = document.getElementById('action-buttons-container');
+        if (!container) return;
+        var taskInfo = activeTasks[examinee.id];
+        var reportName = taskInfo.mode === 'principal' ? 'דוח מנהלת' : (taskInfo.mode === 'custom' ? 'תוצר עזר' : 'דוח תלמידה');
+        var actionVerb = taskInfo.actionType === 'refine' ? 'ממקד' : 'מפיק';
+        var expectedTotalSeconds = taskInfo.actionType === 'refine' ? 60 : 120;
+        var loadingMessages = taskInfo.actionType === 'refine'
+            ? ['קורא את הנחיית המיקוד...', 'מנתח את הדוח המקורי...', 'מבצע התאמות ודיוקים...', 'משכתב פסקאות...', 'מנסח את הדוח המעודכן...', 'כמעט סיימנו...']
+            : ['קורא את נתוני השאלון...', 'מנתח את ציוני קוד הולנד...', 'מנתח טקסטים ותשובות...', 'בודק מסמכים בתיק...', 'מגבש תובנות...', 'משקלל התאמה למקצועות...', 'מנסח את הדוח...', 'כמעט סיימנו...'];
+        var secondsPerMessage = expectedTotalSeconds / loadingMessages.length;
+        var exId = examinee.id;
+        // הסרת באנר קודם אם קיים
+        var old = document.getElementById('nz-gen-banner-' + exId); if (old) old.remove();
+        if (window['inlineProgressInterval_' + exId]) clearInterval(window['inlineProgressInterval_' + exId]);
+        var elapsed = Math.floor((Date.now() - taskInfo.startTime) / 1000);
+        var pct = Math.min(Math.floor((elapsed / expectedTotalSeconds) * 100), 98);
+        var idx = Math.min(Math.floor(elapsed / secondsPerMessage), loadingMessages.length - 1);
+        var banner = document.createElement('div');
+        banner.id = 'nz-gen-banner-' + exId;
+        banner.className = 'col-span-1 lg:col-span-3 bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center gap-3 shadow-sm';
+        banner.innerHTML = '<img src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/57016bbe6960385cca05abab2390b0915e063132/spinner.png.png" class="logo-spin w-9 h-9 flex-shrink-0">' +
+            '<div class="flex-grow text-right min-w-0"><div class="text-xs font-bold text-gray-500">' + actionVerb + ' ' + reportName + ' ברקע — אפשר להמשיך לעבוד</div>' +
+            '<div id="inline-loading-title-' + exId + '" class="text-sm font-bold text-blue-800 transition-opacity duration-500 truncate">' + loadingMessages[idx] + '</div>' +
+            '<div class="w-full h-1.5 bg-blue-100 rounded-full mt-1.5 overflow-hidden"><div id="inline-progress-' + exId + '" class="h-full bg-blue-500 rounded-full transition-all duration-1000 ease-out" style="width:' + pct + '%;"></div></div></div>';
+        container.insertAdjacentHTML('afterbegin', banner.outerHTML);
+        var curIdx = idx;
+        window['inlineProgressInterval_' + exId] = setInterval(function () {
+            var titleEl = document.getElementById('inline-loading-title-' + exId);
+            var progEl = document.getElementById('inline-progress-' + exId);
+            if (!titleEl || !progEl || !activeTasks[exId]) { clearInterval(window['inlineProgressInterval_' + exId]); return; }
+            var el = Math.floor((Date.now() - taskInfo.startTime) / 1000);
+            progEl.style.width = Math.min(Math.floor((el / expectedTotalSeconds) * 100), 98) + '%';
+            var ni = Math.min(Math.floor(el / secondsPerMessage), loadingMessages.length - 1);
+            if (ni !== curIdx) { curIdx = ni; titleEl.style.opacity = 0; setTimeout(function () { if (titleEl) { titleEl.textContent = loadingMessages[curIdx]; titleEl.style.opacity = 1; } }, 500); }
+        }, 1000);
+    };
+    window._nzRemoveGenBanner = function (exId) {
+        var b = document.getElementById('nz-gen-banner-' + exId); if (b) b.remove();
+        if (window['inlineProgressInterval_' + exId]) { clearInterval(window['inlineProgressInterval_' + exId]); }
     };
     function renderExamineeDetails(examinee) {
         // אם הנבחנת נטענה מהרשימה בלי הדוחות (קלה) — טוענים את המלאה ואז מרנדרים
@@ -7188,6 +7251,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
    function openAiModal(examinee, reportMode = 'student') {
+        // חסימה: כבר מופק/ממוקד דוח לנבחנת זו — אין הפקה בו-זמנית לאותה נבחנת
+        if (examinee && activeTasks[examinee.id]) {
+            showToast('כבר מופק דוח לנבחנת זו — נא להמתין לסיום.');
+            return;
+        }
         resetAiConfidentialFile();
         // שמירת סוג הדוח על האלמנט של המודל לשימוש מאוחר יותר
         aiModal.dataset.reportMode = reportMode;
@@ -7283,6 +7351,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function openRefineModal(examinee, reportMode = 'student') {
+        if (examinee && activeTasks[examinee.id]) {
+            showToast('כבר מופק דוח לנבחנת זו — נא להמתין לסיום.');
+            return;
+        }
         // שמירת סוג הדוח הנבחר (כדי שנדע בהמשך מה לעדכן)
         refineModal.dataset.reportMode = reportMode;
         
@@ -8065,7 +8137,8 @@ function attachEventListeners() {
             var isViewingSameExaminee = (currentExaminee && currentExaminee.id === examineeId && currentView === 'examinees');
             if (isViewingSameExaminee) {
                 var canEditNow = currentUser && (currentUser.role === 'מנהל-על' || currentUser.role === 'לקוח' || currentUser.role === 'יועצת בכירה' || currentUser.role === 'יועצת' || currentUser.role === 'יועצת רגילה');
-                if (typeof populateActionButtons === 'function') populateActionButtons(examinee, canEditNow);
+                // מציגים רק את הבאנר (בלי לרנדר כפתורים מחדש — כדי לא לאבד מאזינים)
+                if (window._nzShowGenBanner) window._nzShowGenBanner(examinee);
                 if (typeof lucide !== 'undefined') lucide.createIcons();
             }
             
@@ -8307,7 +8380,8 @@ function attachEventListeners() {
             var isViewingSameExaminee = (currentExaminee && currentExaminee.id === examineeId && currentView === 'examinees');
             if (isViewingSameExaminee) {
                 var canEditNow = currentUser && (currentUser.role === 'מנהל-על' || currentUser.role === 'לקוח' || currentUser.role === 'יועצת בכירה' || currentUser.role === 'יועצת' || currentUser.role === 'יועצת רגילה');
-                if (typeof populateActionButtons === 'function') populateActionButtons(examinee, canEditNow);
+                // מציגים רק את הבאנר (בלי לרנדר כפתורים מחדש — כדי לא לאבד מאזינים)
+                if (window._nzShowGenBanner) window._nzShowGenBanner(examinee);
                 if (typeof lucide !== 'undefined') lucide.createIcons();
             }
             
