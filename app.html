@@ -4419,7 +4419,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // ✨ שינוי העיצוב של הקונטיינר לגריד מודרני (3 עמודות) ✨
         container.className = "grid grid-cols-1 lg:grid-cols-3 gap-5 w-full";
 
-        // --- 1. בדיקה האם הנבחנת בתהליך עיבוד (טעינה מקומית / Inline) ---
+        // --- 1. באנר "בהפקה" (לא חוסם — הכפתורים נשארים פעילים) ---
+        var _genBanner = '';
         if (activeTasks[examinee.id]) {
             var taskInfo = activeTasks[examinee.id];
             var elapsedSeconds = Math.floor((Date.now() - taskInfo.startTime) / 1000);
@@ -4438,13 +4439,15 @@ document.addEventListener('DOMContentLoaded', function() {
             var secondsPerMessage = expectedTotalSeconds / loadingMessages.length;
             var currentMsgIndex = Math.min(Math.floor(elapsedSeconds / secondsPerMessage), loadingMessages.length - 1);
 
-            container.innerHTML = `
-                <div class="col-span-1 lg:col-span-3 bg-white border border-blue-100 rounded-xl p-8 flex flex-col items-center justify-center text-center shadow-inner relative overflow-hidden min-h-[250px]">
-                    <img src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/57016bbe6960385cca05abab2390b0915e063132/spinner.png.png" class="logo-spin w-16 h-16 mb-4">
-                    <h5 class="text-sm font-bold text-gray-500 mb-1 uppercase tracking-wide">${actionVerb} ${reportName} ברקע</h5>
-                    <h3 id="inline-loading-title-${examinee.id}" class="text-xl font-bold text-blue-800 mb-2 transition-opacity duration-500 h-7">${loadingMessages[currentMsgIndex]}</h3>
-                    <div class="w-full max-w-md h-2 bg-gray-100 rounded-full mt-4 overflow-hidden relative">
-                        <div id="inline-progress-${examinee.id}" class="h-full bg-blue-500 rounded-full transition-all duration-1000 ease-out" style="width: ${progressPercent}%;"></div>
+            _genBanner = `
+                <div class="col-span-1 lg:col-span-3 bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center gap-3 shadow-sm">
+                    <img src="https://raw.githubusercontent.com/nzinok/bdikat-idkunim-basheelon/57016bbe6960385cca05abab2390b0915e063132/spinner.png.png" class="logo-spin w-9 h-9 flex-shrink-0">
+                    <div class="flex-grow text-right min-w-0">
+                        <div class="text-xs font-bold text-gray-500">${actionVerb} ${reportName} ברקע — אפשר להמשיך לעבוד</div>
+                        <div id="inline-loading-title-${examinee.id}" class="text-sm font-bold text-blue-800 transition-opacity duration-500 truncate">${loadingMessages[currentMsgIndex]}</div>
+                        <div class="w-full h-1.5 bg-blue-100 rounded-full mt-1.5 overflow-hidden">
+                            <div id="inline-progress-${examinee.id}" class="h-full bg-blue-500 rounded-full transition-all duration-1000 ease-out" style="width: ${progressPercent}%;"></div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -4470,7 +4473,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 1000);
 
             if (typeof lucide !== 'undefined') lucide.createIcons();
-            return;
         }
 
         // --- 2. ציור הקוביות (הגריד החדש) ---
@@ -4539,6 +4541,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         container.innerHTML = buttonsHtml;
+        if (_genBanner) { try { container.insertAdjacentHTML('afterbegin', _genBanner); } catch (e) {} }
 
         // הפעלת שאיבת התוצרים החדשים מהשרת וציורם בקובייה השלישית
         if (canEdit) {
