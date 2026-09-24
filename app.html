@@ -568,7 +568,7 @@
         var prompt = 'להלן דוח אבחון תעסוקתי של נבחנת. הפק ממנו "תדריך נבחנת" תמציתי וממוקד ליועצת, בפורמט JSON בלבד — בלי שום טקסט נוסף ובלי markdown. המבנה המדויק:\n' +
           '{"holland":"קוד הולנד אם מופיע בדוח אחרת ריק","strengths":["חוזקה","חוזקה","חוזקה"],"attention":["נקודה לתשומת לב אם באמת עולה מהדוח"],"recommendations":[{"text":"המלצה תעסוקתית ממוקדת","reason":"נימוק תמציתי במשפט אחד"}]}\n' +
           'כלל-על מחייב: הסתמך אך ורק על מה שכתוב במפורש בדוח שלהלן. אסור בהחלט להוסיף, להסיק או להמציא מקצועות, חוזקות או המלצות מתוך ידע כללי (למשל על סמך קוד הולנד לבדו) — כל פריט חייב להתבסס על אמירה מפורשת בדוח. אם המידע לא מופיע בדוח, אל תכלול אותו (עדיף רשימה קצרה ומדויקת מרשימה מנופחת). ' +
-          'הנחיות: 3-4 חוזקות קצרות (2-4 מילים כל אחת) — רק כאלה שנאמרו בדוח. 0-2 נקודות תשומת לב (רק אם עולות מפורשות מהדוח). 2-3 המלצות תעסוקתיות — רק כאלה שהדוח עצמו מציין או תומך בהן במפורש, כל אחת עם נימוק המצטט/מתבסס על הדוח. אם הדוח אינו כולל המלצות תעסוקתיות מפורשות — החזר recommendations ריק. הכל בעברית. החזר אך ורק JSON תקין.\n\n--- הדוח ---\n' + String(reportText).slice(0, 12000);
+          'הנחיות: 4-6 חוזקות מרכזיות קצרות (2-4 מילים כל אחת) — רק כאלה שנאמרו בדוח. 0-3 נקודות לתשומת לב (רק אם עולות מפורשות מהדוח). המלצות תעסוקתיות: כלול את **כל** המקצועות והכיוונים שהדוח ממליץ עליהם או מציין כמתאימים במפורש — אל תצמצם ל-3! בדוח טיפוסי יש 4-10 המלצות (לעיתים יותר), וכולן צריכות להופיע, כל אחת עם נימוק תמציתי המתבסס על הדוח. אם הדוח אינו כולל המלצות תעסוקתיות מפורשות — החזר recommendations ריק. הכל בעברית. החזר אך ורק JSON תקין.\n\n--- הדוח ---\n' + String(reportText).slice(0, 16000);
         var inv = await supa.functions.invoke('generate-report', { body: { examineeId: examineeId || null, action: 'תדריך נבחנת', ownerEmail: window._currentUserEmail, parts: [{ text: prompt }], model: 'gemini-3.7-flash', temperature: 0.3 } });
         if (inv.error) return { success: false, error: 'שגיאת AI: ' + inv.error.message };
         var out = inv.data || {};
@@ -579,9 +579,9 @@
         if (!brief || typeof brief !== 'object') return { success: false, error: 'תשובת ה-AI לא בפורמט תקין' };
         brief = {
           holland: String(brief.holland || ''),
-          strengths: Array.isArray(brief.strengths) ? brief.strengths.map(function (x) { return String(x); }).filter(Boolean).slice(0, 5) : [],
-          attention: Array.isArray(brief.attention) ? brief.attention.map(function (x) { return String(x); }).filter(Boolean).slice(0, 3) : [],
-          recommendations: Array.isArray(brief.recommendations) ? brief.recommendations.slice(0, 4).map(function (r) { return { text: String((r && r.text) || r || ''), reason: String((r && r.reason) || '') }; }).filter(function (r) { return r.text; }) : []
+          strengths: Array.isArray(brief.strengths) ? brief.strengths.map(function (x) { return String(x); }).filter(Boolean).slice(0, 8) : [],
+          attention: Array.isArray(brief.attention) ? brief.attention.map(function (x) { return String(x); }).filter(Boolean).slice(0, 5) : [],
+          recommendations: Array.isArray(brief.recommendations) ? brief.recommendations.slice(0, 14).map(function (r) { return { text: String((r && r.text) || r || ''), reason: String((r && r.reason) || '') }; }).filter(function (r) { return r.text; }) : []
         };
         rawExisting['תדריך נבחנת'] = brief;
         var upd = await supa.from('examinees').update({ raw_data: rawExisting }).eq('id', examineeId);
@@ -597,7 +597,7 @@
           holland: String(briefing.holland || ''),
           strengths: Array.isArray(briefing.strengths) ? briefing.strengths.map(function (x) { return String(x); }).filter(Boolean).slice(0, 8) : [],
           attention: Array.isArray(briefing.attention) ? briefing.attention.map(function (x) { return String(x); }).filter(Boolean).slice(0, 6) : [],
-          recommendations: Array.isArray(briefing.recommendations) ? briefing.recommendations.slice(0, 8).map(function (r) { return { text: String((r && r.text) || ''), reason: String((r && r.reason) || '') }; }).filter(function (r) { return r.text; }) : []
+          recommendations: Array.isArray(briefing.recommendations) ? briefing.recommendations.slice(0, 14).map(function (r) { return { text: String((r && r.text) || ''), reason: String((r && r.reason) || '') }; }).filter(function (r) { return r.text; }) : []
         };
         var cur = await supa.from('examinees').select('raw_data').eq('id', examineeId).maybeSingle();
         var raw = (cur.data && cur.data.raw_data) || {};
@@ -675,7 +675,9 @@
         var inv = await supa.functions.invoke('generate-report', { body: { examineeId: null, action: 'עוזר מערכת', ownerEmail: window._currentUserEmail, contents: contents, systemInstruction: sys, model: 'gemini-3.7-flash', temperature: 0.2 } });
         if (inv.error || !inv.data || !inv.data.success) return { success: false, error: (inv.data && inv.data.error) || 'שגיאת עוזר המערכת' };
         try { window._nzLogUsage(null, 'עוזר מערכת', inv.data); } catch (e) {}
-        return { success: true, answer: (inv.data.report || '').trim() };
+        var _ans = (inv.data.report || '').trim();
+        try { await supa.from('helper_log').insert({ owner_email: window._currentUserEmail, screen: String(currentScreen || ''), question: String(question || '').slice(0, 2000), answer: _ans.slice(0, 4000) }); } catch (le) {}
+        return { success: true, answer: _ans };
       } catch (e) { return { success: false, error: String(e) }; }
     },
     saveHelperFeedbackBySession: async function (sessionId, question, answer, isPositive) {
@@ -722,6 +724,24 @@
         if (!me.data || me.data.role !== 'מנהל-על') return { success: false, error: 'אין הרשאה' };
         // מחיקה רכה — מסמן כמחוקה (לא נמחק פיזית: הסנכרון לא ייצור מחדש, וניתן לשחזר)
         var res = await supa.from('examinees').update({ is_deleted: true }).eq('id', examineeId);
+        if (res.error) return { success: false, error: res.error.message };
+        return { success: true };
+      } catch (e) { return { success: false, error: String(e) }; }
+    },
+    getHelperLogBySession: async function () {
+      try {
+        var me = await supa.from('counselors').select('role').eq('email', window._currentUserEmail).maybeSingle();
+        if (!me.data || me.data.role !== 'מנהל-על') return { success: false, data: [] };
+        var q = await supa.from('helper_log').select('*').order('created_at', { ascending: false }).limit(200);
+        if (q.error) return { success: false, error: q.error.message, data: [] };
+        return { success: true, data: q.data || [] };
+      } catch (e) { return { success: false, error: String(e), data: [] }; }
+    },
+    clearHelperLogBySession: async function () {
+      try {
+        var me = await supa.from('counselors').select('role').eq('email', window._currentUserEmail).maybeSingle();
+        if (!me.data || me.data.role !== 'מנהל-על') return { success: false, error: 'אין הרשאה' };
+        var res = await supa.from('helper_log').delete().neq('id', '00000000-0000-0000-0000-000000000000');
         if (res.error) return { success: false, error: res.error.message };
         return { success: true };
       } catch (e) { return { success: false, error: String(e) }; }
@@ -2612,7 +2632,8 @@ document.addEventListener('DOMContentLoaded', function() {
             { key: 'kb', label: '📖 מאגר הדרכה' },
             { key: 'usage', label: '📊 דוח שימוש' },
             { key: 'deleted', label: '🗑️ נמחקו' },
-            { key: 'errors', label: '⚠️ שגיאות' }
+            { key: 'errors', label: '⚠️ שגיאות' },
+            { key: 'helper', label: '💬 שאלות למדריכה' }
         ];
         var setActiveTab = function (key) {
             Array.prototype.forEach.call(tabsBar.children, function (b) {
@@ -2724,6 +2745,30 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         // ---- לשונית שגיאות ----
+        var renderHelperLog = function () {
+            body.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div style="font-size:.85rem;color:#64748b;">שאלות שיועצות שאלו את מדריכת המערכת (200 אחרונות). עוזר להבין עם מה הן מתמודדות.</div><button id="nz-clear-helper" style="background:#fef2f2;color:#dc2626;border:none;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:.8rem;">נקה יומן</button></div><div id="nz-helper-list" style="color:#64748b;">טוען…</div>';
+            document.getElementById('nz-clear-helper').onclick = function () {
+                if (!confirm('לנקות את כל יומן השאלות למדריכה?')) return;
+                google.script.run.withSuccessHandler(function (r) { showToast(r && r.success ? 'היומן נוקה' : 'שגיאה'); if (r && r.success) renderHelperLog(); }).clearHelperLogBySession();
+            };
+            google.script.run.withSuccessHandler(function (res) {
+                var lc = document.getElementById('nz-helper-list');
+                if (!lc) return;
+                if (!res || !res.success) { lc.innerHTML = '<div style="color:#dc2626;">שגיאה בטעינה</div>'; return; }
+                if (!res.data || !res.data.length) { lc.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:24px;">אין שאלות מתועדות עדיין</div>'; return; }
+                var screenNames = { general: 'כללי', examinees: 'רשימת נבחנות', details_examinee: 'תיק — פרטים', analysis_tab_examinee: 'תיק — אבחון', quantitative_tab_examinee: 'תיק — נתונים', modal_ai: 'חלון הפקה', modal_refine: 'חלון מיקוד', prompts: 'ניהול הנחיות', links: 'קישורים', manageClients: 'ניהול' };
+                lc.innerHTML = res.data.map(function (e) {
+                    var dt = e.created_at ? new Date(e.created_at).toLocaleString('he-IL') : '';
+                    var scr = screenNames[e.screen] || e.screen || '';
+                    return '<details style="border:1px solid #e2e8f0;background:#fff;border-radius:10px;padding:10px 12px;margin-bottom:8px;">' +
+                        '<summary style="cursor:pointer;font-weight:700;color:#1e40af;">' + esc(e.question || '(ריק)') + '</summary>' +
+                        '<div style="font-size:.8rem;color:#334155;margin-top:8px;white-space:pre-wrap;border-top:1px solid #f1f5f9;padding-top:8px;">' + esc(e.answer || '') + '</div>' +
+                        '<div style="font-size:.72rem;color:#94a3b8;margin-top:6px;">' + esc(dt) + (scr ? (' · מסך: ' + esc(scr)) : '') + (e.owner_email ? (' · ' + esc(e.owner_email)) : '') + '</div>' +
+                        '</details>';
+                }).join('');
+            }).getHelperLogBySession();
+        };
+
         var renderErrors = function () {
             body.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div style="font-size:.85rem;color:#64748b;">שגיאות שיועצות נתקלו בהן (100 אחרונות). עוזר לאבחון בלי גישה לקונסול.</div><button id="nz-clear-errors" style="background:#fef2f2;color:#dc2626;border:none;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:.8rem;">נקה יומן</button></div><div id="nz-errors-list" style="color:#64748b;">טוען…</div>';
             document.getElementById('nz-clear-errors').onclick = function () {
@@ -2754,6 +2799,7 @@ document.addEventListener('DOMContentLoaded', function() {
             else if (key === 'usage') { body.innerHTML = ''; window.showUsageDashboard(body); }
             else if (key === 'deleted') renderDeleted();
             else if (key === 'errors') renderErrors();
+            else if (key === 'helper') renderHelperLog();
         };
 
         setActiveTab('clients');
