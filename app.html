@@ -558,9 +558,10 @@
         var rq = await supa.from('examinees').select('student_report, principal_report').eq('id', examineeId).maybeSingle();
         var rd = rq.data || {};
         var reportText = '';
-        if (reportType === 'principal') reportText = rd.principal_report || rd.student_report || '';
-        else if (reportType === 'student') reportText = rd.student_report || rd.principal_report || '';
-        else reportText = rd.principal_report || rd.student_report || '';
+        var usedSource = '';
+        if (reportType === 'principal') { reportText = rd.principal_report || rd.student_report || ''; usedSource = rd.principal_report ? 'principal' : (rd.student_report ? 'student' : ''); }
+        else if (reportType === 'student') { reportText = rd.student_report || rd.principal_report || ''; usedSource = rd.student_report ? 'student' : (rd.principal_report ? 'principal' : ''); }
+        else { reportText = rd.principal_report || rd.student_report || ''; usedSource = rd.principal_report ? 'principal' : (rd.student_report ? 'student' : ''); }
         if (!reportText || !String(reportText).trim()) return { success: false, error: 'אין דוח להפקת תדריך' };
         var curRaw = await supa.from('examinees').select('raw_data').eq('id', examineeId).maybeSingle();
         var rawExisting = (curRaw.data && curRaw.data.raw_data) || {};
@@ -581,7 +582,8 @@
           holland: String(brief.holland || ''),
           strengths: Array.isArray(brief.strengths) ? brief.strengths.map(function (x) { return String(x); }).filter(Boolean).slice(0, 8) : [],
           attention: Array.isArray(brief.attention) ? brief.attention.map(function (x) { return String(x); }).filter(Boolean).slice(0, 5) : [],
-          recommendations: Array.isArray(brief.recommendations) ? brief.recommendations.slice(0, 14).map(function (r) { return { text: String((r && r.text) || r || ''), reason: String((r && r.reason) || '') }; }).filter(function (r) { return r.text; }) : []
+          recommendations: Array.isArray(brief.recommendations) ? brief.recommendations.slice(0, 14).map(function (r) { return { text: String((r && r.text) || r || ''), reason: String((r && r.reason) || '') }; }).filter(function (r) { return r.text; }) : [],
+          _meta: { generatedAt: new Date().toISOString(), sourceReport: usedSource }
         };
         rawExisting['תדריך נבחנת'] = brief;
         var upd = await supa.from('examinees').update({ raw_data: rawExisting }).eq('id', examineeId);
@@ -597,7 +599,8 @@
           holland: String(briefing.holland || ''),
           strengths: Array.isArray(briefing.strengths) ? briefing.strengths.map(function (x) { return String(x); }).filter(Boolean).slice(0, 8) : [],
           attention: Array.isArray(briefing.attention) ? briefing.attention.map(function (x) { return String(x); }).filter(Boolean).slice(0, 6) : [],
-          recommendations: Array.isArray(briefing.recommendations) ? briefing.recommendations.slice(0, 14).map(function (r) { return { text: String((r && r.text) || ''), reason: String((r && r.reason) || '') }; }).filter(function (r) { return r.text; }) : []
+          recommendations: Array.isArray(briefing.recommendations) ? briefing.recommendations.slice(0, 14).map(function (r) { return { text: String((r && r.text) || ''), reason: String((r && r.reason) || '') }; }).filter(function (r) { return r.text; }) : [],
+          _meta: (briefing._meta && typeof briefing._meta === 'object') ? briefing._meta : undefined
         };
         var cur = await supa.from('examinees').select('raw_data').eq('id', examineeId).maybeSingle();
         var raw = (cur.data && cur.data.raw_data) || {};
@@ -2782,13 +2785,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!res.data || !res.data.length) { lc.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:24px;">אין שגיאות מתועדות 🎉</div>'; return; }
                 lc.innerHTML = res.data.map(function (e) {
                     var dt = e.created_at ? new Date(e.created_at).toLocaleString('he-IL') : '';
+                    var _copyText = (e.action || '') + ' | ' + (e.error_message || '') + (e.context ? (' | ' + e.context) : '') + (e.owner_email ? (' | ' + e.owner_email) : '') + ' | ' + dt;
                     return '<div style="border:1px solid #fee2e2;background:#fffbfb;border-radius:10px;padding:10px 12px;margin-bottom:8px;">' +
-                        '<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;"><span style="font-weight:700;color:#b91c1c;">' + esc(e.action || 'לא ידוע') + '</span><span style="font-size:.75rem;color:#94a3b8;">' + esc(dt) + '</span></div>' +
+                        '<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;"><span style="font-weight:700;color:#b91c1c;">' + esc(e.action || 'לא ידוע') + '</span>' +
+                        '<span style="display:flex;align-items:center;gap:8px;"><span style="font-size:.75rem;color:#94a3b8;">' + esc(dt) + '</span>' +
+                        '<button class="nz-err-copy" data-copy="' + esc(_copyText) + '" title="העתק שגיאה" style="background:#f1f5f9;border:none;border-radius:6px;padding:3px 9px;font-size:.72rem;color:#475569;cursor:pointer;">📋 העתק</button></span></div>' +
                         '<div style="font-size:.85rem;color:#334155;margin-top:4px;direction:ltr;text-align:left;">' + esc(e.error_message || '') + '</div>' +
                         (e.context ? ('<div style="font-size:.72rem;color:#94a3b8;margin-top:2px;">' + esc(e.context) + '</div>') : '') +
                         (e.owner_email ? ('<div style="font-size:.72rem;color:#64748b;margin-top:2px;">יועצת: ' + esc(e.owner_email) + '</div>') : '') +
                         '</div>';
                 }).join('');
+                lc.querySelectorAll('.nz-err-copy').forEach(function (btn) {
+                    btn.onclick = function () {
+                        var txt = this.getAttribute('data-copy') || '';
+                        var self = this;
+                        var done = function () { self.textContent = '✓ הועתק'; setTimeout(function () { self.textContent = '📋 העתק'; }, 1500); };
+                        if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt).then(done, function () { done(); }); }
+                        else { try { var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); } catch (e) {} }
+                    };
+                });
             }).getErrorLogBySession();
         };
 
@@ -3851,6 +3866,16 @@ document.addEventListener('DOMContentLoaded', function() {
             html += '<div id="nz-rec-reason" style="display:none;font-size:12.5px;color:#334155;background:#fff;border:1px solid #dbeafe;border-radius:8px;padding:8px 11px;margin-top:2px;"></div>';
             html += '</div>'; // סגירת עוטף ההמלצות (הבאג: היה חסר — בלע את הדוחות)
         }
+        // שורת מקור: מתי הופק ומאיזה דוח
+        if (b._meta && (b._meta.generatedAt || b._meta.sourceReport)) {
+            var _srcTxt = b._meta.sourceReport === 'principal' ? 'דוח מנהלת' : (b._meta.sourceReport === 'student' ? 'דוח תלמידה' : '');
+            var _dt = '';
+            try { if (b._meta.generatedAt) _dt = new Date(b._meta.generatedAt).toLocaleString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) {}
+            var _parts = [];
+            if (_dt) _parts.push('הופק ב-' + _dt);
+            if (_srcTxt) _parts.push('מתוך ' + _srcTxt);
+            if (_parts.length) html += '<div style="font-size:10.5px;color:#94a3b8;margin-top:9px;padding-top:7px;border-top:1px solid #e0e7ff;">' + esc(_parts.join(' · ')) + '</div>';
+        }
         html += '</div>';
         return html;
     };
@@ -3944,7 +3969,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         // שמירה
         document.getElementById('nz-ed-save').onclick = function () {
-            var newB = { holland: (document.getElementById('nz-ed-holland').value || '').trim(), strengths: [], attention: [], recommendations: [] };
+            var newB = { holland: (document.getElementById('nz-ed-holland').value || '').trim(), strengths: [], attention: [], recommendations: [], _meta: (b && b._meta) ? b._meta : undefined };
             document.querySelectorAll('#nz-ed-strengths .nz-ed-val').forEach(function (i) { var v = (i.value || '').trim(); if (v) newB.strengths.push(v); });
             document.querySelectorAll('#nz-ed-attention .nz-ed-val').forEach(function (i) { var v = (i.value || '').trim(); if (v) newB.attention.push(v); });
             document.querySelectorAll('#nz-ed-recs .nz-ed-rec').forEach(function (row) { var t = (row.querySelector('.nz-ed-rtext').value || '').trim(); var rs = (row.querySelector('.nz-ed-rreason').value || '').trim(); if (t) newB.recommendations.push({ text: t, reason: rs }); });
