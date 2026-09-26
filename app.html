@@ -1243,6 +1243,9 @@
         var raw = (cur.data && cur.data.raw_data) || {};
         raw[rawKey] = reportText;
         if (docUrl) raw[linkKey] = docUrl;
+        // פרטי הפקה — מה נכלל (מקורות שהיועצת בחרה) + תאריך. לתצוגה בממשק בלבד, לא בתוצר הנשלח.
+        var metaKey = isPrincipal ? 'פרטי הפקה - דוח מנהלת' : 'פרטי הפקה - דוח תלמידה';
+        raw[metaKey] = { generatedAt: new Date().toISOString(), sources: (Array.isArray(sourceNames) ? sourceNames : []), reportType: (reportType || '') };
         var patch = { raw_data: raw };  // הטוקנים מתעדכנים בשרת
         patch[col] = reportText;
         var upd = await supa.from('examinees').update(patch).eq('id', examineeId);
@@ -1396,6 +1399,12 @@
         var raw = (cur.data && cur.data.raw_data) || {};
         raw[rawKey] = reportText;
         if (docUrl) raw[linkKey] = docUrl;
+        // עדכון פרטי הפקה — שומרים את המקורות המקוריים ומוסיפים את טקסט המיקוד + תאריך
+        var metaKeyR = isPrincipal ? 'פרטי הפקה - דוח מנהלת' : 'פרטי הפקה - דוח תלמידה';
+        var prevMeta = (raw[metaKeyR] && typeof raw[metaKeyR] === 'object') ? raw[metaKeyR] : {};
+        prevMeta.generatedAt = new Date().toISOString();
+        prevMeta.refineText = refinementInstruction || '';
+        raw[metaKeyR] = prevMeta;
         var patch = { raw_data: raw };  // הטוקנים מתעדכנים בשרת
         try { window._nzLogUsage(examineeId, 'מיקוד דוח', out); } catch (e) {}
         patch[col] = reportText;
@@ -3826,6 +3835,32 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     // ========================================================
+    // פאנל "פרטי הפקה" — מה נכלל בהפקת הדוח (מקורות שהיועצת בחרה + תאריך + מיקוד). לא בתוצר הנשלח.
+    window._nzProductionInfoHtml = function (examinee, isPrincipal) {
+        var key = isPrincipal ? 'פרטי הפקה - דוח מנהלת' : 'פרטי הפקה - דוח תלמידה';
+        var m = examinee && examinee.rawData && examinee.rawData[key];
+        if (!m || typeof m !== 'object') return '';
+        var esc = function (t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
+        var dt = '';
+        try { if (m.generatedAt) dt = new Date(m.generatedAt).toLocaleString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) {}
+        var srcMap = { 'שאלון': '📋 שאלון', 'נתוני דוח תיל': '📊 נתוני תיל', 'דוח תלמידה רשמי': '📄 דוח תלמידה', 'דוח מנהלת רשמי': '📄 דוח מנהלת', 'דוח תיל (חסוי)': '🔒 דוח תיל (חסוי)' };
+        var sources = (Array.isArray(m.sources) ? m.sources : []);
+        var chips = sources.map(function (sname) {
+            var label = srcMap[sname] || ('📎 ' + sname);
+            return '<span style="display:inline-block;background:#eef2ff;color:#3730a3;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:600;margin:0 0 5px 5px;">' + esc(label) + '</span>';
+        }).join('');
+        var html = '<details style="margin-top:10px;border-top:1px solid #e5e7eb;padding-top:8px;">' +
+            '<summary style="cursor:pointer;font-size:11.5px;font-weight:700;color:#6b7280;list-style:none;display:flex;align-items:center;gap:5px;">ℹ️ פרטי הפקה</summary>' +
+            '<div style="margin-top:7px;">';
+        if (dt) html += '<div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">הופק ב-' + esc(dt) + '</div>';
+        html += '<div style="font-size:11px;font-weight:700;color:#475569;margin-bottom:4px;">נכלל בהפקה:</div>';
+        html += chips ? ('<div>' + chips + '</div>') : '<div style="font-size:11px;color:#94a3b8;">—</div>';
+        if (m.refineText && String(m.refineText).trim()) {
+            html += '<div style="font-size:11px;font-weight:700;color:#475569;margin:8px 0 3px;">מיקוד שביקשת:</div><div style="font-size:11.5px;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:6px 9px;white-space:pre-wrap;">' + esc(m.refineText) + '</div>';
+        }
+        html += '</div></details>';
+        return html;
+    };
     window._nzRenderBriefingCard = function (examinee) {
         var b = examinee && examinee.rawData && examinee.rawData['תדריך נבחנת'];
         // תאימות לאחור: אם אין תדריך מובנה אבל יש תקציר טקסט ישן — מציגים אותו
@@ -4570,6 +4605,7 @@ document.addEventListener('DOMContentLoaded', function() {
                       </div>`
                    }
                </div>
+               ${(hasStudent && window._nzProductionInfoHtml) ? window._nzProductionInfoHtml(examinee, false) : ''}
             </div>`;
 
             // 🔲 קובייה 2: דוח מנהלת
@@ -4594,6 +4630,7 @@ document.addEventListener('DOMContentLoaded', function() {
                       </div>`
                    }
                </div>
+               ${(hasPrincipal && window._nzProductionInfoHtml) ? window._nzProductionInfoHtml(examinee, true) : ''}
             </div>`;
 
             // 🔲 קובייה 3: תוצרי עזר (השביל השלישי)
