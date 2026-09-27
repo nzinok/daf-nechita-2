@@ -1245,7 +1245,8 @@
         if (docUrl) raw[linkKey] = docUrl;
         // פרטי הפקה — מה נכלל (מקורות שהיועצת בחרה) + תאריך. לתצוגה בממשק בלבד, לא בתוצר הנשלח.
         var metaKey = isPrincipal ? 'פרטי הפקה - דוח מנהלת' : 'פרטי הפקה - דוח תלמידה';
-        raw[metaKey] = { generatedAt: new Date().toISOString(), sources: (Array.isArray(sourceNames) ? sourceNames : []), reportType: (reportType || '') };
+        var _ec = extraConfig || {};
+        raw[metaKey] = { generatedAt: new Date().toISOString(), sources: (Array.isArray(sourceNames) ? sourceNames : []), reportType: (reportType || ''), promptName: (_ec.promptName || ''), promptText: (_ec.promptText || ''), isProtected: !!_ec.isProtected };
         var patch = { raw_data: raw };  // הטוקנים מתעדכנים בשרת
         patch[col] = reportText;
         var upd = await supa.from('examinees').update(patch).eq('id', examineeId);
@@ -3855,6 +3856,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (dt) html += '<div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">הופק ב-' + esc(dt) + '</div>';
         html += '<div style="font-size:11px;font-weight:700;color:#475569;margin-bottom:4px;">נכלל בהפקה:</div>';
         html += chips ? ('<div>' + chips + '</div>') : '<div style="font-size:11px;color:#94a3b8;">—</div>';
+        // ההנחיה ששימשה: מוגנת → שם בלבד (התוכן בניהול); פרטית → הטקסט המלא
+        if (m.promptName) {
+            html += '<div style="font-size:11px;font-weight:700;color:#475569;margin:8px 0 3px;">הנחיה ששימשה:</div>';
+            html += '<div style="font-size:11.5px;color:#334155;">' + esc(m.promptName) + (m.isProtected ? ' <span style="color:#94a3b8;font-size:10.5px;">(הנחיית מערכת — התוכן בניהול ← הנחיות)</span>' : '') + '</div>';
+            if (m.promptText && String(m.promptText).trim()) {
+                html += '<details style="margin-top:4px;"><summary style="cursor:pointer;font-size:11px;color:#6366f1;">הצג את תוכן ההנחיה</summary><div style="font-size:11px;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:6px 9px;margin-top:3px;white-space:pre-wrap;max-height:220px;overflow-y:auto;">' + esc(m.promptText) + '</div></details>';
+            }
+        }
         if (m.refineText && String(m.refineText).trim()) {
             html += '<div style="font-size:11px;font-weight:700;color:#475569;margin:8px 0 3px;">מיקוד שביקשת:</div><div style="font-size:11.5px;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:6px 9px;white-space:pre-wrap;">' + esc(m.refineText) + '</div>';
         }
@@ -8153,6 +8162,10 @@ function attachEventListeners() {
             } else if (currentMode === 'custom') {
                 extraConfig.promptName = 'הפקה מותאמת אישית';
             }
+            // לכידת ההנחיה ששימשה: מוגנת → רק השם (סודי); פרטית → הטקסט המלא (של היועצת)
+            extraConfig.isProtected = !!currentProtectedPromptName;
+            var _aiPromptEl = document.getElementById('ai-prompt-input');
+            extraConfig.promptText = currentProtectedPromptName ? '' : (_aiPromptEl ? (_aiPromptEl.value || '') : '');
             
             // ==========================================================
             // ✨ כאן התחלנו את השינוי לעבודת רקע (במקום חסימת המסך) ✨
