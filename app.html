@@ -6932,8 +6932,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (response.success) {
                     allExamineeThreads = response.data || [];
                     renderThreadsSidebar();
-                    // תמיד פותח מסך נקי ומוכן לשיחה!
-                    startNewThreadUI();
+                    // אם יש שיחה פעילה בעיצומה — משחזרים אותה (במקום מסך נקי)
+                    var _activeTid = null;
+                    if (window._nzActiveConsult) { for (var _k in window._nzActiveConsult) { if (window._nzActiveConsult[_k] && !window._nzActiveConsult[_k].done) { _activeTid = _k; break; } } }
+                    var _activeThread = _activeTid ? allExamineeThreads.find(function (t) { return String(t.id) === String(_activeTid); }) : null;
+                    if (_activeThread) {
+                        selectThread(_activeThread);
+                    } else if (_activeTid) {
+                        // השיחה עדיין לא נשמרה כשרשור — משחזרים לפחות את מצב ההתקדמות
+                        activeThreadId = _activeTid;
+                        window._nzViewingThreadId = _activeTid;
+                        var _cc = document.getElementById('chat-history-container'); if (_cc) _cc.innerHTML = '';
+                        window._nzRenderActiveConsult(_activeTid);
+                    } else {
+                        startNewThreadUI();
+                    }
                 } else {
                     chatContainer.innerHTML = `<p class="text-red-500 p-4 text-center">שגיאה בטעינת היסטוריית השיחה: ${response.error}</p>`;
                 }
