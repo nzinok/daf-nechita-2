@@ -6932,18 +6932,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (response.success) {
                     allExamineeThreads = response.data || [];
                     renderThreadsSidebar();
-                    // אם יש שיחה פעילה בעיצומה — משחזרים אותה (במקום מסך נקי)
-                    var _activeTid = null;
-                    if (window._nzActiveConsult) { for (var _k in window._nzActiveConsult) { if (window._nzActiveConsult[_k] && !window._nzActiveConsult[_k].done) { _activeTid = _k; break; } } }
-                    var _activeThread = _activeTid ? allExamineeThreads.find(function (t) { return String(t.id) === String(_activeTid); }) : null;
-                    if (_activeThread) {
-                        selectThread(_activeThread);
-                    } else if (_activeTid) {
-                        // השיחה עדיין לא נשמרה כשרשור — משחזרים לפחות את מצב ההתקדמות
-                        activeThreadId = _activeTid;
-                        window._nzViewingThreadId = _activeTid;
-                        var _cc = document.getElementById('chat-history-container'); if (_cc) _cc.innerHTML = '';
-                        window._nzRenderActiveConsult(_activeTid);
+                    // שחזור השיחה שנצפתה לאחרונה (כולל שיחה פעילה בעיצומה) — במקום מסך נקי
+                    var _lastTid = window._nzViewingThreadId;
+                    var _lastThread = _lastTid ? allExamineeThreads.find(function (t) { return String(t.id) === String(_lastTid); }) : null;
+                    // אם השרשור עדיין לא נשמר ב-DB אבל יש שיחה פעילה — מוסיפים אותו אופטימית לסרגל
+                    if (!_lastThread && _lastTid && window._nzActiveConsult && window._nzActiveConsult[_lastTid]) {
+                        var _st = window._nzActiveConsult[_lastTid];
+                        var _q = (_st && _st.question) ? String(_st.question).replace(/\[הנחיית הקשר אוטומטית:.*?\]\n\n/g, '') : '';
+                        var _title = _q ? (_q.slice(0, 30) + (_q.length > 30 ? '…' : '')) : 'שיחה חדשה';
+                        _lastThread = { id: _lastTid, title: _title, messages: [] };
+                        allExamineeThreads.unshift(_lastThread);
+                        renderThreadsSidebar();
+                    }
+                    if (_lastThread) {
+                        selectThread(_lastThread);
                     } else {
                         startNewThreadUI();
                     }
