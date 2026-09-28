@@ -6934,6 +6934,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     renderThreadsSidebar();
                     // שחזור השיחה שנצפתה לאחרונה (כולל שיחה פעילה בעיצומה) — במקום מסך נקי
                     var _lastTid = window._nzViewingThreadId;
+                    try { console.log('🔍 חזרה לניתוח | _nzViewingThreadId=', _lastTid, '| שרשורים מה-DB=', (allExamineeThreads||[]).map(function(t){return t.id;}), '| active consult keys=', Object.keys(window._nzActiveConsult||{}), '| activeThreadId=', (typeof activeThreadId!=='undefined'?activeThreadId:'?')); } catch(e){}
                     var _lastThread = _lastTid ? allExamineeThreads.find(function (t) { return String(t.id) === String(_lastTid); }) : null;
                     // אם השרשור עדיין לא נשמר ב-DB אבל יש שיחה פעילה — מוסיפים אותו אופטימית לסרגל
                     if (!_lastThread && _lastTid && window._nzActiveConsult && window._nzActiveConsult[_lastTid]) {
