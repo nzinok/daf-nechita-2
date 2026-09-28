@@ -474,6 +474,7 @@
     auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true }
   });
   window._supa = supa;
+  window._nzUrl = SUPABASE_URL; window._nzKey = SUPABASE_KEY;
   // מוודא token טרי לפני פעולות — מונע פקיעת session שקטה (401) אחרי פעולות ארוכות
   window._nzEnsureFreshSession = async function () {
     try {
@@ -9599,10 +9600,14 @@ async function buildPromptData(examinee) {
                         if (!pr || !pr.success) { _rmLoader(); helperSubmitBtn.disabled = false; appendHelperMessage((pr && pr.error) || 'שגיאת עוזר המערכת', 'ai'); return; }
                         // 2. זרימה מהקצה
                         if (window._nzEnsureFreshSession) { try { await window._nzEnsureFreshSession(); } catch (e) {} }
-                        var _sess = (await supa.auth.getSession()).data.session;
-                        var _resp = await fetch(SUPABASE_URL + '/functions/v1/generate-report-stream', {
+                        var _sc = window._supa || (typeof supa !== 'undefined' ? supa : null);
+                        var _url = window._nzUrl || (typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '');
+                        var _key = window._nzKey || (typeof SUPABASE_KEY !== 'undefined' ? SUPABASE_KEY : '');
+                        var _sessRes = _sc ? await _sc.auth.getSession() : null;
+                        var _sess = _sessRes && _sessRes.data ? _sessRes.data.session : null;
+                        var _resp = await fetch(_url + '/functions/v1/generate-report-stream', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (_sess ? _sess.access_token : ''), 'apikey': SUPABASE_KEY },
+                            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (_sess ? _sess.access_token : ''), 'apikey': _key },
                             body: JSON.stringify({ examineeId: null, action: 'עוזר מערכת', ownerEmail: window._currentUserEmail, parts: [{ text: pr.prompt }], model: 'gemini-3.7-flash', rawMode: true, temperature: 0.2 })
                         });
                         _rmLoader();
@@ -9633,6 +9638,7 @@ async function buildPromptData(examinee) {
                         helperChatHistory.push({ question: question, answer: _answer });
                         try { google.script.run.logHelperBySession(_sid, question, _answer, activeScreen); } catch (e) {}
                     } catch (err) {
+                        console.error('שגיאת זרימת מדריכה:', err);
                         _rmLoader(); helperSubmitBtn.disabled = false;
                         appendHelperMessage('שגיאת תקשורת. אנא נסי שוב מאוחר יותר.', 'ai');
                     }
