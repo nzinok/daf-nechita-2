@@ -654,30 +654,6 @@
         return { success: true, base64Data: b64, mimeType: fd.data.mimeType || 'image/jpeg', fileName: fd.data.name || 'תמונה', fileSize: Math.round(b64.length * 0.75) };
       } catch (e) { return { success: false, error: String(e) }; }
     },
-    getHelperPromptBySession: async function (sessionId, chatHistory, question, currentScreen) {
-      try {
-        if (!window._currentUserEmail) return { success: false, error: 'החיבור פג. יש להתחבר מחדש כדי להשתמש במדריכה.' };
-        try { var _s = await supa.auth.getSession(); if (!_s || !_s.data || !_s.data.session) return { success: false, error: 'החיבור פג. יש להתחבר מחדש.' }; } catch (se) { return { success: false, error: 'החיבור פג. יש להתחבר מחדש.' }; }
-        var knowledge = await window._nzGetHelperKnowledge(currentScreen, question);
-        var _firstName = '';
-        try { var _meN = await supa.from('counselors').select('name').eq('email', window._currentUserEmail).maybeSingle(); if (_meN.data && _meN.data.name) _firstName = String(_meN.data.name).trim().split(' ')[0]; } catch (e) {}
-        var sys = 'את "מדריכת המערכת" של מכון "נקודת זינוק", מוטמעת בתוך המערכת כדי ללוות את היועצות התעסוקתיות. ' +
-          'הנחיות: (1) אל תזכירי בשום אופן שאת בינה מלאכותית או מודל שפה — התייחסי לעצמך כ"מדריכת המערכת". ' +
-          '(2) עני בעברית, בקצרה, בגובה העיניים ובנימה תומכת. (3) בססי את תשובתך אך ורק על "המידע שהמערכת מצאה" למטה. ' +
-          '(4) אל תפתחי את התשובה בהצגה עצמית או בברכה חוזרת — עני ישירות לעניין ובטבעיות, כאילו את באמצע שיחה מתמשכת. ' +
-          (_firstName ? ('(5) שם היועצת שאיתה את מדברת: ' + _firstName + '. את יכולה לפנות אליה בשמה מדי פעם בטבעיות, אך אל תפתחי כל תשובה בשמה. ') : '') +
-          'אם המידע אומר שלא נמצא מידע ספציפי, או שהשאלה לא קשורה — אמרי באדיבות שאינך בטוחה והציעי לשאול אחרת או לפנות להנהלה. אל תמציאי כפתורים או פיצ׳רים. ' +
-          'המסך הנוכחי: ' + (currentScreen || 'לא ידוע') + '.\n\n**המידע שהמערכת מצאה עבור השאלה:**\n' + knowledge + '\n\n';
-        var hist = '';
-        (chatHistory || []).forEach(function (t) { if (t && t.question) hist += 'יועצת: ' + String(t.question) + '\n'; if (t && t.answer) hist += 'מדריכה: ' + String(t.answer) + '\n'; });
-        var prompt = sys + (hist ? ('--- השיחה עד כה ---\n' + hist + '\n') : '') + 'יועצת: ' + String(question) + '\nמדריכה:';
-        return { success: true, prompt: prompt };
-      } catch (e) { return { success: false, error: String(e) }; }
-    },
-    logHelperBySession: async function (sessionId, question, answer, screen) {
-      try { await supa.from('helper_log').insert({ owner_email: window._currentUserEmail, screen: String(screen || ''), question: String(question || '').slice(0, 2000), answer: String(answer || '').slice(0, 4000) }); } catch (e) {}
-      return { success: true };
-    },
     askSystemHelperBySession: async function (sessionId, chatHistory, question, currentScreen) {
       try {
         // חסימה אם אין משתמש מחובר (למשל אחרי פקיעת חיבור)
@@ -9590,59 +9566,26 @@ async function buildPromptData(examinee) {
 
                 const activeScreen = getActiveScreenName();
 
-                // זרימה חיה: התשובה מתחילה להיכתב מיד כשג'ימיני מחזיר, תו אחרי תו
-                (async function () {
-                    var _sid = (typeof currentSessionId !== 'undefined' ? currentSessionId : '');
-                    var _rmLoader = function () { var le = document.getElementById(loaderId); if (le) le.remove(); };
-                    try {
-                        // 1. בניית הפרומפט (כולל ידע המערכת) בצד השרת
-                        var pr = await new Promise(function (res) { google.script.run.withSuccessHandler(res).withFailureHandler(function () { res(null); }).getHelperPromptBySession(_sid, helperChatHistory, question, activeScreen); });
-                        if (!pr || !pr.success) { _rmLoader(); helperSubmitBtn.disabled = false; appendHelperMessage((pr && pr.error) || 'שגיאת עוזר המערכת', 'ai'); return; }
-                        // 2. זרימה מהקצה
-                        if (window._nzEnsureFreshSession) { try { await window._nzEnsureFreshSession(); } catch (e) {} }
-                        var _sc = window._supa || (typeof supa !== 'undefined' ? supa : null);
-                        var _url = window._nzUrl || (typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '');
-                        var _key = window._nzKey || (typeof SUPABASE_KEY !== 'undefined' ? SUPABASE_KEY : '');
-                        var _sessRes = _sc ? await _sc.auth.getSession() : null;
-                        var _sess = _sessRes && _sessRes.data ? _sessRes.data.session : null;
-                        var _resp = await fetch(_url + '/functions/v1/generate-report-stream', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (_sess ? _sess.access_token : ''), 'apikey': _key },
-                            body: JSON.stringify({ examineeId: null, action: 'עוזר מערכת', ownerEmail: window._currentUserEmail, parts: [{ text: pr.prompt }], model: 'gemini-3.7-flash', rawMode: true, temperature: 0.2 })
-                        });
-                        _rmLoader();
-                        if (!_resp.ok || !_resp.body) { helperSubmitBtn.disabled = false; appendHelperMessage('שגיאת תקשורת. אנא נסי שוב מאוחר יותר.', 'ai'); return; }
-                        // 3. בועה חיה
-                        var _lw = document.createElement('div'); _lw.className = 'flex gap-2 w-full justify-start';
-                        var _ld = document.createElement('div'); _ld.className = 'max-w-[85%] rounded-2xl px-3 py-2 text-sm bg-white border border-gray-200 text-gray-700 rounded-tl-sm';
-                        _lw.appendChild(_ld); helperHistoryContainer.appendChild(_lw);
-                        var _answer = '';
-                        var _reader = _resp.body.getReader(), _dec = new TextDecoder(), _buf = '';
-                        while (true) {
-                            var _r = await _reader.read(); if (_r.done) break;
-                            _buf += _dec.decode(_r.value, { stream: true });
-                            var _nl;
-                            while ((_nl = _buf.indexOf('\n')) >= 0) {
-                                var _line = _buf.slice(0, _nl).trim(); _buf = _buf.slice(_nl + 1);
-                                if (!_line) continue;
-                                if (_line.indexOf('data:') === 0) _line = _line.slice(5).trim();
-                                if (!_line || _line === '[DONE]') continue;
-                                try { var _evt = JSON.parse(_line); if (_evt.type === 'text' || _evt.type === 'answer') { _answer += _evt.text; _ld.innerHTML = _answer.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); helperHistoryContainer.scrollTop = helperHistoryContainer.scrollHeight; } } catch (e) {}
-                            }
-                        }
+                google.script.run
+                    .withSuccessHandler(function(response) {
+                        const loaderEl = document.getElementById(loaderId);
+                        if(loaderEl) loaderEl.remove();
                         helperSubmitBtn.disabled = false;
-                        if (!_answer.trim()) { _lw.remove(); appendHelperMessage('לא התקבלה תשובה. נסי שוב.', 'ai'); return; }
-                        // 4. החלפה בבועה העשירה (משוב + פנייה טכנית) + תיעוד
-                        _lw.remove();
-                        appendHelperMessage(_answer, 'ai', false, question);
-                        helperChatHistory.push({ question: question, answer: _answer });
-                        try { google.script.run.logHelperBySession(_sid, question, _answer, activeScreen); } catch (e) {}
-                    } catch (err) {
-                        console.error('שגיאת זרימת מדריכה:', err);
-                        _rmLoader(); helperSubmitBtn.disabled = false;
+                        
+                        if (response.success) {
+                            appendHelperMessage(response.answer, 'ai', false, question);
+                            helperChatHistory.push({ question: question, answer: response.answer });
+                        } else {
+                            appendHelperMessage('משהו השתבש בחיבור: ' + response.error, 'ai');
+                        }
+                    })
+                    .withFailureHandler(function(error) {
+                        const loaderEl = document.getElementById(loaderId);
+                        if(loaderEl) loaderEl.remove();
+                        helperSubmitBtn.disabled = false;
                         appendHelperMessage('שגיאת תקשורת. אנא נסי שוב מאוחר יותר.', 'ai');
-                    }
-                })();
+                    })
+                    .askSystemHelperBySession((typeof currentSessionId !== 'undefined' ? currentSessionId : ''), helperChatHistory, question, activeScreen);
             });
         }
     }
