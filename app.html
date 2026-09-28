@@ -2769,7 +2769,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!lc) return;
                 if (!res || !res.success) { lc.innerHTML = '<div style="color:#dc2626;">שגיאה בטעינה</div>'; return; }
                 if (!res.data || !res.data.length) { lc.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:24px;">אין שאלות מתועדות עדיין</div>'; return; }
-                var screenNames = { general: 'כללי', examinees: 'רשימת נבחנות', details_examinee: 'תיק — פרטים', analysis_tab_examinee: 'תיק — אבחון', quantitative_tab_examinee: 'תיק — נתונים', modal_ai: 'חלון הפקה', modal_refine: 'חלון מיקוד', prompts: 'ניהול הנחיות', links: 'קישורים', manageClients: 'ניהול' };
+                var screenNames = { general: 'כללי', examinees: 'רשימת נבחנות', details_examinee: 'תיק — דוחות ותוצרים', analysis_tab_examinee: 'תיק — ניתוח פנימי', quantitative_tab_examinee: 'תיק — שאלון', modal_ai: 'חלון הפקה', modal_refine: 'חלון מיקוד', prompts: 'ניהול הנחיות', links: 'קישורים', manageClients: 'ניהול' };
                 lc.innerHTML = res.data.map(function (e) {
                     var dt = e.created_at ? new Date(e.created_at).toLocaleString('he-IL') : '';
                     var scr = screenNames[e.screen] || e.screen || '';
@@ -2890,9 +2890,9 @@ document.addEventListener('DOMContentLoaded', function() {
         var NZ_SCREENS = [
           { id: 'general', label: 'כללי (כל המסכים)' },
           { id: 'examinees', label: 'רשימת נבחנות' },
-          { id: 'details_examinee', label: 'תיק נבחנת — פרטים' },
-          { id: 'analysis_tab_examinee', label: 'תיק נבחנת — אבחנה' },
-          { id: 'quantitative_tab_examinee', label: 'תיק נבחנת — נתונים כמותיים' },
+          { id: 'details_examinee', label: 'תיק נבחנת — דוחות ותוצרים' },
+          { id: 'analysis_tab_examinee', label: 'תיק נבחנת — ניתוח פנימי' },
+          { id: 'quantitative_tab_examinee', label: 'תיק נבחנת — שאלון' },
           { id: 'modal_ai', label: 'חלון הפקת דוח' },
           { id: 'modal_refine', label: 'חלון מיקוד דוח' },
           { id: 'prompts', label: 'ניהול הנחיות' },
