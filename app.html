@@ -7363,6 +7363,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         localExaminee.rawData['הערות'] = newNotes;
                         localExaminee.rawData['קוד הולנד סופי'] = newHolland;
                     }
+                    // ✨ עדכון גם ב-currentExaminee (האובייקט שחלון ההפקה והעוגן קוראים) — אחרת הם קוראים קוד ישן
+                    try { if (typeof currentExaminee !== 'undefined' && currentExaminee && currentExaminee.id === examinee.id) { currentExaminee.rawData = currentExaminee.rawData || {}; currentExaminee.rawData['הערות'] = newNotes; currentExaminee.rawData['קוד הולנד סופי'] = newHolland; } } catch (e) {}
                     renderExamineeList();
                     // ✨ שלב שני: התראה אם האבחנה החדשה שונה מקוד ההולנד שבתדריך (שניהם מנורמלים ל-RIASEC)
                     if (part === 'holland') {
@@ -7496,7 +7498,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (_oldNote) _oldNote.remove();
             if (reportMode === 'student' || reportMode === 'principal') {
                 var _hMap = { 'R': 'ריאליסטי', 'I': 'חקרני', 'A': 'אמנותי', 'S': 'חברתי', 'E': 'יזמי', 'C': 'שיטתי' };
-                var _hCode = String((examinee.rawData && examinee.rawData['קוד הולנד סופי']) || '').toUpperCase().replace(/[^RIASEC]/g, '');
+                var _srcEx = (typeof currentExaminee !== 'undefined' && currentExaminee && examinee && currentExaminee.id === examinee.id) ? currentExaminee : examinee;
+                var _hCode = String((_srcEx && _srcEx.rawData && _srcEx.rawData['קוד הולנד סופי']) || '').toUpperCase().replace(/[^RIASEC]/g, '');
                 if (_hCode) {
                     var _hNames = _hCode.split('').map(function (l) { return _hMap[l]; }).filter(Boolean).join(', ');
                     var _note = document.createElement('div');
