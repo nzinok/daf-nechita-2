@@ -1471,7 +1471,7 @@
           var tid = r.thread_id || 'default';
           if (!map[tid]) { map[tid] = { id: tid, title: r.thread_title || 'התייעצות', messages: [] }; order.push(tid); }
           map[tid].title = r.thread_title || map[tid].title;
-          map[tid].messages.push({ question: r.question, answer: r.answer, thinking: r.thinking || '' });
+          map[tid].messages.push({ question: r.question, answer: r.answer, thinking: r.thinking || '', tagged_context: r.tagged_context || null, context_meta: r.context_meta || null });
         });
         return { success: true, data: order.map(function (t) { return map[t]; }) };
       } catch (e) { return { success: false, error: String(e), data: [] }; }
@@ -1599,10 +1599,17 @@
           : (newQuestion.slice(0, 30) + (newQuestion.length > 30 ? '…' : ''));
 
         // שמירה — עם בדיקת שגיאה (כשל שקט כאן גרם להתייעצויות "להיעלם")
+        // ✨ חותמת-גרסה של הדוחות המתויגים (לזיהוי "הדוח עודכן מאז")
+        var _ctxMeta = {};
+        try {
+          if (tagged.indexOf('דוח תלמידה רשמי') > -1) { var _mS = _rd['פרטי הפקה - דוח תלמידה']; _ctxMeta['דוח תלמידה רשמי'] = (_mS && _mS.generatedAt) || ''; }
+          if (tagged.indexOf('דוח מנהלת רשמי') > -1) { var _mP = _rd['פרטי הפקה - דוח מנהלת']; _ctxMeta['דוח מנהלת רשמי'] = (_mP && _mP.generatedAt) || ''; }
+        } catch (e) {}
         var _cRes = await supa.from('consultation_chats').insert({
           examinee_id: examineeId, owner_email: ownerEmail,
           thread_id: threadId || 'default', thread_title: finalTitle,
-          question: newQuestion, answer: answer, thinking: _thinking
+          question: newQuestion, answer: answer, thinking: _thinking,
+          tagged_context: tagged, context_meta: _ctxMeta
         });
         if (_cRes && _cRes.error) {
           return { success: false, error: 'התשובה נוצרה אך שמירת ההתייעצות נכשלה: ' + _cRes.error.message + ' — נסי לשלוח שוב.', answer: answer };
@@ -2251,6 +2258,21 @@
     cont.querySelectorAll('.nz-seg-chev').forEach(function (ch) { ch.style.transform = ''; });
   };
   // הצגת חשיבה שמורה (מההיסטוריה) כאקורדיון מכווץ
+  // ✨ שורת תגיות קטנה מתחת לשאלה (מה צורף לאותה שאלה)
+  window._nzAppendTagLine = function (tags) {
+    try {
+      if (!tags || !tags.length) return;
+      var c = document.getElementById('chat-history-container');
+      if (!c) return;
+      var row = document.createElement('div');
+      row.className = 'nz-tagline';
+      row.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-start;margin:-4px 0 10px 0;padding:0 2px;';
+      row.innerHTML = tags.map(function (t) {
+        return '<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;color:#4338ca;background:#eef2ff;border:1px solid #c7d2fe;border-radius:999px;padding:1px 8px;">\uD83D\uDCCE ' + String(t).replace(/</g, '&lt;') + '</span>';
+      }).join('');
+      c.appendChild(row);
+    } catch (e) {}
+  };
   window._nzAppendSavedThinking = function (thinking) {
     if (!thinking || !String(thinking).trim()) return;
     var panel = window._nzCreateThinkingPanel();
@@ -6706,6 +6728,28 @@ document.addEventListener('DOMContentLoaded', function() {
         var chatSubmitBtn = chatForm.querySelector('button[type="submit"]');
         var chatInput = document.getElementById('chat-input');
 
+        // ✨ התראת "שכחת לצרף דוח" — אם הוזכר שורש 'דוח' אך לא צורפה שום תגית
+        try {
+            var _qForCheck = String(question || '').replace(/\[הנחיית הקשר אוטומטית:.*?\]\n\n/g, '');
+            var _mentionsReport = /דו["״]?ח(ות)?(?![א-ת])/.test(_qForCheck);
+            var _autoInjects = _qForCheck.indexOf('דוח תלמידה') > -1 || _qForCheck.indexOf('דוח מנהלת') > -1;
+            var _noTag = (typeof selectedContexts === 'undefined') || selectedContexts.length === 0;
+            if (_mentionsReport && !_autoInjects && _noTag) {
+                var _proceedNoReport = await appConfirm({
+                    title: 'שכחת לצרף דוח?',
+                    message: 'הזכרת "דוח" בשאלה, אך לא צירפת אף דוח לשיחה. היועץ הפנימי אינו רואה את הדוח אלא אם תצרפי אותו (באמצעות האטב 📎 שליד תיבת השאלה). לחזור ולצרף, או לשלוח כך?',
+                    icon: 'paperclip',
+                    okText: 'שלח בכל זאת',
+                    cancelText: 'חזרה לצרף דוח'
+                });
+                if (!_proceedNoReport) {
+                    var _si = document.getElementById('chat-input');
+                    if (_si && !_si.value) _si.value = question;
+                    return;
+                }
+            }
+        } catch (e) {}
+
         chatSubmitBtn.disabled = true; // מניעת לחיצות כפולות
         var cleanQuestionForUI = question.replace(/\[הנחיית הקשר אוטומטית:.*?\]\n\n/g, ''); 
 
@@ -6732,7 +6776,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // הסרנו את הפנייה הכפולה לשרת. השרת ייצר כותרת יחד עם התשובה הראשונה ויחזיר אותה.
         }
 
-        appendChatMessage(cleanQuestionForUI, 'user'); 
+        appendChatMessage(cleanQuestionForUI, 'user');
+        try { if (typeof selectedContexts !== 'undefined' && selectedContexts.length) window._nzAppendTagLine(selectedContexts.map(function (c) { return c.name; })); } catch (e) {} 
         // רישום מצב פעיל — כדי שההתייעצות תשרוד מעבר בין מסכים/שיחות
         try {
           var _allQ = document.querySelectorAll('#chat-history-container .chat-bubble-user');
@@ -6834,7 +6879,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 var isStillHere = currentExaminee && currentExaminee.id === requestExamineeId && activeThreadId === requestThreadId;
                 if (response.success) {
-                    requestHistoryRef.push({ question: question, answer: response.answer, thinking: response.thinking || '' });
+                    requestHistoryRef.push({ question: question, answer: response.answer, thinking: response.thinking || '', tagged_context: _tagNames });
                     var origThread = allExamineeThreads.find(t => t.id === requestThreadId);
                     if (origThread) {
                         origThread.messages = requestHistoryRef;
@@ -7012,6 +7057,32 @@ document.addEventListener('DOMContentLoaded', function() {
         renderThreadsSidebar(); 
         renderChatHistory();
         // אם יש התייעצות פעילה בשיחה הזו — מציגים את מצבה הנוכחי (וממשיכים לעדכן חי)
+        // ✨ שחזור תגיות השיחה (התיוג "דביק" בין ימים) + הודעה אם הדוח עודכן מאז
+        try {
+            var _msgs = thread.messages || [];
+            var _lastTagged = null;
+            for (var _i = _msgs.length - 1; _i >= 0; _i--) {
+                if (_msgs[_i] && _msgs[_i].tagged_context && _msgs[_i].tagged_context.length) { _lastTagged = _msgs[_i]; break; }
+            }
+            if (_lastTagged && typeof selectedContexts !== 'undefined') {
+                selectedContexts = _lastTagged.tagged_context.map(function (n) { return { name: String(n), type: 'restored' }; });
+                if (typeof renderContextBadges === 'function') renderContextBadges();
+                var _cm = _lastTagged.context_meta || {};
+                var _rd2 = (currentExaminee && currentExaminee.rawData) || {};
+                var _changed = [];
+                if (selectedContexts.some(function (c) { return c.name === 'דוח תלמידה רשמי'; })) {
+                    var _curS = (_rd2['פרטי הפקה - דוח תלמידה'] && _rd2['פרטי הפקה - דוח תלמידה'].generatedAt) || '';
+                    if (_cm['דוח תלמידה רשמי'] && _curS && _curS !== _cm['דוח תלמידה רשמי']) _changed.push('דוח התלמידה');
+                }
+                if (selectedContexts.some(function (c) { return c.name === 'דוח מנהלת רשמי'; })) {
+                    var _curP = (_rd2['פרטי הפקה - דוח מנהלת'] && _rd2['פרטי הפקה - דוח מנהלת'].generatedAt) || '';
+                    if (_cm['דוח מנהלת רשמי'] && _curP && _curP !== _cm['דוח מנהלת רשמי']) _changed.push('דוח המנהלת');
+                }
+                if (_changed.length && typeof showToast === 'function') {
+                    showToast(_changed.join(' ו') + ' עודכן מאז ההתייעצות הקודמת — ההתייחסות תהיה לגרסה המעודכנת.');
+                }
+            }
+        } catch (e) {}
         if (window._nzActiveConsult && window._nzActiveConsult[thread.id] && !window._nzActiveConsult[thread.id].done) {
             window._nzRenderActiveConsult(thread.id);
         }
@@ -7098,6 +7169,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         currentChatHistory.forEach(function(turn) {
             appendChatMessage(turn.question, 'user');
+            if (turn.tagged_context && turn.tagged_context.length) window._nzAppendTagLine(turn.tagged_context);
             if (turn.thinking) window._nzAppendSavedThinking(turn.thinking);
             appendChatMessage(turn.answer, 'ai', false, true); // false, true -> לא שגיאה, וזה מההיסטוריה (מיד)
         });
