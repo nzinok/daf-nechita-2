@@ -2268,9 +2268,10 @@
       row.className = 'nz-tagline';
       row.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-start;margin:-4px 0 10px 0;padding:0 2px;';
       row.innerHTML = tags.map(function (t) {
-        return '<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;color:#4338ca;background:#eef2ff;border:1px solid #c7d2fe;border-radius:999px;padding:1px 8px;">\uD83D\uDCCE ' + String(t).replace(/</g, '&lt;') + '</span>';
+        return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:#4338ca;background:#eef2ff;border:1px solid #c7d2fe;border-radius:999px;padding:2px 8px;"><i data-lucide="paperclip" style="width:11px;height:11px;flex:none;"></i>' + String(t).replace(/</g, '&lt;') + '</span>';
       }).join('');
       c.appendChild(row);
+      if (typeof lucide !== 'undefined') lucide.createIcons();
     } catch (e) {}
   };
   window._nzAppendSavedThinking = function (thinking) {
@@ -6044,7 +6045,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // ציור תגיות ההקשר (Badges) למעלה, שורת הקלדה וצ'יפים חכמים
         function renderContextBadges() {
-            if (!contextBadgesContainer) return;
+            contextBadgesContainer = document.getElementById('context-badges-container'); if (!contextBadgesContainer) return;
             contextBadgesContainer.innerHTML = '';
             var chatInput = document.getElementById('chat-input');
             var suggestionsContainer = document.getElementById('context-suggestions');
@@ -6737,7 +6738,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (_mentionsReport && !_autoInjects && _noTag) {
                 var _proceedNoReport = await appConfirm({
                     title: 'שכחת לצרף דוח?',
-                    message: 'הזכרת "דוח" בשאלה, אך לא צירפת אף דוח לשיחה. היועץ הפנימי אינו רואה את הדוח אלא אם תצרפי אותו (באמצעות האטב 📎 שליד תיבת השאלה). לחזור ולצרף, או לשלוח כך?',
+                    message: 'הזכרת "דוח" בשאלה, אך לא צירפת אף דוח לשיחה. היועץ הפנימי אינו רואה את הדוח אלא אם תצרפי אותו (באמצעות האטב שליד תיבת השאלה). לחזור ולצרף, או לשלוח כך?',
                     icon: 'paperclip',
                     okText: 'שלח בכל זאת',
                     cancelText: 'חזרה לצרף דוח'
@@ -7069,7 +7070,27 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             if (_lastTagged && typeof selectedContexts !== 'undefined') {
                 selectedContexts = _lastTagged.tagged_context.map(function (n) { return { name: String(n), type: 'restored' }; });
-                if (typeof renderContextBadges === 'function') renderContextBadges();
+                // ציור ישיר של פקד "השיחה מתמקדת ב" (עצמאי מ-renderContextBadges כדי להימנע מבעיות closure/אלמנט-מת)
+                try {
+                    var _cbc = document.getElementById('context-badges-container');
+                    if (_cbc) {
+                        _cbc.innerHTML = '';
+                        selectedContexts.forEach(function (context) {
+                            var badge = document.createElement('div');
+                            badge.className = 'flex items-center gap-1 bg-indigo-100 border border-indigo-300 text-indigo-800 text-[10px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap ml-1 shadow-sm';
+                            badge.innerHTML = '<span class="flex items-center gap-1.5"><i data-lucide="target" class="w-3 h-3 text-indigo-600"></i>השיחה מתמקדת ב: ' + String(context.name).replace(/</g, '&lt;') + '</span><button type="button" class="hover:text-red-500 hover:bg-indigo-200 rounded-full p-0.5 transition-colors mr-1"><i data-lucide="x" class="w-3 h-3"></i></button>';
+                            badge.querySelector('button').onclick = function () {
+                                selectedContexts = selectedContexts.filter(function (x) { return x.name !== context.name; });
+                                if (typeof renderContextBadges === 'function') renderContextBadges();
+                                else { var _b = badge.parentNode; if (_b) _b.removeChild(badge); }
+                            };
+                            _cbc.appendChild(badge);
+                        });
+                        var _ci = document.getElementById('chat-input');
+                        if (_ci) _ci.placeholder = "הקלידי שאלה או בקשה לגבי המסמך שבמוקד...";
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    }
+                } catch (e2) {}
                 var _cm = _lastTagged.context_meta || {};
                 var _rd2 = (currentExaminee && currentExaminee.rawData) || {};
                 var _changed = [];
