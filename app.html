@@ -1262,7 +1262,14 @@
             var _hInv = await supa.functions.invoke('generate-report', { body: { examineeId: examineeId, action: 'זיהוי קוד הולנד', ownerEmail: window._currentUserEmail, parts: [{ text: _hPrompt }], model: 'gemini-3.1-pro-preview', temperature: 0 } });
             if (!_hInv.error && _hInv.data && _hInv.data.success) {
               var _code = String(_hInv.data.report || '').trim().toUpperCase().replace(/[^RIASEC]/g, '').substring(0, 3);
-              if (_code.length >= 2) { await supa.from('examinees').update({ holland_code: _code }).eq('id', examineeId); }
+              if (_code.length >= 2) {
+                // שמירה גם בעמודה וגם ב-raw_data (האבחנה), כדי שהעוגן יתעדכן מיד
+                var _rawUpd = {};
+                try { var _exR = await supa.from('examinees').select('raw_data').eq('id', examineeId).maybeSingle(); _rawUpd = (_exR.data && _exR.data.raw_data) || {}; } catch (e2) {}
+                _rawUpd['קוד הולנד סופי'] = _code;
+                await supa.from('examinees').update({ holland_code: _code, raw_data: _rawUpd }).eq('id', examineeId);
+                try { if (typeof currentExaminee !== 'undefined' && currentExaminee && currentExaminee.id === examineeId) { currentExaminee.rawData = currentExaminee.rawData || {}; currentExaminee.rawData['קוד הולנד סופי'] = _code; } } catch (e3) {}
+              }
             }
           }
         } catch (he) {}
@@ -1361,11 +1368,15 @@
       try {
         var isPrincipal = (reportMode === 'principal' || reportMode === 'manager' || reportMode === 'מנהלת');
         // הנחיה מדויקת (מהמערכת המקורית): להחזיר את הדוח המלא בלבד, בלי הקדמות/הערות
+        // ✨ קוד הולנד מחייב מאבחנת היועצת — כדי שגם המיקוד לא יסטה ממנו
+        var _hcR = '';
+        try { var _hq = await supa.from('examinees').select('holland_code, raw_data').eq('id', examineeId).maybeSingle(); if (_hq.data) _hcR = String(_hq.data.holland_code || (_hq.data.raw_data && _hq.data.raw_data['קוד הולנד סופי']) || '').trim(); } catch (he) {}
         var refineParts = [{ text:
           'Please act as a professional diagnostician.\n' +
           'Below is an existing diagnostic report. Your task is to refine it based on the user\'s instruction.\n' +
           'Do not add commentary, greetings, or any preamble — output ONLY the full, refined report itself.\n' +
           'Write the report in Hebrew, keeping the original structure and style.\n\n' +
+          (_hcR ? ('קוד הולנד מחייב: קוד ההולנד של הנבחנת הוא ' + _hcR + '. זהו קוד סופי ומחייב — שמור עליו לכל אורך הדוח ואל תשנה אותו לקוד אחר.\n\n') : '') +
           "USER'S INSTRUCTION:\n---\n" + (refinementInstruction || '') + '\n---\n\n' +
           'ORIGINAL REPORT:\n---\n' + (previousReport || '') + '\n---'
         }];
@@ -8930,6 +8941,14 @@ async function buildPromptData(examinee) {
     // פרטי היועצת המאבחנת — חיוני כדי שה-AI לא ימציא שם יועצת (כמו במקור)
     if (typeof currentUser !== 'undefined' && currentUser && currentUser.name) {
       dataString += '--- פרטי המאבחנת (Counselor Info) ---\nשם היועצת המאבחנת בתיק זה: ' + currentUser.name + '\n(נתון זה מועבר לידיעתך לצורך ניסוח הדוח, במידה וההנחיה דורשת זאת).\n-------------------------------------\n\n';
+    }
+    // ✨ קוד הולנד מחייב מאבחנת היועצת — נשלח כקביעה מחייבת לדוח (עקביות בין הדוחות)
+    var _hcAnchor = (examinee.rawData && examinee.rawData['קוד הולנד סופי']) ? String(examinee.rawData['קוד הולנד סופי']).trim() : '';
+    if (_hcAnchor) {
+      dataString += '--- קוד הולנד מחייב (נקבע ע"י היועצת) ---\n' +
+        'קוד ההולנד של הנבחנת הוא: ' + _hcAnchor + '. זהו קוד ההולנד הסופי והמחייב לדוח זה. ' +
+        'השתמש בו כקוד ההולנד של הנבחנת לכל אורך הדוח, גם אם חלק מנתוני השאלון נראים לכאורה אחרת. אל תקבע או תציג קוד הולנד אחר.\n' +
+        '-------------------------------------\n\n';
     }
     dataString += "הערות המאבחן/ת:\n" + (examinee.rawData['הערות'] || 'אין') + '\n\n';
 
