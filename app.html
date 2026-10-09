@@ -7364,6 +7364,24 @@ document.addEventListener('DOMContentLoaded', function() {
                         localExaminee.rawData['קוד הולנד סופי'] = newHolland;
                     }
                     renderExamineeList();
+                    // ✨ שלב שני: התראה אם האבחנה החדשה שונה מקוד ההולנד שבתדריך (שניהם מנורמלים ל-RIASEC)
+                    if (part === 'holland') {
+                        try {
+                            var _normH = function (x) { return String(x || '').toUpperCase().replace(/[^RIASEC]/g, ''); };
+                            var _newCode = _normH(newHolland);
+                            var _briefObj = (examinee.rawData && examinee.rawData['תדריך נבחנת']) || (typeof currentExaminee !== 'undefined' && currentExaminee && currentExaminee.rawData && currentExaminee.rawData['תדריך נבחנת']) || null;
+                            var _briefCode = _normH(_briefObj && _briefObj.holland);
+                            if (_newCode && _briefCode && _newCode !== _briefCode && typeof appConfirm === 'function') {
+                                appConfirm({
+                                    title: 'שים לב — אי-התאמה בקוד הולנד',
+                                    message: 'האבחנה החדשה (' + _newCode + ') שונה מקוד ההולנד שבתדריך (' + _briefCode + '), שהופק מהדוח. הדוח והתדריך הקיימים עדיין על הקוד הקודם ולא יתעדכנו אוטומטית — כדי שהכל יהיה עקבי, הפק אותם מחדש.',
+                                    icon: 'alert-triangle',
+                                    okText: 'הבנתי',
+                                    cancelText: 'סגור'
+                                });
+                            }
+                        } catch (e) {}
+                    }
                 } else { showToast("שגיאה: " + res.error); }
             })
             .withFailureHandler(handleServerError)
