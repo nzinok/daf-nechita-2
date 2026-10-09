@@ -6729,27 +6729,58 @@ document.addEventListener('DOMContentLoaded', function() {
         var chatSubmitBtn = chatForm.querySelector('button[type="submit"]');
         var chatInput = document.getElementById('chat-input');
 
-        // ✨ התראת "שכחת לצרף דוח" — אם הוזכר שורש 'דוח' אך לא צורפה שום תגית
+        // ✨ זיהוי דוח בשאלה: תיוג אוטומטי אם קיים, התראה אם חסר, ותזכורת כללית אם מוזכר "דוח" בלי תגית
         try {
             var _qForCheck = String(question || '').replace(/\[הנחיית הקשר אוטומטית:.*?\]\n\n/g, '');
+            var _reStudent   = /דו["״]?ח(?:ות)?\s+ה?תלמיד/;
+            var _rePrincipal = /דו["״]?ח(?:ות)?\s+ה?מנהל/;
             var _mentionsReport = /דו["״]?ח(ות)?(?![א-ת])/.test(_qForCheck);
-            var _autoInjects = _qForCheck.indexOf('דוח תלמידה') > -1 || _qForCheck.indexOf('דוח מנהלת') > -1;
-            var _noTag = (typeof selectedContexts === 'undefined') || selectedContexts.length === 0;
-            if (_mentionsReport && !_autoInjects && _noTag) {
-                var _proceedNoReport = await appConfirm({
-                    title: 'שכחת לצרף דוח?',
-                    message: 'הזכרת "דוח" בשאלה, אך לא צירפת אף דוח לשיחה. היועץ הפנימי אינו רואה את הדוח אלא אם תצרפי אותו (באמצעות האטב שליד תיבת השאלה). לחזור ולצרף, או לשלוח כך?',
-                    icon: 'paperclip',
+            var _rd = (examinee && examinee.rawData) || {};
+            var _hasStudentRep   = !!_rd['דוח אבחון'];
+            var _hasPrincipalRep = !!_rd['דוח מנהלת'];
+            function _ensureTag(nm) {
+                if (typeof selectedContexts === 'undefined') return;
+                if (!selectedContexts.some(function (c) { return c && c.name === nm; })) selectedContexts.push({ name: nm, type: 'auto' });
+            }
+            var _explicitStudent   = _reStudent.test(_qForCheck);
+            var _explicitPrincipal = _rePrincipal.test(_qForCheck);
+            var _missing = [];
+            if (_explicitStudent)   { if (_hasStudentRep)   _ensureTag('דוח תלמידה רשמי'); else _missing.push('דוח תלמידה'); }
+            if (_explicitPrincipal) { if (_hasPrincipalRep) _ensureTag('דוח מנהלת רשמי'); else _missing.push('דוח מנהלת'); }
+            if (_explicitStudent || _explicitPrincipal) { if (typeof renderContextBadges === 'function') renderContextBadges(); }
+
+            if (_missing.length) {
+                var _proceedMissing = await appConfirm({
+                    title: 'אין דוח כזה בתיק',
+                    message: 'ציינת "' + _missing.join('" ו-"') + '", אך דוח כזה לא קיים בתיק הנבחנת. היועץ הפנימי לא יוכל להתייחס אליו. לשלוח בכל זאת?',
+                    icon: 'alert-triangle',
                     okText: 'שלח בכל זאת',
-                    cancelText: 'חזרה לצרף דוח'
+                    cancelText: 'ביטול'
                 });
-                if (!_proceedNoReport) {
-                    // המשתמשת בחרה לחזור ולצרף — משחזרים את הטקסט ומדליקים מחדש את כפתור השליחה
-                    var _si = document.getElementById('chat-input');
-                    if (_si && !_si.value) { _si.value = question; _si.style.height = 'auto'; }
+                if (!_proceedMissing) {
+                    var _si1 = document.getElementById('chat-input');
+                    if (_si1 && !_si1.value) { _si1.value = question; _si1.style.height = 'auto'; }
                     if (typeof updateSendButtonState === 'function') updateSendButtonState();
-                    else { var _sb = document.querySelector('#chat-form button[type="submit"]'); if (_sb) _sb.disabled = false; }
+                    else { var _sb1 = document.querySelector('#chat-form button[type="submit"]'); if (_sb1) _sb1.disabled = false; }
                     return;
+                }
+            } else if (_mentionsReport && !_explicitStudent && !_explicitPrincipal) {
+                var _hasReportTag = (typeof selectedContexts !== 'undefined') && selectedContexts.some(function (c) { return /דו["״]?ח/.test(String((c && c.name) || '')); });
+                if (!_hasReportTag) {
+                    var _proceedNoReport = await appConfirm({
+                        title: 'שכחת לצרף דוח?',
+                        message: 'הזכרת "דוח" בשאלה, אך לא צירפת אף דוח לשיחה. היועץ הפנימי אינו רואה את הדוח אלא אם תצרפי אותו (באמצעות האטב שליד תיבת השאלה). לחזור ולצרף, או לשלוח כך?',
+                        icon: 'paperclip',
+                        okText: 'שלח בכל זאת',
+                        cancelText: 'חזרה לצרף דוח'
+                    });
+                    if (!_proceedNoReport) {
+                        var _si2 = document.getElementById('chat-input');
+                        if (_si2 && !_si2.value) { _si2.value = question; _si2.style.height = 'auto'; }
+                        if (typeof updateSendButtonState === 'function') updateSendButtonState();
+                        else { var _sb2 = document.querySelector('#chat-form button[type="submit"]'); if (_sb2) _sb2.disabled = false; }
+                        return;
+                    }
                 }
             }
         } catch (e) {}
