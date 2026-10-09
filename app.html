@@ -6743,8 +6743,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     cancelText: 'חזרה לצרף דוח'
                 });
                 if (!_proceedNoReport) {
+                    // המשתמשת בחרה לחזור ולצרף — משחזרים את הטקסט ומדליקים מחדש את כפתור השליחה
                     var _si = document.getElementById('chat-input');
-                    if (_si && !_si.value) _si.value = question;
+                    if (_si && !_si.value) { _si.value = question; _si.style.height = 'auto'; }
+                    if (typeof updateSendButtonState === 'function') updateSendButtonState();
+                    else { var _sb = document.querySelector('#chat-form button[type="submit"]'); if (_sb) _sb.disabled = false; }
                     return;
                 }
             }
