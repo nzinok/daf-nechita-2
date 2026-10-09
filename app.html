@@ -7368,13 +7368,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (part === 'holland') {
                         try {
                             var _normH = function (x) { return String(x || '').toUpperCase().replace(/[^RIASEC]/g, ''); };
+                            var _hMapA = { 'R': 'ריאליסטי', 'I': 'חקרני', 'A': 'אמנותי', 'S': 'חברתי', 'E': 'יזמי', 'C': 'שיטתי' };
+                            var _fmtA = function (code) { var n = code.split('').map(function (l) { return _hMapA[l]; }).filter(Boolean).join(', '); return code + (n ? ' — ' + n : ''); };
                             var _newCode = _normH(newHolland);
                             var _briefObj = (examinee.rawData && examinee.rawData['תדריך נבחנת']) || (typeof currentExaminee !== 'undefined' && currentExaminee && currentExaminee.rawData && currentExaminee.rawData['תדריך נבחנת']) || null;
                             var _briefCode = _normH(_briefObj && _briefObj.holland);
                             if (_newCode && _briefCode && _newCode !== _briefCode && typeof appConfirm === 'function') {
                                 appConfirm({
                                     title: 'שים לב — אי-התאמה בקוד הולנד',
-                                    message: 'האבחנה החדשה (' + _newCode + ') שונה מקוד ההולנד שבתדריך (' + _briefCode + '), שהופק מהדוח. הדוח והתדריך הקיימים עדיין על הקוד הקודם ולא יתעדכנו אוטומטית — כדי שהכל יהיה עקבי, הפק אותם מחדש.',
+                                    message: 'האבחנה החדשה (' + _fmtA(_newCode) + ') שונה מקוד ההולנד שבתדריך (' + _fmtA(_briefCode) + '), שהופק מהדוח. הדוח והתדריך הקיימים עדיין על הקוד הקודם ולא יתעדכנו אוטומטית — כדי שהכל יהיה עקבי, הפק אותם מחדש.',
                                     icon: 'alert-triangle',
                                     okText: 'הבנתי',
                                     cancelText: 'סגור'
@@ -7487,7 +7489,27 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             title.innerHTML = '<i data-lucide="brain-circuit" class="ml-3 text-blue-500"></i>הפקת דוח אבחון (תלמידה)';
         }
-        
+
+        // ✨ באנר שקיפות: כשיש אבחנת קוד הולנד — הדוח ייקבע לפיה (רק דוח תלמידה/מנהלת)
+        try {
+            var _oldNote = document.getElementById('nz-holland-anchor-note');
+            if (_oldNote) _oldNote.remove();
+            if (reportMode === 'student' || reportMode === 'principal') {
+                var _hMap = { 'R': 'ריאליסטי', 'I': 'חקרני', 'A': 'אמנותי', 'S': 'חברתי', 'E': 'יזמי', 'C': 'שיטתי' };
+                var _hCode = String((examinee.rawData && examinee.rawData['קוד הולנד סופי']) || '').toUpperCase().replace(/[^RIASEC]/g, '');
+                if (_hCode) {
+                    var _hNames = _hCode.split('').map(function (l) { return _hMap[l]; }).filter(Boolean).join(', ');
+                    var _note = document.createElement('div');
+                    _note.id = 'nz-holland-anchor-note';
+                    _note.style.cssText = 'margin-top:12px;background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:10px 13px;font-size:12.5px;line-height:1.55;color:#3730a3;display:flex;align-items:flex-start;gap:8px;';
+                    _note.innerHTML = '<i data-lucide="target" style="width:16px;height:16px;flex:none;margin-top:1px;"></i>' +
+                        '<span>קוד ההולנד בדוח ייקבע לפי האבחנה שבתיק: <b>' + _hCode + (_hNames ? ' — ' + _hNames : '') + '</b>. לשינוי — עדכני את האבחנה לפני ההפקה.</span>';
+                    var _tEl = aiModal.querySelector('h3');
+                    if (_tEl && _tEl.parentNode) { _tEl.parentNode.insertBefore(_note, _tEl.nextSibling); if (typeof lucide !== 'undefined') lucide.createIcons(); }
+                }
+            }
+        } catch (e) {}
+
         // --- ✨ סינון הנחיות לפי סוג הדוח ✨ ---
         promptsSelect.innerHTML = '<option value="-1">-- בחר הנחיה שמורה --</option>';
         let firstValidIndex = -1;
