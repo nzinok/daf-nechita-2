@@ -395,11 +395,19 @@
         </div>
     </div>
     <div id="refine-modal" class="modal-overlay hidden">
-        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-4xl transform transition-all" dir="rtl">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-6xl max-h-[94vh] overflow-y-auto transform transition-all" dir="rtl">
             <div class="flex justify-between items-center border-b pb-3 mb-4"><h3 class="text-2xl font-bold text-gray-800 flex items-center"><i data-lucide="filter" class="ml-3 text-indigo-500"></i>מיקוד ודיוק הדוח</h3><button id="close-refine-modal-btn" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button></div>
             <form id="refine-form">
-                <div class="mb-4"><label class="block font-semibold mb-1">הדוח הנוכחי (לקריאה בלבד):</label><textarea id="current-report-display" rows="10" class="w-full p-2 border rounded-md text-sm bg-gray-100" readonly></textarea></div>
-                <div class="mb-4"><label for="refinement-prompt-input" class="block font-semibold mb-1">מה תרצה למקד, לשנות או להוסיף?</label><textarea id="refinement-prompt-input" rows="5" class="w-full p-2 border rounded-md text-sm" placeholder="לדוגמה: הרחב בבקשה על יכולות ניהול הצוות של הנבחן/ת, או התמקד יותר בתחום השיווקי." required></textarea></div>
+                <textarea id="current-report-display" class="hidden" readonly></textarea>
+                <div class="mb-4">
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block font-semibold">הדוח הנוכחי — לחצי על פסקה למיקוד, או על הרווח שביניהן ל➕ הוספה:</label>
+                        <span id="refine-marks-count" class="text-xs font-bold text-indigo-600"></span>
+                    </div>
+                    <div id="refine-report-view" class="w-full p-4 border rounded-md bg-white text-[15px] leading-7 text-gray-800 max-h-[46vh] overflow-y-auto custom-scrollbar" dir="rtl"></div>
+                    <div id="refine-marks-summary" class="mt-2"></div>
+                </div>
+                <div class="mb-4"><label for="refinement-prompt-input" class="block font-semibold mb-1">הוראה כללית (משפיעה על כל הדוח) — או השאירי ריק ומקדי פסקאות למעלה:</label><textarea id="refinement-prompt-input" rows="3" class="w-full p-2 border rounded-md text-sm" placeholder="לדוגמה: שני את הסגנון מגוף ראשון לגוף שלישי, או: בפסקת החוזקות הוסיפי ציטוטים."></textarea></div>
                 <div class="mb-4">
                     <label class="flex items-start gap-2 cursor-pointer">
                         <input type="checkbox" id="refine-include-data" class="w-4 h-4 mt-1">
@@ -1385,13 +1393,15 @@
     },
 
     // ===== מיקוד דוח (refine) =====
-    refineReportFromServer: async function (sessionId, examineeId, examineeName, previousReport, refinementInstruction, reportMode, extraDataContext, extraDataMeta) {
+    refineReportFromServer: async function (sessionId, examineeId, examineeName, previousReport, refinementInstruction, reportMode, extraDataContext, extraDataMeta, refineItems) {
       try {
         var isPrincipal = (reportMode === 'principal' || reportMode === 'manager' || reportMode === 'מנהלת');
         // הנחיה מדויקת (מהמערכת המקורית): להחזיר את הדוח המלא בלבד, בלי הקדמות/הערות
         // ✨ קוד הולנד מחייב מאבחנת היועצת — כדי שגם המיקוד לא יסטה ממנו
         var _hcR = '';
         try { var _hq = await supa.from('examinees').select('holland_code, raw_data').eq('id', examineeId).maybeSingle(); if (_hq.data) _hcR = String(_hq.data.holland_code || (_hq.data.raw_data && _hq.data.raw_data['קוד הולנד סופי']) || '').trim(); } catch (he) {}
+        var _tb = '';
+        try { if (Array.isArray(refineItems) && refineItems.length) { _tb = '--- הוראות ממוקדות (בצע אך ורק במקומות המצוינים; כל שאר הדוח — מילה-במילה כפי שהוא) ---\n' + refineItems.map(function (it) { return it.promptLine; }).join('\n') + '\n--------------------------------------------------\n\n'; } } catch (e) {}
         var refineParts = [{ text:
           'Please act as a professional diagnostician.\n' +
           'Below is an existing diagnostic report. Refine it based on the user\'s instruction.\n' +
@@ -1400,7 +1410,8 @@
           'חוק ברזל: שנה אך ורק את מה שההוראה מבקשת במפורש. כל שאר חלקי הדוח — השאר אותם מילה-במילה כפי שהם, בלי לנסח מחדש, לקצר או לשנות מבנה.\n\n' +
           (_hcR ? ('קוד הולנד מחייב: קוד ההולנד של הנבחנת הוא ' + _hcR + '. זהו קוד סופי ומחייב — שמור עליו לכל אורך הדוח ואל תשנה אותו לקוד אחר.\n\n') : '') +
           (extraDataContext ? ('--- נתוני הנבחנת (רקע, לשימוש רק אם ההוראה דורשת ביסוס על הנתונים) ---\n' + extraDataContext + 'השתמש בנתונים אלה אך ורק אם ההוראה דורשת זאת (למשל הוספת מקצוע מבוסס-נתונים), ותמיד תוך שמירה על שאר הדוח כפי שהוא.\n\n') : '') +
-          "USER'S INSTRUCTION:\n---\n" + (refinementInstruction || '') + '\n---\n\n' +
+          _tb +
+          "USER'S INSTRUCTION:\n---\n" + (refinementInstruction || '(בצע את ההוראות הממוקדות המפורטות למעלה)') + '\n---\n\n' +
           'ORIGINAL REPORT:\n---\n' + (previousReport || '') + '\n---'
         }];
 
@@ -1444,7 +1455,7 @@
           prevMeta.events = [{ t: 'gen', at: (prevMeta.generatedAt || _refNow), promptName: (prevMeta.promptName || ''), promptText: (prevMeta.promptText || ''), isProtected: !!prevMeta.isProtected, sources: (Array.isArray(prevMeta.sources) ? prevMeta.sources : []) }];
         }
         // אירוע מיקוד — צורת הזנה גמישה (text כעת; items לפסקאות בעתיד) + ציון אם בוסס על נתונים
-        prevMeta.events.push({ t: 'refine', at: _refNow, instruction: { text: refinementInstruction || '' }, data: { included: !!(typeof extraDataContext !== 'undefined' && extraDataContext && String(extraDataContext).trim()), sources: (Array.isArray(extraDataMeta) ? extraDataMeta : []) } });
+        prevMeta.events.push({ t: 'refine', at: _refNow, instruction: { text: refinementInstruction || '', items: (Array.isArray(refineItems) ? refineItems.map(function (it) { return { op: it.op, quote: (it.quote != null ? it.quote : null), after: (it.after != null ? it.after : null), instruction: it.instruction }; }) : []) }, data: { included: !!(typeof extraDataContext !== 'undefined' && extraDataContext && String(extraDataContext).trim()), sources: (Array.isArray(extraDataMeta) ? extraDataMeta : []) } });
         prevMeta.generatedAt = _refNow;
         prevMeta.refineText = refinementInstruction || '';
         raw[metaKeyR] = prevMeta;
@@ -3919,7 +3930,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         var html = '<details style="margin-top:10px;border-top:1px solid #e5e7eb;padding-top:8px;">' +
             '<summary style="cursor:pointer;font-size:11.5px;font-weight:700;color:#6b7280;list-style:none;display:flex;align-items:center;gap:5px;">ℹ️ פרטי הפקה</summary>' +
-            '<div style="margin-top:7px;">';
+            '<div style="margin-top:7px;max-height:240px;overflow-y:auto;padding-left:4px;">';
 
         if (Array.isArray(m.events) && m.events.length) {
             // ✨ ציר-זמן: הפקה ומיקודים לפי סדר כרונולוגי
@@ -3947,8 +3958,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     var inst = ev.instruction || {};
                     if (Array.isArray(inst.items) && inst.items.length) {
                         html += '<ul style="margin:3px 6px 0 0;padding:0;list-style:none;">' + inst.items.map(function (it) {
-                            var q = it.quote ? ('<span style="color:#94a3b8;">בפסקה "' + esc(String(it.quote).slice(0, 40)) + (String(it.quote).length > 40 ? '…' : '') + '"</span> — ') : '';
-                            return '<li style="font-size:11px;color:#334155;margin-bottom:2px;">• ' + q + esc(it.instruction || '') + '</li>';
+                            var _ic = (it.op === 'insert') ? '➕ ' : '';
+                            var q = (it.op !== 'insert' && it.quote) ? ('<span style="color:#94a3b8;">בפסקה "' + esc(String(it.quote).slice(0, 40)) + (String(it.quote).length > 40 ? '…' : '') + '"</span> — ') : '';
+                            return '<li style="font-size:11px;color:#334155;margin-bottom:2px;">• ' + _ic + q + esc(it.instruction || '') + '</li>';
                         }).join('') + '</ul>';
                     } else if (inst.text && String(inst.text).trim()) {
                         html += '<div style="font-size:11px;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:5px 9px;margin-top:3px;white-space:pre-wrap;">' + esc(inst.text) + '</div>';
@@ -7681,6 +7693,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         refinementPromptInput.value = '';
         refineModal.dataset.examineeId = examinee.id;
+        try { window._nzInitRefineView(currentReportDisplay.value || ''); } catch (e) {}
 
         // ✨ מיקוד מבוסס-נתונים: איפוס ובניית פאנל המקורות
         try {
@@ -7715,6 +7728,156 @@ document.addEventListener('DOMContentLoaded', function() {
         refineModal.classList.remove('hidden');
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
+
+    // ===== מיקוד ממוקד: רינדור אינטראקטיבי של הדוח בחלון המיקוד =====
+    var _nzRefineLines = [];
+    var _nzRefineMarks = [];   // {id, op:'edit'|'insert', idx, text}
+    var _nzMarkSeq = 0;
+    window._nzEscHtml = function (t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
+    window._nzInlineMd = function (e) {
+        return e.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+?)\*/g, '<em>$1</em>');
+    };
+    window._nzFmtLine = function (raw) {
+        var e = window._nzEscHtml(raw);
+        var trimmed = e.trim();
+        var mHead = trimmed.match(/^\*\*(.+)\*\*$/);
+        if (mHead) {
+            var inner = mHead[1];
+            var sz = /^\s*\d+[\.\)]/.test(inner) ? '16px' : '14.5px';
+            return '<span style="font-weight:800;color:#1e293b;font-size:' + sz + ';">' + window._nzInlineMd(inner) + '</span>';
+        }
+        var mBul = e.match(/^(\s*)\*\s+(.*)$/);
+        if (mBul) {
+            return '<span style="display:inline-block;"><span style="color:#6366f1;font-weight:700;">• </span>' + window._nzInlineMd(mBul[2]) + '</span>';
+        }
+        return window._nzInlineMd(e);
+    };
+    window._nzFindMark = function (op, idx) { for (var i = 0; i < _nzRefineMarks.length; i++) { if (_nzRefineMarks[i].op === op && _nzRefineMarks[i].idx === idx) return _nzRefineMarks[i]; } return null; };
+    window._nzInsertSlotHtml = function (afterIdx) {
+        var im = window._nzFindMark('insert', afterIdx);
+        if (im) {
+            return '<div style="background:#ecfdf5;border:1px dashed #6ee7b7;border-radius:6px;padding:4px 8px;margin:4px 0;font-size:12px;color:#065f46;display:flex;align-items:center;gap:6px;">➕ תוכן חדש: <span style="flex:1;">' + window._nzEscHtml(im.text) + '</span><button type="button" class="nz-mark-del" data-mid="' + im.id + '" style="background:none;border:none;color:#b91c1c;font-weight:800;cursor:pointer;font-size:15px;">×</button></div>';
+        }
+        return '<div class="nz-insert" data-after="' + afterIdx + '" style="height:7px;margin:1px 0;border-radius:4px;cursor:pointer;" title="הוספת תוכן כאן"></div>';
+    };
+    window._nzRenderRefineView = function () {
+        var box = document.getElementById('refine-report-view');
+        if (!box) return;
+        var lines = _nzRefineLines;
+        var html = window._nzInsertSlotHtml(-1);
+        for (var i = 0; i < lines.length; i++) {
+            var raw = lines[i];
+            if (String(raw).trim() === '') { continue; }
+            var em = window._nzFindMark('edit', i);
+            var hl = em ? 'background:#fef9c3;border-right:3px solid #eab308;' : '';
+            html += '<div class="nz-seg" data-idx="' + i + '" style="padding:3px 6px;border-radius:5px;cursor:pointer;margin:1px 0;' + hl + '" title="לחצי למיקוד פסקה זו">' + window._nzFmtLine(raw) + '</div>';
+            if (em) {
+                html += '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:4px 8px;margin:2px 0 6px;font-size:12px;color:#92400e;display:flex;align-items:center;gap:6px;">✏️ <span style="flex:1;">' + window._nzEscHtml(em.text) + '</span><button type="button" class="nz-mark-del" data-mid="' + em.id + '" style="background:none;border:none;color:#b91c1c;font-weight:800;cursor:pointer;font-size:15px;line-height:1;">×</button></div>';
+            }
+            html += window._nzInsertSlotHtml(i);
+        }
+        box.innerHTML = html;
+        var cnt = _nzRefineMarks.length;
+        var cEl = document.getElementById('refine-marks-count');
+        if (cEl) cEl.textContent = cnt ? (cnt + ' הערות ממוקדות') : '';
+        var sEl = document.getElementById('refine-marks-summary');
+        if (sEl) {
+            if (!cnt) { sEl.innerHTML = ''; }
+            else {
+                sEl.innerHTML = '<div style="font-size:11px;color:#64748b;margin-bottom:3px;">הערות ממוקדות שייכללו במיקוד:</div>' + _nzRefineMarks.map(function (mk) {
+                    var ic = mk.op === 'insert' ? '➕' : '✏️';
+                    return '<span style="display:inline-flex;align-items:center;gap:5px;background:#eef2ff;color:#3730a3;border-radius:999px;padding:3px 10px;font-size:11.5px;margin:0 0 5px 5px;">' + ic + ' ' + window._nzEscHtml(mk.text.slice(0, 40)) + (mk.text.length > 40 ? '…' : '') + '<button type="button" class="nz-mark-del" data-mid="' + mk.id + '" style="background:none;border:none;color:#b91c1c;font-weight:800;cursor:pointer;">×</button></span>';
+                }).join('');
+            }
+        }
+    };
+    window._nzOpenMarkEditor = function (op, idx, anchorEl) {
+        var prev = document.getElementById('nz-mark-editor');
+        if (prev) prev.remove();
+        var existing = window._nzFindMark(op, idx);
+        var wrap = document.createElement('div');
+        wrap.id = 'nz-mark-editor';
+        wrap.style.cssText = 'background:#fff;border:2px solid #6366f1;border-radius:8px;padding:8px;margin:4px 0;box-shadow:0 4px 12px rgba(0,0,0,0.08);';
+        var ph = op === 'insert' ? 'מה להוסיף כאן? (למשל: פסקה על פוטנציאל ניהולי)' : 'מה לשנות בפסקה זו? (למשל: רכך את הניסוח)';
+        wrap.innerHTML = '<textarea id="nz-mark-input" rows="2" class="w-full p-2 border rounded text-sm" placeholder="' + ph + '"></textarea>' +
+            '<div style="display:flex;gap:6px;margin-top:6px;justify-content:flex-start;">' +
+            '<button type="button" id="nz-mark-save" class="bg-indigo-600 text-white px-4 py-1 rounded text-sm font-bold">שמור</button>' +
+            '<button type="button" id="nz-mark-cancel" class="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm">ביטול</button>' +
+            (existing ? '<button type="button" id="nz-mark-remove" class="bg-red-50 text-red-700 px-3 py-1 rounded text-sm">מחק</button>' : '') +
+            '</div>';
+        anchorEl.insertAdjacentElement('afterend', wrap);
+        var inp = document.getElementById('nz-mark-input');
+        if (inp) { inp.value = existing ? existing.text : ''; inp.focus(); }
+        var saveBtn = document.getElementById('nz-mark-save');
+        if (saveBtn) saveBtn.onclick = function () {
+            var v = ((document.getElementById('nz-mark-input') || {}).value || '').trim();
+            if (!v) { wrap.remove(); return; }
+            if (existing) { existing.text = v; }
+            else { _nzRefineMarks.push({ id: 'm' + (++_nzMarkSeq), op: op, idx: idx, text: v }); }
+            window._nzRenderRefineView();
+        };
+        var cancelBtn = document.getElementById('nz-mark-cancel');
+        if (cancelBtn) cancelBtn.onclick = function () { wrap.remove(); };
+        var remBtn = document.getElementById('nz-mark-remove');
+        if (remBtn) remBtn.onclick = function () { _nzRefineMarks = _nzRefineMarks.filter(function (m) { return m.id !== existing.id; }); window._nzRenderRefineView(); };
+    };
+    window._nzInitRefineView = function (text) {
+        _nzRefineLines = String(text == null ? '' : text).split('\n');
+        _nzRefineMarks = [];
+        _nzMarkSeq = 0;
+        window._nzRenderRefineView();
+        var box = document.getElementById('refine-report-view');
+        if (box && !box.dataset.bound) {
+            box.dataset.bound = '1';
+            box.addEventListener('click', function (ev) {
+                var del = ev.target.closest('.nz-mark-del');
+                if (del) { var mid = del.getAttribute('data-mid'); _nzRefineMarks = _nzRefineMarks.filter(function (m) { return m.id !== mid; }); window._nzRenderRefineView(); return; }
+                var ins = ev.target.closest('.nz-insert');
+                if (ins) { window._nzOpenMarkEditor('insert', parseInt(ins.getAttribute('data-after'), 10), ins); return; }
+                var seg = ev.target.closest('.nz-seg');
+                if (seg) { window._nzOpenMarkEditor('edit', parseInt(seg.getAttribute('data-idx'), 10), seg); return; }
+            });
+            box.addEventListener('mouseover', function (ev) {
+                var sg = ev.target.closest('.nz-seg');
+                if (sg && !window._nzFindMark('edit', parseInt(sg.getAttribute('data-idx'), 10))) sg.style.background = '#eef2ff';
+                var ins = ev.target.closest('.nz-insert'); if (ins) ins.style.background = '#d1fae5';
+            });
+            box.addEventListener('mouseout', function (ev) {
+                var sg = ev.target.closest('.nz-seg');
+                if (sg && !window._nzFindMark('edit', parseInt(sg.getAttribute('data-idx'), 10))) sg.style.background = '';
+                var ins = ev.target.closest('.nz-insert'); if (ins) ins.style.background = '';
+            });
+        }
+        var sum = document.getElementById('refine-marks-summary');
+        if (sum && !sum.dataset.bound) {
+            sum.dataset.bound = '1';
+            sum.addEventListener('click', function (ev) {
+                var del = ev.target.closest('.nz-mark-del');
+                if (del) { var mid = del.getAttribute('data-mid'); _nzRefineMarks = _nzRefineMarks.filter(function (m) { return m.id !== mid; }); window._nzRenderRefineView(); }
+            });
+        }
+    };
+    window._nzCollectRefineItems = function () {
+        var lines = _nzRefineLines;
+        function countEq(t) { var c = 0; for (var i = 0; i < lines.length; i++) { if (lines[i] === t) c++; } return c; }
+        function prevNonEmpty(idx) { for (var i = idx - 1; i >= 0; i--) { if (String(lines[i]).trim() !== '') return lines[i]; } return ''; }
+        var marks = _nzRefineMarks.slice().sort(function (a, b) { return a.idx - b.idx; });
+        return marks.map(function (mk) {
+            if (mk.op === 'insert') {
+                var afterLine = mk.idx < 0 ? '' : lines[mk.idx];
+                var pl = (mk.idx < 0 || !afterLine || !String(afterLine).trim())
+                    ? ('• הוסף תוכן חדש בתחילת הדוח: ' + mk.text)
+                    : ('• הוסף תוכן חדש אחרי השורה "' + afterLine + '": ' + mk.text);
+                return { op: 'insert', after: (mk.idx < 0 ? 'start' : afterLine), instruction: mk.text, promptLine: pl };
+            } else {
+                var q = lines[mk.idx] || '';
+                var ctx = '';
+                if (countEq(q) > 1) { var pv = prevNonEmpty(mk.idx); if (pv) ctx = ' (שבא אחרי "' + pv + '")'; }
+                var pl = '• בפסקה' + ctx + ': "' + q + '" — בצע: ' + mk.text;
+                return { op: 'edit', quote: q, instruction: mk.text, promptLine: pl };
+            }
+        });
+    };
 
     function renderClientManagementView() {
         var searchTerm = searchInput.value.toLowerCase();
@@ -8689,8 +8852,10 @@ function attachEventListeners() {
         
         var previousReport = currentReportDisplay.value;
         var refinementInstruction = refinementPromptInput.value;
-        if (!previousReport || !refinementInstruction) {
-            showToast("שגיאה: יש למלא את כל השדות.");
+        var _refineItems = [];
+        try { _refineItems = (typeof window._nzCollectRefineItems === 'function') ? window._nzCollectRefineItems() : []; } catch (e) { _refineItems = []; }
+        if (!previousReport || (!refinementInstruction && !_refineItems.length)) {
+            showToast("שגיאה: כתבי הוראה כללית, או מקדי לפחות פסקה אחת בדוח.");
             return;
         }
 
@@ -8920,7 +9085,8 @@ function attachEventListeners() {
                     refinementInstruction,
                     reportMode,
                     _extraDataContext,
-                    _extraDataMeta
+                    _extraDataMeta,
+                    _refineItems
                 );
                 
         } catch (error) {
