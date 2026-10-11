@@ -1265,7 +1265,10 @@
         // פרטי הפקה — מה נכלל (מקורות שהיועצת בחרה) + תאריך. לתצוגה בממשק בלבד, לא בתוצר הנשלח.
         var metaKey = isPrincipal ? 'פרטי הפקה - דוח מנהלת' : 'פרטי הפקה - דוח תלמידה';
         var _ec = extraConfig || {};
-        raw[metaKey] = { generatedAt: new Date().toISOString(), sources: (Array.isArray(sourceNames) ? sourceNames : []), reportType: (reportType || ''), promptName: (_ec.promptName || ''), promptText: (_ec.promptText || ''), isProtected: !!_ec.isProtected };
+        var _genNow = new Date().toISOString();
+        var _genSources = (Array.isArray(sourceNames) ? sourceNames : []);
+        raw[metaKey] = { generatedAt: _genNow, sources: _genSources, reportType: (reportType || ''), promptName: (_ec.promptName || ''), promptText: (_ec.promptText || ''), isProtected: !!_ec.isProtected,
+          events: [{ t: 'gen', at: _genNow, promptName: (_ec.promptName || ''), promptText: (_ec.promptText || ''), isProtected: !!_ec.isProtected, sources: _genSources }] };
         var patch = { raw_data: raw };  // הטוקנים מתעדכנים בשרת
         patch[col] = reportText;
         var upd = await supa.from('examinees').update(patch).eq('id', examineeId);
@@ -1382,7 +1385,7 @@
     },
 
     // ===== מיקוד דוח (refine) =====
-    refineReportFromServer: async function (sessionId, examineeId, examineeName, previousReport, refinementInstruction, reportMode, extraDataContext) {
+    refineReportFromServer: async function (sessionId, examineeId, examineeName, previousReport, refinementInstruction, reportMode, extraDataContext, extraDataMeta) {
       try {
         var isPrincipal = (reportMode === 'principal' || reportMode === 'manager' || reportMode === 'מנהלת');
         // הנחיה מדויקת (מהמערכת המקורית): להחזיר את הדוח המלא בלבד, בלי הקדמות/הערות
@@ -1435,7 +1438,14 @@
         // עדכון פרטי הפקה — שומרים את המקורות המקוריים ומוסיפים את טקסט המיקוד + תאריך
         var metaKeyR = isPrincipal ? 'פרטי הפקה - דוח מנהלת' : 'פרטי הפקה - דוח תלמידה';
         var prevMeta = (raw[metaKeyR] && typeof raw[metaKeyR] === 'object') ? raw[metaKeyR] : {};
-        prevMeta.generatedAt = new Date().toISOString();
+        var _refNow = new Date().toISOString();
+        // יומן אירועים: דוח ישן ללא יומן — נזרע אירוע הפקה מהשדות הקיימים
+        if (!Array.isArray(prevMeta.events)) {
+          prevMeta.events = [{ t: 'gen', at: (prevMeta.generatedAt || _refNow), promptName: (prevMeta.promptName || ''), promptText: (prevMeta.promptText || ''), isProtected: !!prevMeta.isProtected, sources: (Array.isArray(prevMeta.sources) ? prevMeta.sources : []) }];
+        }
+        // אירוע מיקוד — צורת הזנה גמישה (text כעת; items לפסקאות בעתיד) + ציון אם בוסס על נתונים
+        prevMeta.events.push({ t: 'refine', at: _refNow, instruction: { text: refinementInstruction || '' }, data: { included: !!(typeof extraDataContext !== 'undefined' && extraDataContext && String(extraDataContext).trim()), sources: (Array.isArray(extraDataMeta) ? extraDataMeta : []) } });
+        prevMeta.generatedAt = _refNow;
         prevMeta.refineText = refinementInstruction || '';
         raw[metaKeyR] = prevMeta;
         var patch = { raw_data: raw };  // הטוקנים מתעדכנים בשרת
@@ -3900,27 +3910,70 @@ document.addEventListener('DOMContentLoaded', function() {
         var dt = '';
         try { if (m.generatedAt) dt = new Date(m.generatedAt).toLocaleString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) {}
         var srcMap = { 'שאלון': '📋 שאלון', 'נתוני דוח תיל': '📊 נתוני תיל', 'דוח תלמידה רשמי': '📄 דוח תלמידה', 'דוח מנהלת רשמי': '📄 דוח מנהלת', 'דוח תיל (חסוי)': '🔒 דוח תיל (חסוי)' };
-        var sources = (Array.isArray(m.sources) ? m.sources : []);
-        var chips = sources.map(function (sname) {
-            var label = srcMap[sname] || ('📎 ' + sname);
-            return '<span style="display:inline-block;background:#eef2ff;color:#3730a3;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:600;margin:0 0 5px 5px;">' + esc(label) + '</span>';
-        }).join('');
+        var fmtDate = function (iso) { try { return iso ? new Date(iso).toLocaleString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''; } catch (e) { return ''; } };
+        var chipHtml = function (arr) {
+            return (Array.isArray(arr) ? arr : []).map(function (sname) {
+                var label = srcMap[sname] || ('📎 ' + sname);
+                return '<span style="display:inline-block;background:#eef2ff;color:#3730a3;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:600;margin:0 0 5px 5px;">' + esc(label) + '</span>';
+            }).join('');
+        };
         var html = '<details style="margin-top:10px;border-top:1px solid #e5e7eb;padding-top:8px;">' +
             '<summary style="cursor:pointer;font-size:11.5px;font-weight:700;color:#6b7280;list-style:none;display:flex;align-items:center;gap:5px;">ℹ️ פרטי הפקה</summary>' +
             '<div style="margin-top:7px;">';
-        if (dt) html += '<div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">הופק ב-' + esc(dt) + '</div>';
-        html += '<div style="font-size:11px;font-weight:700;color:#475569;margin-bottom:4px;">נכלל בהפקה:</div>';
-        html += chips ? ('<div>' + chips + '</div>') : '<div style="font-size:11px;color:#94a3b8;">—</div>';
-        // ההנחיה ששימשה: מוגנת → שם בלבד (התוכן בניהול); פרטית → הטקסט המלא
-        if (m.promptName) {
-            html += '<div style="font-size:11px;font-weight:700;color:#475569;margin:8px 0 3px;">הנחיה ששימשה:</div>';
-            html += '<div style="font-size:11.5px;color:#334155;">' + esc(m.promptName) + (m.isProtected ? ' <span style="color:#94a3b8;font-size:10.5px;">(הנחיית מערכת — התוכן בניהול ← הנחיות)</span>' : '') + '</div>';
-            if (m.promptText && String(m.promptText).trim()) {
-                html += '<details style="margin-top:4px;"><summary style="cursor:pointer;font-size:11px;color:#6366f1;">הצג את תוכן ההנחיה</summary><div style="font-size:11px;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:6px 9px;margin-top:3px;white-space:pre-wrap;max-height:220px;overflow-y:auto;">' + esc(m.promptText) + '</div></details>';
+
+        if (Array.isArray(m.events) && m.events.length) {
+            // ✨ ציר-זמן: הפקה ומיקודים לפי סדר כרונולוגי
+            html += '<div style="position:relative;padding-right:14px;border-right:2px solid #e0e7ff;">';
+            m.events.forEach(function (ev, idx) {
+                var isGen = (ev.t === 'gen');
+                var evDt = fmtDate(ev.at);
+                var dot = isGen ? '#4f46e5' : '#10b981';
+                html += '<div style="position:relative;margin-bottom:' + (idx === m.events.length - 1 ? '0' : '12px') + ';">';
+                html += '<span style="position:absolute;right:-21px;top:3px;width:9px;height:9px;border-radius:50%;background:' + dot + ';border:2px solid #fff;box-shadow:0 0 0 1px ' + dot + ';"></span>';
+                if (isGen) {
+                    html += '<div style="font-size:11.5px;font-weight:700;color:#3730a3;">📄 הדוח הופק' + (evDt ? ' ב-' + esc(evDt) : '') + '</div>';
+                    if (ev.promptName) {
+                        html += '<div style="font-size:11px;color:#475569;margin-top:2px;">לפי הנחיה: <span style="font-weight:600;">' + esc(ev.promptName) + '</span>' + (ev.isProtected ? ' <span style="color:#94a3b8;font-size:10.5px;">(הנחיית מערכת)</span>' : '') + '</div>';
+                        if (ev.promptText && String(ev.promptText).trim()) {
+                            html += '<details style="margin-top:3px;"><summary style="cursor:pointer;font-size:10.5px;color:#6366f1;">הצג את תוכן ההנחיה</summary><div style="font-size:11px;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:6px 9px;margin-top:3px;white-space:pre-wrap;max-height:220px;overflow-y:auto;">' + esc(ev.promptText) + '</div></details>';
+                        }
+                    }
+                    if (Array.isArray(ev.sources) && ev.sources.length) {
+                        html += '<div style="margin-top:4px;">' + chipHtml(ev.sources) + '</div>';
+                    }
+                } else {
+                    var dataChip = (ev.data && ev.data.included) ? (' <span style="background:#eef2ff;color:#4338ca;border-radius:999px;padding:1px 8px;font-size:10px;font-weight:700;">🔎 מבוסס-נתונים' + ((ev.data.sources && ev.data.sources.length) ? ' (' + ev.data.sources.map(function (x) { return esc(x); }).join(', ') + ')' : '') + '</span>') : '';
+                    html += '<div style="font-size:11.5px;font-weight:700;color:#065f46;">✏️ בוצע מיקוד' + (evDt ? ' ב-' + esc(evDt) : '') + dataChip + '</div>';
+                    var inst = ev.instruction || {};
+                    if (Array.isArray(inst.items) && inst.items.length) {
+                        html += '<ul style="margin:3px 6px 0 0;padding:0;list-style:none;">' + inst.items.map(function (it) {
+                            var q = it.quote ? ('<span style="color:#94a3b8;">בפסקה "' + esc(String(it.quote).slice(0, 40)) + (String(it.quote).length > 40 ? '…' : '') + '"</span> — ') : '';
+                            return '<li style="font-size:11px;color:#334155;margin-bottom:2px;">• ' + q + esc(it.instruction || '') + '</li>';
+                        }).join('') + '</ul>';
+                    } else if (inst.text && String(inst.text).trim()) {
+                        html += '<div style="font-size:11px;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:5px 9px;margin-top:3px;white-space:pre-wrap;">' + esc(inst.text) + '</div>';
+                    }
+                }
+                html += '</div>';
+            });
+            html += '</div>';
+        } else {
+            // תאימות לאחור — דוחות שאין להם עדיין יומן אירועים
+            var dt0 = fmtDate(m.generatedAt);
+            if (dt0) html += '<div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">הופק ב-' + esc(dt0) + '</div>';
+            html += '<div style="font-size:11px;font-weight:700;color:#475569;margin-bottom:4px;">נכלל בהפקה:</div>';
+            var chips0 = chipHtml(m.sources);
+            html += chips0 ? ('<div>' + chips0 + '</div>') : '<div style="font-size:11px;color:#94a3b8;">—</div>';
+            if (m.promptName) {
+                html += '<div style="font-size:11px;font-weight:700;color:#475569;margin:8px 0 3px;">הנחיה ששימשה:</div>';
+                html += '<div style="font-size:11.5px;color:#334155;">' + esc(m.promptName) + (m.isProtected ? ' <span style="color:#94a3b8;font-size:10.5px;">(הנחיית מערכת — התוכן בניהול ← הנחיות)</span>' : '') + '</div>';
+                if (m.promptText && String(m.promptText).trim()) {
+                    html += '<details style="margin-top:4px;"><summary style="cursor:pointer;font-size:11px;color:#6366f1;">הצג את תוכן ההנחיה</summary><div style="font-size:11px;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:6px 9px;margin-top:3px;white-space:pre-wrap;max-height:220px;overflow-y:auto;">' + esc(m.promptText) + '</div></details>';
+                }
             }
-        }
-        if (m.refineText && String(m.refineText).trim()) {
-            html += '<div style="font-size:11px;font-weight:700;color:#475569;margin:8px 0 3px;">מיקוד שביקשת:</div><div style="font-size:11.5px;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:6px 9px;white-space:pre-wrap;">' + esc(m.refineText) + '</div>';
+            if (m.refineText && String(m.refineText).trim()) {
+                html += '<div style="font-size:11px;font-weight:700;color:#475569;margin:8px 0 3px;">מיקוד שביקשת:</div><div style="font-size:11.5px;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:6px 9px;white-space:pre-wrap;">' + esc(m.refineText) + '</div>';
+            }
         }
         html += '</div></details>';
         return html;
@@ -8643,6 +8696,7 @@ function attachEventListeners() {
 
         // ✨ מיקוד מבוסס-נתונים: בניית הקשר הנתונים מהמקורות שנבחרו
         var _extraDataContext = '';
+        var _extraDataMeta = [];
         try {
             if ((document.getElementById('refine-include-data') || {}).checked) {
                 var _nt = (examinee.rawData && examinee.rawData['הערות']) || '';
@@ -8650,6 +8704,7 @@ function attachEventListeners() {
                 if ((document.getElementById('refine-src-questionnaire') || {}).checked && Array.isArray(examinee.answers)) {
                     var _ansTxt = examinee.answers.filter(function (g) { return g && !g.isConfidential; }).map(function (g) { return (g.question ? g.question + ':\n' : '') + (g.answers || []).map(function (a) { return '- ' + a; }).join('\n'); }).join('\n\n');
                     if (_ansTxt) _extraDataContext += '--- תשובות לשאלון ---\n' + _ansTxt + '\n\n';
+                    _extraDataMeta.push('שאלון');
                 }
                 if ((document.getElementById('refine-src-til') || {}).checked && examinee.rawData && examinee.rawData['נתוני דוח תיל']) {
                     try {
@@ -8658,10 +8713,11 @@ function attachEventListeners() {
                         var _tilTxt = (typeof _nzFormatTilDataAsText === 'function') ? _nzFormatTilDataAsText(_tilObj) : '';
                         if (_tilTxt) _extraDataContext += _tilTxt + '\n\n';
                     } catch (e) {}
+                    _extraDataMeta.push('תיל');
                 }
                 Array.prototype.forEach.call(document.querySelectorAll('#refine-docs-list input.refine-doc-cb:checked'), function (cb) {
                     var _d = (typeof currentExamineeDocs !== 'undefined' ? currentExamineeDocs : []).find(function (x) { return String(x.rowNumber) === String(cb.value) || x.name === cb.value; });
-                    if (_d && _d.extractedText) _extraDataContext += '--- מסמך: ' + _d.name + ' ---\n' + _d.extractedText + '\n\n';
+                    if (_d && _d.extractedText) { _extraDataContext += '--- מסמך: ' + _d.name + ' ---\n' + _d.extractedText + '\n\n'; _extraDataMeta.push(_d.name); }
                 });
             }
         } catch (e) {}
@@ -8863,7 +8919,8 @@ function attachEventListeners() {
                     previousReport,
                     refinementInstruction,
                     reportMode,
-                    _extraDataContext
+                    _extraDataContext,
+                    _extraDataMeta
                 );
                 
         } catch (error) {
