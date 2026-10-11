@@ -400,6 +400,24 @@
             <form id="refine-form">
                 <div class="mb-4"><label class="block font-semibold mb-1">הדוח הנוכחי (לקריאה בלבד):</label><textarea id="current-report-display" rows="10" class="w-full p-2 border rounded-md text-sm bg-gray-100" readonly></textarea></div>
                 <div class="mb-4"><label for="refinement-prompt-input" class="block font-semibold mb-1">מה תרצה למקד, לשנות או להוסיף?</label><textarea id="refinement-prompt-input" rows="5" class="w-full p-2 border rounded-md text-sm" placeholder="לדוגמה: הרחב בבקשה על יכולות ניהול הצוות של הנבחן/ת, או התמקד יותר בתחום השיווקי." required></textarea></div>
+                <div class="mb-4">
+                    <label class="flex items-start gap-2 cursor-pointer">
+                        <input type="checkbox" id="refine-include-data" class="w-4 h-4 mt-1">
+                        <span class="text-sm">
+                            <span class="font-bold text-indigo-700">🔎 מיקוד מבוסס-נתונים</span>
+                            <span class="block text-xs text-gray-500 mt-0.5">סמני כשהשינוי דורש את נתוני השאלון — למשל להוסיף מקצוע או לשקול מחדש לפי תשובות הנבחנת. ללא סימון, המיקוד מהיר ומטפל רק בניסוח ובטקסט הקיים.</span>
+                        </span>
+                    </label>
+                    <div id="refine-data-panel" class="hidden mt-2 p-3 bg-indigo-50 border border-indigo-100 rounded-lg space-y-2 text-sm">
+                        <div class="text-xs text-gray-600">בחרי אילו מקורות לכלול במיקוד:</div>
+                        <label class="flex items-center gap-2"><input type="checkbox" id="refine-src-questionnaire" class="w-4 h-4" checked> תשובות השאלון</label>
+                        <label id="refine-src-til-wrap" class="flex items-center gap-2 hidden"><input type="checkbox" id="refine-src-til" class="w-4 h-4"> נתוני דוח תיל</label>
+                        <div id="refine-docs-wrap" class="hidden">
+                            <div class="text-xs font-bold text-gray-500 mb-1 mt-1">מסמכי התיק:</div>
+                            <div id="refine-docs-list" class="space-y-1"></div>
+                        </div>
+                    </div>
+                </div>
                 <div class="text-left mt-6"><button type="submit" id="submit-refinement-btn" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 font-bold flex items-center justify-center min-w-[150px] h-[40px]"><span class="button-text">עדכן דוח</span><div class="pulsing-loader hidden"></div></button></div>
             </form>
         </div>
@@ -1364,7 +1382,7 @@
     },
 
     // ===== מיקוד דוח (refine) =====
-    refineReportFromServer: async function (sessionId, examineeId, examineeName, previousReport, refinementInstruction, reportMode) {
+    refineReportFromServer: async function (sessionId, examineeId, examineeName, previousReport, refinementInstruction, reportMode, extraDataContext) {
       try {
         var isPrincipal = (reportMode === 'principal' || reportMode === 'manager' || reportMode === 'מנהלת');
         // הנחיה מדויקת (מהמערכת המקורית): להחזיר את הדוח המלא בלבד, בלי הקדמות/הערות
@@ -1373,10 +1391,12 @@
         try { var _hq = await supa.from('examinees').select('holland_code, raw_data').eq('id', examineeId).maybeSingle(); if (_hq.data) _hcR = String(_hq.data.holland_code || (_hq.data.raw_data && _hq.data.raw_data['קוד הולנד סופי']) || '').trim(); } catch (he) {}
         var refineParts = [{ text:
           'Please act as a professional diagnostician.\n' +
-          'Below is an existing diagnostic report. Your task is to refine it based on the user\'s instruction.\n' +
-          'Do not add commentary, greetings, or any preamble — output ONLY the full, refined report itself.\n' +
+          'Below is an existing diagnostic report. Refine it based on the user\'s instruction.\n' +
+          'Do not add commentary, greetings, or any preamble — output ONLY the full report itself.\n' +
           'Write the report in Hebrew, keeping the original structure and style.\n\n' +
+          'חוק ברזל: שנה אך ורק את מה שההוראה מבקשת במפורש. כל שאר חלקי הדוח — השאר אותם מילה-במילה כפי שהם, בלי לנסח מחדש, לקצר או לשנות מבנה.\n\n' +
           (_hcR ? ('קוד הולנד מחייב: קוד ההולנד של הנבחנת הוא ' + _hcR + '. זהו קוד סופי ומחייב — שמור עליו לכל אורך הדוח ואל תשנה אותו לקוד אחר.\n\n') : '') +
+          (extraDataContext ? ('--- נתוני הנבחנת (רקע, לשימוש רק אם ההוראה דורשת ביסוס על הנתונים) ---\n' + extraDataContext + 'השתמש בנתונים אלה אך ורק אם ההוראה דורשת זאת (למשל הוספת מקצוע מבוסס-נתונים), ותמיד תוך שמירה על שאר הדוח כפי שהוא.\n\n') : '') +
           "USER'S INSTRUCTION:\n---\n" + (refinementInstruction || '') + '\n---\n\n' +
           'ORIGINAL REPORT:\n---\n' + (previousReport || '') + '\n---'
         }];
@@ -7608,6 +7628,37 @@ document.addEventListener('DOMContentLoaded', function() {
         
         refinementPromptInput.value = '';
         refineModal.dataset.examineeId = examinee.id;
+
+        // ✨ מיקוד מבוסס-נתונים: איפוס ובניית פאנל המקורות
+        try {
+            var _incData = document.getElementById('refine-include-data');
+            var _dataPanel = document.getElementById('refine-data-panel');
+            if (_incData) _incData.checked = false;
+            if (_dataPanel) _dataPanel.classList.add('hidden');
+            if (_incData && _dataPanel) _incData.onchange = function () { _dataPanel.classList.toggle('hidden', !_incData.checked); };
+            var _qCb = document.getElementById('refine-src-questionnaire'); if (_qCb) _qCb.checked = true;
+            var _tilWrap = document.getElementById('refine-src-til-wrap');
+            var _tilCb = document.getElementById('refine-src-til');
+            var _hasTil = !!(examinee.rawData && examinee.rawData['נתוני דוח תיל']);
+            if (_tilWrap) _tilWrap.classList.toggle('hidden', !_hasTil);
+            if (_tilCb) _tilCb.checked = false;
+            var _docsWrap = document.getElementById('refine-docs-wrap');
+            var _docsList = document.getElementById('refine-docs-list');
+            if (_docsList) {
+                var _docs = (typeof currentExamineeDocs !== 'undefined' ? currentExamineeDocs : []).filter(function (d) { return d && d.extractedText; });
+                if (_docs.length) {
+                    _docsList.innerHTML = _docs.map(function (d) {
+                        var _val = (d.rowNumber != null ? d.rowNumber : d.name);
+                        return '<label class="flex items-center gap-2"><input type="checkbox" class="w-4 h-4 refine-doc-cb" value="' + String(_val).replace(/"/g, '&quot;') + '"> ' + String(d.name).replace(/</g, '&lt;') + '</label>';
+                    }).join('');
+                    if (_docsWrap) _docsWrap.classList.remove('hidden');
+                } else {
+                    _docsList.innerHTML = '';
+                    if (_docsWrap) _docsWrap.classList.add('hidden');
+                }
+            }
+        } catch (e) {}
+
         refineModal.classList.remove('hidden');
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
@@ -8589,6 +8640,31 @@ function attachEventListeners() {
             showToast("שגיאה: יש למלא את כל השדות.");
             return;
         }
+
+        // ✨ מיקוד מבוסס-נתונים: בניית הקשר הנתונים מהמקורות שנבחרו
+        var _extraDataContext = '';
+        try {
+            if ((document.getElementById('refine-include-data') || {}).checked) {
+                var _nt = (examinee.rawData && examinee.rawData['הערות']) || '';
+                if (_nt) _extraDataContext += '--- הערות היועצת ---\n' + _nt + '\n\n';
+                if ((document.getElementById('refine-src-questionnaire') || {}).checked && Array.isArray(examinee.answers)) {
+                    var _ansTxt = examinee.answers.filter(function (g) { return g && !g.isConfidential; }).map(function (g) { return (g.question ? g.question + ':\n' : '') + (g.answers || []).map(function (a) { return '- ' + a; }).join('\n'); }).join('\n\n');
+                    if (_ansTxt) _extraDataContext += '--- תשובות לשאלון ---\n' + _ansTxt + '\n\n';
+                }
+                if ((document.getElementById('refine-src-til') || {}).checked && examinee.rawData && examinee.rawData['נתוני דוח תיל']) {
+                    try {
+                        var _tilRaw = examinee.rawData['נתוני דוח תיל'];
+                        var _tilObj = (typeof _tilRaw === 'string') ? JSON.parse(_tilRaw) : _tilRaw;
+                        var _tilTxt = (typeof _nzFormatTilDataAsText === 'function') ? _nzFormatTilDataAsText(_tilObj) : '';
+                        if (_tilTxt) _extraDataContext += _tilTxt + '\n\n';
+                    } catch (e) {}
+                }
+                Array.prototype.forEach.call(document.querySelectorAll('#refine-docs-list input.refine-doc-cb:checked'), function (cb) {
+                    var _d = (typeof currentExamineeDocs !== 'undefined' ? currentExamineeDocs : []).find(function (x) { return String(x.rowNumber) === String(cb.value) || x.name === cb.value; });
+                    if (_d && _d.extractedText) _extraDataContext += '--- מסמך: ' + _d.name + ' ---\n' + _d.extractedText + '\n\n';
+                });
+            }
+        } catch (e) {}
         
         try {
             // שלב א': בקשת אישור מה"שומר" בשרת
@@ -8786,7 +8862,8 @@ function attachEventListeners() {
                     examinee.name,
                     previousReport,
                     refinementInstruction,
-                    reportMode
+                    reportMode,
+                    _extraDataContext
                 );
                 
         } catch (error) {
