@@ -7839,7 +7839,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         var im = window._nzFindMark('insert', afterIdx);
         if (im) {
-            out += '<div style="background:#ecfdf5;border:1px dashed #6ee7b7;border-radius:6px;padding:4px 8px;margin:4px 0;font-size:12px;color:#065f46;display:flex;align-items:center;gap:6px;">🤖 הנחיה להוספה: <span style="flex:1;">' + window._nzEscHtml(im.text) + '</span><button type="button" class="nz-mark-del" data-mid="' + im.id + '" style="background:none;border:none;color:#b91c1c;font-weight:800;cursor:pointer;font-size:15px;">×</button></div>';
+            out += '<div style="background:#ecfdf5;border:1px dashed #6ee7b7;border-radius:6px;padding:4px 8px;margin:4px 0;font-size:12px;color:#065f46;display:flex;align-items:center;gap:6px;">✨ הנחיה להוספה: <span style="flex:1;">' + window._nzEscHtml(im.text) + '</span><button type="button" class="nz-mark-del" data-mid="' + im.id + '" style="background:none;border:none;color:#b91c1c;font-weight:800;cursor:pointer;font-size:15px;">×</button></div>';
         }
         out += '<div class="nz-insert" data-after="' + afterIdx + '" style="height:7px;margin:1px 0;border-radius:4px;cursor:pointer;" title="הוספת תוכן כאן"></div>';
         return out;
@@ -7888,7 +7888,7 @@ document.addEventListener('DOMContentLoaded', function() {
         wrap.dataset.kind = kind; wrap.dataset.idx = idx;
         wrap.innerHTML = '<div style="display:flex;gap:6px;margin-bottom:7px;">' +
             '<button type="button" id="nz-tab-self" class="px-3 py-1 rounded text-sm font-bold">✏️ ערוך בעצמי</button>' +
-            '<button type="button" id="nz-tab-ai" class="px-3 py-1 rounded text-sm font-bold">🤖 בקש מ-AI</button></div><div id="nz-panel-body"></div>';
+            '<button type="button" id="nz-tab-ai" class="px-3 py-1 rounded text-sm font-bold">✨ בקש שינוי</button></div><div id="nz-panel-body"></div>';
         anchorEl.insertAdjacentElement('afterend', wrap);
         var body = wrap.querySelector('#nz-panel-body');
         var tSelf = wrap.querySelector('#nz-tab-self');
@@ -7926,7 +7926,7 @@ document.addEventListener('DOMContentLoaded', function() {
             setTabStyle(tAi);
             wrap.dataset.mode = 'ai';
             var ex = window._nzFindMark(aiOp, idx);
-            var ph = (kind === 'slot') ? 'מה שה-AI יוסיף כאן? (למשל: פסקה על פוטנציאל ניהולי)' : 'מה שה-AI ישנה בפסקה זו? (למשל: רכך את הניסוח)';
+            var ph = (kind === 'slot') ? 'מה להוסיף כאן? (למשל: פסקה על פוטנציאל ניהולי)' : 'מה לשנות בפסקה זו? (למשל: רכך את הניסוח)';
             body.innerHTML = '<textarea id="nz-mk-input" rows="2" class="w-full p-2 border rounded text-sm" placeholder="' + ph + '"></textarea>' + btnsHtml(!!ex);
             var inp = body.querySelector('#nz-mk-input'); if (inp) { inp.value = ex ? ex.text : ''; inp.focus(); }
             body.querySelector('#nz-mk-save').onclick = function () {
@@ -8975,8 +8975,6 @@ function attachEventListeners() {
             return;
         }
         
-        // קליטה אוטומטית של עריכה/הוראה שנשארה פתוחה בחלונצ'יק (המשתמשת לא לחצה "שמור" בתוכו)
-        if (typeof window._nzFlushOpenEditor === 'function') { try { window._nzFlushOpenEditor(); } catch (e) {} }
         var refinementInstruction = refinementPromptInput.value;
         var _refineItems = [];
         try { _refineItems = (typeof window._nzCollectRefineItems === 'function') ? window._nzCollectRefineItems() : []; } catch (e) { _refineItems = []; }
