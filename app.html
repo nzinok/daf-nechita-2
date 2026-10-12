@@ -1393,6 +1393,49 @@
     },
 
     // ===== מיקוד דוח (refine) =====
+    saveManualEditFromServer: async function (sessionId, examineeId, examineeName, newText, reportMode) {
+      try {
+        var isPrincipal = (reportMode === 'principal' || reportMode === 'manager' || reportMode === 'מנהלת');
+        var reportText = newText || '';
+        var rawKey  = isPrincipal ? 'דוח מנהלת' : 'דוח אבחון';
+        var linkKey = isPrincipal ? 'קישור לדוח מנהלת' : 'קישור למסמך הדוח';
+        var col     = isPrincipal ? 'principal_report' : 'student_report';
+        var ownerQ = await supa.from('examinees').select('owner_email').eq('id', examineeId).maybeSingle();
+        var ownerEmail = (ownerQ.data && ownerQ.data.owner_email) || window._currentUserEmail;
+        var me = await supa.from('counselors').select('template_id, branding').eq('email', ownerEmail).maybeSingle();
+        var templateId = (me.data && (me.data.template_id || (me.data.branding && me.data.branding['מזהה_תבנית_אישית']))) || null;
+        var bannerId = (me.data && me.data.branding && me.data.branding['מזהה_באנר']) || '';
+        // חידוש מסמך הדוקס מהטקסט הערוך (אותו מנגנון כמו הפקה/מיקוד)
+        var docUrl = '';
+        try {
+          var docInv = await supa.functions.invoke('create-report-doc', {
+            body: { reportText: reportText, examineeName: examineeName, templateId: templateId, reportType: (isPrincipal ? 'principal' : 'student'), ownerEmail: ownerEmail, bannerId: bannerId }
+          });
+          if (!docInv.error && docInv.data && docInv.data.success) docUrl = docInv.data.docUrl || '';
+        } catch (de) {}
+        var cur = await supa.from('examinees').select('raw_data').eq('id', examineeId).maybeSingle();
+        var raw = (cur.data && cur.data.raw_data) || {};
+        raw[rawKey] = reportText;
+        if (docUrl) raw[linkKey] = docUrl;
+        var metaKeyR = isPrincipal ? 'פרטי הפקה - דוח מנהלת' : 'פרטי הפקה - דוח תלמידה';
+        var prevMeta = (raw[metaKeyR] && typeof raw[metaKeyR] === 'object') ? raw[metaKeyR] : {};
+        var _now = new Date().toISOString();
+        if (!Array.isArray(prevMeta.events)) {
+          prevMeta.events = [{ t: 'gen', at: (prevMeta.generatedAt || _now), promptName: (prevMeta.promptName || ''), promptText: (prevMeta.promptText || ''), isProtected: !!prevMeta.isProtected, sources: (Array.isArray(prevMeta.sources) ? prevMeta.sources : []) }];
+        }
+        prevMeta.events.push({ t: 'manual', at: _now });
+        prevMeta.generatedAt = _now;
+        raw[metaKeyR] = prevMeta;
+        var patch = { raw_data: raw };
+        patch[col] = reportText;
+        var upd = await supa.from('examinees').update(patch).eq('id', examineeId);
+        if (upd.error) return { success: false, error: 'שמירת הדוח נכשלה: ' + upd.error.message };
+        return { success: true, report: reportText, docUrl: docUrl };
+      } catch (e) {
+        return { success: false, error: String(e) };
+      }
+    },
+
     refineReportFromServer: async function (sessionId, examineeId, examineeName, previousReport, refinementInstruction, reportMode, extraDataContext, extraDataMeta, refineItems) {
       try {
         var isPrincipal = (reportMode === 'principal' || reportMode === 'manager' || reportMode === 'מנהלת');
@@ -3938,7 +3981,7 @@ document.addEventListener('DOMContentLoaded', function() {
             m.events.forEach(function (ev, idx) {
                 var isGen = (ev.t === 'gen');
                 var evDt = fmtDate(ev.at);
-                var dot = isGen ? '#4f46e5' : '#10b981';
+                var dot = isGen ? '#4f46e5' : (ev.t === 'manual' ? '#3b82f6' : '#10b981');
                 html += '<div style="position:relative;margin-bottom:' + (idx === m.events.length - 1 ? '0' : '12px') + ';">';
                 html += '<span style="position:absolute;right:-21px;top:3px;width:9px;height:9px;border-radius:50%;background:' + dot + ';border:2px solid #fff;box-shadow:0 0 0 1px ' + dot + ';"></span>';
                 if (isGen) {
@@ -3952,6 +3995,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (Array.isArray(ev.sources) && ev.sources.length) {
                         html += '<div style="margin-top:4px;">' + chipHtml(ev.sources) + '</div>';
                     }
+                } else if (ev.t === 'manual') {
+                    html += '<div style="font-size:11.5px;font-weight:700;color:#1e40af;">✍️ נערך ידנית' + (evDt ? ' ב-' + esc(evDt) : '') + '</div>';
                 } else {
                     var dataChip = (ev.data && ev.data.included) ? (' <span style="background:#eef2ff;color:#4338ca;border-radius:999px;padding:1px 8px;font-size:10px;font-weight:700;">🔎 מבוסס-נתונים' + ((ev.data.sources && ev.data.sources.length) ? ' (' + ev.data.sources.map(function (x) { return esc(x); }).join(', ') + ')' : '') + '</span>') : '';
                     html += '<div style="font-size:11.5px;font-weight:700;color:#065f46;">✏️ בוצע מיקוד' + (evDt ? ' ב-' + esc(evDt) : '') + dataChip + '</div>';
@@ -7731,8 +7776,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ===== מיקוד ממוקד: רינדור אינטראקטיבי של הדוח בחלון המיקוד =====
     var _nzRefineLines = [];
-    var _nzRefineMarks = [];   // {id, op:'edit'|'insert', idx, text}
+    var _nzRefineMarks = [];   // {id, op:'edit'|'insert', idx, text}  — הוראות AI
+    var _nzManualInserts = []; // {id, afterIdx, text}  — תוכן חדש שהוקלד ידנית
+    var _nzManualEditedIdx = {}; // set: idx -> true  — פסקאות שנערכו ידנית במקום
     var _nzMarkSeq = 0;
+    window._nzFindManualInsert = function (afterIdx) { for (var i = 0; i < _nzManualInserts.length; i++) { if (_nzManualInserts[i].afterIdx === afterIdx) return _nzManualInserts[i]; } return null; };
+    window._nzHasManualChanges = function () { return Object.keys(_nzManualEditedIdx).length > 0 || _nzManualInserts.length > 0; };
+    window._nzReconstructText = function () {
+        var out = [];
+        _nzManualInserts.forEach(function (mi) { if (mi.afterIdx === -1) { out.push(mi.text); out.push(''); } });
+        for (var i = 0; i < _nzRefineLines.length; i++) {
+            out.push(_nzRefineLines[i]);
+            _nzManualInserts.forEach(function (mi) { if (mi.afterIdx === i) { out.push(''); out.push(mi.text); } });
+        }
+        return out.join('\n');
+    };
     window._nzEscHtml = function (t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
     window._nzInlineMd = function (e) {
         return e.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+?)\*/g, '<em>$1</em>');
@@ -7754,11 +7812,17 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     window._nzFindMark = function (op, idx) { for (var i = 0; i < _nzRefineMarks.length; i++) { if (_nzRefineMarks[i].op === op && _nzRefineMarks[i].idx === idx) return _nzRefineMarks[i]; } return null; };
     window._nzInsertSlotHtml = function (afterIdx) {
+        var out = '';
+        var mi = window._nzFindManualInsert(afterIdx);
+        if (mi) {
+            out += '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:5px 9px;margin:4px 0;font-size:12.5px;color:#1e3a8a;"><div style="display:flex;align-items:center;gap:6px;"><span style="font-weight:700;">➕ תוכן חדש (ידני)</span><button type="button" class="nz-mins-del" data-after="' + afterIdx + '" style="margin-right:auto;background:none;border:none;color:#b91c1c;font-weight:800;cursor:pointer;font-size:15px;">×</button></div><div style="margin-top:3px;white-space:pre-wrap;">' + window._nzEscHtml(mi.text) + '</div></div>';
+        }
         var im = window._nzFindMark('insert', afterIdx);
         if (im) {
-            return '<div style="background:#ecfdf5;border:1px dashed #6ee7b7;border-radius:6px;padding:4px 8px;margin:4px 0;font-size:12px;color:#065f46;display:flex;align-items:center;gap:6px;">➕ תוכן חדש: <span style="flex:1;">' + window._nzEscHtml(im.text) + '</span><button type="button" class="nz-mark-del" data-mid="' + im.id + '" style="background:none;border:none;color:#b91c1c;font-weight:800;cursor:pointer;font-size:15px;">×</button></div>';
+            out += '<div style="background:#ecfdf5;border:1px dashed #6ee7b7;border-radius:6px;padding:4px 8px;margin:4px 0;font-size:12px;color:#065f46;display:flex;align-items:center;gap:6px;">🤖 הנחיה להוספה: <span style="flex:1;">' + window._nzEscHtml(im.text) + '</span><button type="button" class="nz-mark-del" data-mid="' + im.id + '" style="background:none;border:none;color:#b91c1c;font-weight:800;cursor:pointer;font-size:15px;">×</button></div>';
         }
-        return '<div class="nz-insert" data-after="' + afterIdx + '" style="height:7px;margin:1px 0;border-radius:4px;cursor:pointer;" title="הוספת תוכן כאן"></div>';
+        out += '<div class="nz-insert" data-after="' + afterIdx + '" style="height:7px;margin:1px 0;border-radius:4px;cursor:pointer;" title="הוספת תוכן כאן"></div>';
+        return out;
     };
     window._nzRenderRefineView = function () {
         var box = document.getElementById('refine-report-view');
@@ -7769,7 +7833,10 @@ document.addEventListener('DOMContentLoaded', function() {
             var raw = lines[i];
             if (String(raw).trim() === '') { continue; }
             var em = window._nzFindMark('edit', i);
-            var hl = em ? 'background:#fef9c3;border-right:3px solid #eab308;' : '';
+            var meEdited = !!_nzManualEditedIdx[i];
+            var hl = '';
+            if (em) hl += 'background:#fef9c3;border-right:3px solid #eab308;';
+            if (meEdited) hl += 'background:#eff6ff;border-right:3px solid #3b82f6;';
             html += '<div class="nz-seg" data-idx="' + i + '" style="padding:3px 6px;border-radius:5px;cursor:pointer;margin:1px 0;' + hl + '" title="לחצי למיקוד פסקה זו">' + window._nzFmtLine(raw) + '</div>';
             if (em) {
                 html += '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:4px 8px;margin:2px 0 6px;font-size:12px;color:#92400e;display:flex;align-items:center;gap:6px;">✏️ <span style="flex:1;">' + window._nzEscHtml(em.text) + '</span><button type="button" class="nz-mark-del" data-mid="' + em.id + '" style="background:none;border:none;color:#b91c1c;font-weight:800;cursor:pointer;font-size:15px;line-height:1;">×</button></div>';
@@ -7777,9 +7844,9 @@ document.addEventListener('DOMContentLoaded', function() {
             html += window._nzInsertSlotHtml(i);
         }
         box.innerHTML = html;
-        var cnt = _nzRefineMarks.length;
+        var cnt = _nzRefineMarks.length + Object.keys(_nzManualEditedIdx).length + _nzManualInserts.length;
         var cEl = document.getElementById('refine-marks-count');
-        if (cEl) cEl.textContent = cnt ? (cnt + ' הערות ממוקדות') : '';
+        if (cEl) cEl.textContent = cnt ? (cnt + ' שינויים ממתינים') : '';
         var sEl = document.getElementById('refine-marks-summary');
         if (sEl) {
             if (!cnt) { sEl.innerHTML = ''; }
@@ -7791,39 +7858,72 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     };
-    window._nzOpenMarkEditor = function (op, idx, anchorEl) {
+    window._nzOpenSegmentPanel = function (kind, idx, anchorEl) {
         var prev = document.getElementById('nz-mark-editor');
         if (prev) prev.remove();
-        var existing = window._nzFindMark(op, idx);
+        var aiOp = (kind === 'slot') ? 'insert' : 'edit';
         var wrap = document.createElement('div');
         wrap.id = 'nz-mark-editor';
         wrap.style.cssText = 'background:#fff;border:2px solid #6366f1;border-radius:8px;padding:8px;margin:4px 0;box-shadow:0 4px 12px rgba(0,0,0,0.08);';
-        var ph = op === 'insert' ? 'מה להוסיף כאן? (למשל: פסקה על פוטנציאל ניהולי)' : 'מה לשנות בפסקה זו? (למשל: רכך את הניסוח)';
-        wrap.innerHTML = '<textarea id="nz-mark-input" rows="2" class="w-full p-2 border rounded text-sm" placeholder="' + ph + '"></textarea>' +
-            '<div style="display:flex;gap:6px;margin-top:6px;justify-content:flex-start;">' +
-            '<button type="button" id="nz-mark-save" class="bg-indigo-600 text-white px-4 py-1 rounded text-sm font-bold">שמור</button>' +
-            '<button type="button" id="nz-mark-cancel" class="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm">ביטול</button>' +
-            (existing ? '<button type="button" id="nz-mark-remove" class="bg-red-50 text-red-700 px-3 py-1 rounded text-sm">מחק</button>' : '') +
-            '</div>';
+        wrap.innerHTML = '<div style="display:flex;gap:6px;margin-bottom:7px;">' +
+            '<button type="button" id="nz-tab-self" class="px-3 py-1 rounded text-sm font-bold">✏️ ערוך בעצמי</button>' +
+            '<button type="button" id="nz-tab-ai" class="px-3 py-1 rounded text-sm font-bold">🤖 בקש מ-AI</button></div><div id="nz-panel-body"></div>';
         anchorEl.insertAdjacentElement('afterend', wrap);
-        var inp = document.getElementById('nz-mark-input');
-        if (inp) { inp.value = existing ? existing.text : ''; inp.focus(); }
-        var saveBtn = document.getElementById('nz-mark-save');
-        if (saveBtn) saveBtn.onclick = function () {
-            var v = ((document.getElementById('nz-mark-input') || {}).value || '').trim();
-            if (!v) { wrap.remove(); return; }
-            if (existing) { existing.text = v; }
-            else { _nzRefineMarks.push({ id: 'm' + (++_nzMarkSeq), op: op, idx: idx, text: v }); }
-            window._nzRenderRefineView();
-        };
-        var cancelBtn = document.getElementById('nz-mark-cancel');
-        if (cancelBtn) cancelBtn.onclick = function () { wrap.remove(); };
-        var remBtn = document.getElementById('nz-mark-remove');
-        if (remBtn) remBtn.onclick = function () { _nzRefineMarks = _nzRefineMarks.filter(function (m) { return m.id !== existing.id; }); window._nzRenderRefineView(); };
+        var body = wrap.querySelector('#nz-panel-body');
+        var tSelf = wrap.querySelector('#nz-tab-self');
+        var tAi = wrap.querySelector('#nz-tab-ai');
+        function setTabStyle(active) { [tSelf, tAi].forEach(function (b) { b.className = 'px-3 py-1 rounded text-sm font-bold ' + (b === active ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'); }); }
+        function btnsHtml(hasEx) {
+            return '<div style="display:flex;gap:6px;margin-top:6px;justify-content:flex-start;">' +
+                '<button type="button" id="nz-mk-save" class="bg-indigo-600 text-white px-4 py-1 rounded text-sm font-bold">שמור</button>' +
+                '<button type="button" id="nz-mk-cancel" class="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm">ביטול</button>' +
+                (hasEx ? '<button type="button" id="nz-mk-remove" class="bg-red-50 text-red-700 px-3 py-1 rounded text-sm">מחק</button>' : '') + '</div>';
+        }
+        function showSelf() {
+            setTabStyle(tSelf);
+            var cur, ph, hasEx;
+            if (kind === 'seg') { cur = _nzRefineLines[idx] || ''; ph = 'ערכי את טקסט הפסקה (מחיקה/שינוי מילים). השארה ריקה תמחק את הפסקה.'; hasEx = !!_nzManualEditedIdx[idx]; }
+            else { var exI = _nzFindManualInsert(idx); cur = exI ? exI.text : ''; ph = 'כתבי כאן את התוכן החדש להוספה.'; hasEx = !!exI; }
+            body.innerHTML = '<textarea id="nz-mk-input" rows="3" class="w-full p-2 border rounded text-sm" placeholder="' + ph + '"></textarea>' + btnsHtml(hasEx);
+            var inp = body.querySelector('#nz-mk-input'); if (inp) { inp.value = cur; inp.focus(); }
+            body.querySelector('#nz-mk-save').onclick = function () {
+                var v = (body.querySelector('#nz-mk-input').value || '');
+                if (kind === 'seg') { _nzRefineLines[idx] = v; _nzManualEditedIdx[idx] = true; }
+                else { if (!v.trim()) { wrap.remove(); return; } var ex = _nzFindManualInsert(idx); if (ex) ex.text = v; else _nzManualInserts.push({ id: 'i' + (++_nzMarkSeq), afterIdx: idx, text: v }); }
+                window._nzRenderRefineView();
+            };
+            var rm = body.querySelector('#nz-mk-remove');
+            if (rm) rm.onclick = function () {
+                if (kind === 'seg') { delete _nzManualEditedIdx[idx]; }
+                else { _nzManualInserts = _nzManualInserts.filter(function (m) { return m.afterIdx !== idx; }); }
+                window._nzRenderRefineView();
+            };
+            body.querySelector('#nz-mk-cancel').onclick = function () { wrap.remove(); };
+        }
+        function showAi() {
+            setTabStyle(tAi);
+            var ex = window._nzFindMark(aiOp, idx);
+            var ph = (kind === 'slot') ? 'מה שה-AI יוסיף כאן? (למשל: פסקה על פוטנציאל ניהולי)' : 'מה שה-AI ישנה בפסקה זו? (למשל: רכך את הניסוח)';
+            body.innerHTML = '<textarea id="nz-mk-input" rows="2" class="w-full p-2 border rounded text-sm" placeholder="' + ph + '"></textarea>' + btnsHtml(!!ex);
+            var inp = body.querySelector('#nz-mk-input'); if (inp) { inp.value = ex ? ex.text : ''; inp.focus(); }
+            body.querySelector('#nz-mk-save').onclick = function () {
+                var v = (body.querySelector('#nz-mk-input').value || '').trim();
+                if (!v) { wrap.remove(); return; }
+                if (ex) ex.text = v; else _nzRefineMarks.push({ id: 'm' + (++_nzMarkSeq), op: aiOp, idx: idx, text: v });
+                window._nzRenderRefineView();
+            };
+            var rm = body.querySelector('#nz-mk-remove');
+            if (rm) rm.onclick = function () { _nzRefineMarks = _nzRefineMarks.filter(function (m) { return !(m.op === aiOp && m.idx === idx); }); window._nzRenderRefineView(); };
+            body.querySelector('#nz-mk-cancel').onclick = function () { wrap.remove(); };
+        }
+        tSelf.onclick = showSelf; tAi.onclick = showAi;
+        if (kind === 'seg') showSelf(); else showAi();
     };
     window._nzInitRefineView = function (text) {
         _nzRefineLines = String(text == null ? '' : text).split('\n');
         _nzRefineMarks = [];
+        _nzManualInserts = [];
+        _nzManualEditedIdx = {};
         _nzMarkSeq = 0;
         window._nzRenderRefineView();
         var box = document.getElementById('refine-report-view');
@@ -7832,19 +7932,21 @@ document.addEventListener('DOMContentLoaded', function() {
             box.addEventListener('click', function (ev) {
                 var del = ev.target.closest('.nz-mark-del');
                 if (del) { var mid = del.getAttribute('data-mid'); _nzRefineMarks = _nzRefineMarks.filter(function (m) { return m.id !== mid; }); window._nzRenderRefineView(); return; }
+                var mdel = ev.target.closest('.nz-mins-del');
+                if (mdel) { var af = parseInt(mdel.getAttribute('data-after'), 10); _nzManualInserts = _nzManualInserts.filter(function (m) { return m.afterIdx !== af; }); window._nzRenderRefineView(); return; }
                 var ins = ev.target.closest('.nz-insert');
-                if (ins) { window._nzOpenMarkEditor('insert', parseInt(ins.getAttribute('data-after'), 10), ins); return; }
+                if (ins) { window._nzOpenSegmentPanel('slot', parseInt(ins.getAttribute('data-after'), 10), ins); return; }
                 var seg = ev.target.closest('.nz-seg');
-                if (seg) { window._nzOpenMarkEditor('edit', parseInt(seg.getAttribute('data-idx'), 10), seg); return; }
+                if (seg) { window._nzOpenSegmentPanel('seg', parseInt(seg.getAttribute('data-idx'), 10), seg); return; }
             });
             box.addEventListener('mouseover', function (ev) {
                 var sg = ev.target.closest('.nz-seg');
-                if (sg && !window._nzFindMark('edit', parseInt(sg.getAttribute('data-idx'), 10))) sg.style.background = '#eef2ff';
+                if (sg) { var si = parseInt(sg.getAttribute('data-idx'), 10); if (!window._nzFindMark('edit', si) && !_nzManualEditedIdx[si]) sg.style.background = '#eef2ff'; }
                 var ins = ev.target.closest('.nz-insert'); if (ins) ins.style.background = '#d1fae5';
             });
             box.addEventListener('mouseout', function (ev) {
                 var sg = ev.target.closest('.nz-seg');
-                if (sg && !window._nzFindMark('edit', parseInt(sg.getAttribute('data-idx'), 10))) sg.style.background = '';
+                if (sg) { var si = parseInt(sg.getAttribute('data-idx'), 10); if (!window._nzFindMark('edit', si) && !_nzManualEditedIdx[si]) sg.style.background = ''; }
                 var ins = ev.target.closest('.nz-insert'); if (ins) ins.style.background = '';
             });
         }
@@ -8850,12 +8952,39 @@ function attachEventListeners() {
             return;
         }
         
-        var previousReport = currentReportDisplay.value;
         var refinementInstruction = refinementPromptInput.value;
         var _refineItems = [];
         try { _refineItems = (typeof window._nzCollectRefineItems === 'function') ? window._nzCollectRefineItems() : []; } catch (e) { _refineItems = []; }
-        if (!previousReport || (!refinementInstruction && !_refineItems.length)) {
-            showToast("שגיאה: כתבי הוראה כללית, או מקדי לפחות פסקה אחת בדוח.");
+        // טקסט עבודה: כולל עריכות ידניות והוספות שבוצעו בתצוגה
+        var _workingText = (typeof window._nzReconstructText === 'function') ? window._nzReconstructText() : currentReportDisplay.value;
+        var previousReport = _workingText;
+        var _hasManual = (typeof window._nzHasManualChanges === 'function') && window._nzHasManualChanges();
+        var _hasAI = !!(refinementInstruction && refinementInstruction.trim()) || _refineItems.length > 0;
+        if (!previousReport || (!_hasAI && !_hasManual)) {
+            showToast("שגיאה: ערכי משהו בדוח, כתבי הוראה כללית, או מקדי פסקה.");
+            return;
+        }
+
+        // ===== מסלול עריכה ידנית בלבד (בלי AI) — שמירה ישירה + חידוש מסמך הדוקס =====
+        if (!_hasAI && _hasManual) {
+            btn.disabled = true; btn.querySelector('.pulsing-loader').classList.remove('hidden');
+            refineModal.classList.add('hidden');
+            showToast('שומר שינויים ומעדכן את המסמך...');
+            google.script.run
+              .withSuccessHandler(function (res) {
+                  btn.disabled = false; btn.querySelector('.pulsing-loader').classList.add('hidden'); btn.querySelector('.button-text').textContent = 'עדכן דוח';
+                  if (!res || !res.success) { showToast('שמירת השינויים נכשלה: ' + ((res && res.error) || 'שגיאה')); return; }
+                  google.script.run.withSuccessHandler(function (examineesResponse) {
+                      if (examineesResponse && examineesResponse.success) {
+                          allExamineesData = examineesResponse.data;
+                          var updatedExaminee = allExamineesData.find(function (e) { return e.id === examineeId; });
+                          if (currentExaminee && currentExaminee.id === examineeId && currentView === 'examinees' && updatedExaminee) renderExamineeDetails(updatedExaminee);
+                      }
+                      showToast('השינויים נשמרו והמסמך עודכן.');
+                  }).withFailureHandler(function () { showToast('השינויים נשמרו (רענון התצוגה נכשל).'); }).getSheetDataBySession(currentSessionId);
+              })
+              .withFailureHandler(function (err) { btn.disabled = false; btn.querySelector('.pulsing-loader').classList.add('hidden'); handleServerError(err); })
+              .saveManualEditFromServer(currentSessionId, examineeId, examinee.name, _workingText, reportMode);
             return;
         }
 
