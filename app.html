@@ -1436,7 +1436,7 @@
       }
     },
 
-    refineReportFromServer: async function (sessionId, examineeId, examineeName, previousReport, refinementInstruction, reportMode, extraDataContext, extraDataMeta, refineItems) {
+    refineReportFromServer: async function (sessionId, examineeId, examineeName, previousReport, refinementInstruction, reportMode, extraDataContext, extraDataMeta, refineItems, lockedLines) {
       try {
         var isPrincipal = (reportMode === 'principal' || reportMode === 'manager' || reportMode === 'מנהלת');
         // הנחיה מדויקת (מהמערכת המקורית): להחזיר את הדוח המלא בלבד, בלי הקדמות/הערות
@@ -1445,6 +1445,8 @@
         try { var _hq = await supa.from('examinees').select('holland_code, raw_data').eq('id', examineeId).maybeSingle(); if (_hq.data) _hcR = String(_hq.data.holland_code || (_hq.data.raw_data && _hq.data.raw_data['קוד הולנד סופי']) || '').trim(); } catch (he) {}
         var _tb = '';
         try { if (Array.isArray(refineItems) && refineItems.length) { _tb = '--- הוראות ממוקדות (בצע אך ורק במקומות המצוינים; כל שאר הדוח — מילה-במילה כפי שהוא) ---\n' + refineItems.map(function (it) { return it.promptLine; }).join('\n') + '\n--------------------------------------------------\n\n'; } } catch (e) {}
+        var _ll = '';
+        try { if (Array.isArray(lockedLines) && lockedLines.length) { _ll = '--- שורות שהיועצת ערכה ידנית — חובה להעתיק אותן מילה-במילה בדיוק כפי שהן כאן, אסור לשנות, לנסח מחדש או "לתקן" אותן ---\n' + lockedLines.map(function (l) { return '• ' + l; }).join('\n') + '\n--------------------------------------------------\n\n'; } } catch (e) {}
         var refineParts = [{ text:
           'Please act as a professional diagnostician.\n' +
           'Below is an existing diagnostic report. Refine it based on the user\'s instruction.\n' +
@@ -1454,6 +1456,7 @@
           (_hcR ? ('קוד הולנד מחייב: קוד ההולנד של הנבחנת הוא ' + _hcR + '. זהו קוד סופי ומחייב — שמור עליו לכל אורך הדוח ואל תשנה אותו לקוד אחר.\n\n') : '') +
           (extraDataContext ? ('--- נתוני הנבחנת (רקע, לשימוש רק אם ההוראה דורשת ביסוס על הנתונים) ---\n' + extraDataContext + 'השתמש בנתונים אלה אך ורק אם ההוראה דורשת זאת (למשל הוספת מקצוע מבוסס-נתונים), ותמיד תוך שמירה על שאר הדוח כפי שהוא.\n\n') : '') +
           _tb +
+          _ll +
           "USER'S INSTRUCTION:\n---\n" + (refinementInstruction || '(בצע את ההוראות הממוקדות המפורטות למעלה)') + '\n---\n\n' +
           'ORIGINAL REPORT:\n---\n' + (previousReport || '') + '\n---'
         }];
@@ -7782,6 +7785,23 @@ document.addEventListener('DOMContentLoaded', function() {
     var _nzMarkSeq = 0;
     window._nzFindManualInsert = function (afterIdx) { for (var i = 0; i < _nzManualInserts.length; i++) { if (_nzManualInserts[i].afterIdx === afterIdx) return _nzManualInserts[i]; } return null; };
     window._nzHasManualChanges = function () { return Object.keys(_nzManualEditedIdx).length > 0 || _nzManualInserts.length > 0; };
+    window._nzGetLockedLines = function () { return Object.keys(_nzManualEditedIdx).map(function (k) { return _nzRefineLines[k]; }).filter(function (t) { return t && String(t).trim(); }); };
+    window._nzFlushOpenEditor = function () {
+        var ed = document.getElementById('nz-mark-editor');
+        if (!ed) return;
+        var inp = ed.querySelector('#nz-mk-input');
+        if (!inp) return;
+        var kind = ed.dataset.kind, mode = ed.dataset.mode, idx = parseInt(ed.dataset.idx, 10);
+        var v = inp.value || '';
+        if (mode === 'self') {
+            if (kind === 'seg') { _nzRefineLines[idx] = v; _nzManualEditedIdx[idx] = true; }
+            else { if (v.trim()) { var ex = _nzFindManualInsert(idx); if (ex) ex.text = v; else _nzManualInserts.push({ id: 'i' + (++_nzMarkSeq), afterIdx: idx, text: v }); } }
+        } else if (mode === 'ai') {
+            var vt = v.trim(); if (!vt) return;
+            var aiOp = (kind === 'slot') ? 'insert' : 'edit';
+            var ex2 = window._nzFindMark(aiOp, idx); if (ex2) ex2.text = vt; else _nzRefineMarks.push({ id: 'm' + (++_nzMarkSeq), op: aiOp, idx: idx, text: vt });
+        }
+    };
     window._nzReconstructText = function () {
         var out = [];
         _nzManualInserts.forEach(function (mi) { if (mi.afterIdx === -1) { out.push(mi.text); out.push(''); } });
@@ -7865,6 +7885,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var wrap = document.createElement('div');
         wrap.id = 'nz-mark-editor';
         wrap.style.cssText = 'background:#fff;border:2px solid #6366f1;border-radius:8px;padding:8px;margin:4px 0;box-shadow:0 4px 12px rgba(0,0,0,0.08);';
+        wrap.dataset.kind = kind; wrap.dataset.idx = idx;
         wrap.innerHTML = '<div style="display:flex;gap:6px;margin-bottom:7px;">' +
             '<button type="button" id="nz-tab-self" class="px-3 py-1 rounded text-sm font-bold">✏️ ערוך בעצמי</button>' +
             '<button type="button" id="nz-tab-ai" class="px-3 py-1 rounded text-sm font-bold">🤖 בקש מ-AI</button></div><div id="nz-panel-body"></div>';
@@ -7881,6 +7902,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         function showSelf() {
             setTabStyle(tSelf);
+            wrap.dataset.mode = 'self';
             var cur, ph, hasEx;
             if (kind === 'seg') { cur = _nzRefineLines[idx] || ''; ph = 'ערכי את טקסט הפסקה (מחיקה/שינוי מילים). השארה ריקה תמחק את הפסקה.'; hasEx = !!_nzManualEditedIdx[idx]; }
             else { var exI = _nzFindManualInsert(idx); cur = exI ? exI.text : ''; ph = 'כתבי כאן את התוכן החדש להוספה.'; hasEx = !!exI; }
@@ -7902,6 +7924,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         function showAi() {
             setTabStyle(tAi);
+            wrap.dataset.mode = 'ai';
             var ex = window._nzFindMark(aiOp, idx);
             var ph = (kind === 'slot') ? 'מה שה-AI יוסיף כאן? (למשל: פסקה על פוטנציאל ניהולי)' : 'מה שה-AI ישנה בפסקה זו? (למשל: רכך את הניסוח)';
             body.innerHTML = '<textarea id="nz-mk-input" rows="2" class="w-full p-2 border rounded text-sm" placeholder="' + ph + '"></textarea>' + btnsHtml(!!ex);
@@ -8952,12 +8975,15 @@ function attachEventListeners() {
             return;
         }
         
+        // קליטה אוטומטית של עריכה/הוראה שנשארה פתוחה בחלונצ'יק (המשתמשת לא לחצה "שמור" בתוכו)
+        if (typeof window._nzFlushOpenEditor === 'function') { try { window._nzFlushOpenEditor(); } catch (e) {} }
         var refinementInstruction = refinementPromptInput.value;
         var _refineItems = [];
         try { _refineItems = (typeof window._nzCollectRefineItems === 'function') ? window._nzCollectRefineItems() : []; } catch (e) { _refineItems = []; }
         // טקסט עבודה: כולל עריכות ידניות והוספות שבוצעו בתצוגה
         var _workingText = (typeof window._nzReconstructText === 'function') ? window._nzReconstructText() : currentReportDisplay.value;
         var previousReport = _workingText;
+        var _lockedLines = (typeof window._nzGetLockedLines === 'function') ? window._nzGetLockedLines() : [];
         var _hasManual = (typeof window._nzHasManualChanges === 'function') && window._nzHasManualChanges();
         var _hasAI = !!(refinementInstruction && refinementInstruction.trim()) || _refineItems.length > 0;
         if (!previousReport || (!_hasAI && !_hasManual)) {
@@ -9215,7 +9241,8 @@ function attachEventListeners() {
                     reportMode,
                     _extraDataContext,
                     _extraDataMeta,
-                    _refineItems
+                    _refineItems,
+                    _lockedLines
                 );
                 
         } catch (error) {
