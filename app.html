@@ -7786,6 +7786,23 @@ document.addEventListener('DOMContentLoaded', function() {
     window._nzFindManualInsert = function (afterIdx) { for (var i = 0; i < _nzManualInserts.length; i++) { if (_nzManualInserts[i].afterIdx === afterIdx) return _nzManualInserts[i]; } return null; };
     window._nzHasManualChanges = function () { return Object.keys(_nzManualEditedIdx).length > 0 || _nzManualInserts.length > 0; };
     window._nzGetLockedLines = function () { return Object.keys(_nzManualEditedIdx).map(function (k) { return _nzRefineLines[k]; }).filter(function (t) { return t && String(t).trim(); }); };
+    window._nzOpenEditorDirty = function () {
+        var ed = document.getElementById('nz-mark-editor');
+        if (!ed) return false;
+        var inp = ed.querySelector('#nz-mk-input');
+        if (!inp) return false;
+        var kind = ed.dataset.kind, mode = ed.dataset.mode, idx = parseInt(ed.dataset.idx, 10);
+        var v = inp.value || '';
+        if (mode === 'self') {
+            if (kind === 'seg') { return v !== (_nzRefineLines[idx] || ''); }
+            var exI = _nzFindManualInsert(idx); return exI ? (v !== exI.text) : !!v.trim();
+        } else if (mode === 'ai') {
+            var vt = v.trim(); if (!vt) return false;
+            var aiOp = (kind === 'slot') ? 'insert' : 'edit';
+            var exM = window._nzFindMark(aiOp, idx); return exM ? (vt !== exM.text) : true;
+        }
+        return false;
+    };
     window._nzFlushOpenEditor = function () {
         var ed = document.getElementById('nz-mark-editor');
         if (!ed) return;
@@ -8975,6 +8992,16 @@ function attachEventListeners() {
             return;
         }
         
+        // אם יש עריכה פתוחה שלא נשמרה — לשאול לפני שממשיכים (מניעת אובדן בטעות)
+        if (typeof window._nzOpenEditorDirty === 'function' && window._nzOpenEditorDirty()) {
+            var _keepOpen = await appConfirm({
+                title: 'עריכה פתוחה שלא נשמרה',
+                message: 'יש עריכה פתוחה בדוח שלא לחצת עליה "שמור". לשמור אותה לפני העדכון?',
+                icon: 'pencil', okText: 'שמור והמשך', cancelText: 'חזרה'
+            });
+            if (_keepOpen) { try { window._nzFlushOpenEditor(); } catch (e) {} }
+            else { return; }
+        }
         var refinementInstruction = refinementPromptInput.value;
         var _refineItems = [];
         try { _refineItems = (typeof window._nzCollectRefineItems === 'function') ? window._nzCollectRefineItems() : []; } catch (e) { _refineItems = []; }
