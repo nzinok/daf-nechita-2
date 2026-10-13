@@ -430,6 +430,25 @@
             </form>
         </div>
     </div>
+    <div id="nz-pdf-preview-modal" class="modal-overlay hidden" style="z-index:220;">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[92vh] flex flex-col" dir="rtl">
+            <div class="flex items-center justify-between p-4 border-b">
+                <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2"><i data-lucide="file-check-2" class="w-5 h-5 text-teal-600"></i><span id="nz-pdf-preview-title">תצוגה מקדימה לפני שליחה</span></h3>
+                <button id="nz-pdf-preview-close" type="button" class="text-gray-400 hover:text-gray-700 text-3xl leading-none">&times;</button>
+            </div>
+            <div class="flex-1 overflow-y-auto bg-gray-100 p-4" style="min-height:300px;">
+                <div id="nz-pdf-preview-loading" class="flex flex-col items-center justify-center py-16 text-gray-500"><div class="pulsing-loader"></div><div class="mt-3 text-sm">מכין תצוגה מקדימה של ה-PDF...</div></div>
+                <div id="nz-pdf-preview-pages"></div>
+            </div>
+            <div class="flex items-center justify-between gap-3 p-4 border-t bg-white">
+                <div class="text-xs text-gray-500">זהו הקובץ שיישלח לנבחנת כ-PDF.</div>
+                <div class="flex gap-2">
+                    <button id="nz-pdf-preview-cancel" type="button" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 text-sm font-bold">סגור</button>
+                    <button id="nz-pdf-preview-send" type="button" class="px-5 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold disabled:opacity-50" disabled>שלח לנבחנת</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="nz-intro-modal" class="modal-overlay hidden" style="z-index:210;">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg transform transition-all max-h-[90vh] overflow-y-auto" dir="rtl">
             <h3 class="text-xl font-bold text-gray-800 mb-3">קריאה ועריכה — עכשיו בתוך המערכת</h3>
@@ -1391,6 +1410,17 @@
     },
 
     // ===== שליחת דוח כ-PDF =====
+    getReportPdfBySession: async function (sessionId, docUrl) {
+      try {
+        if (!docUrl) return { success: false, error: 'חסר קישור מסמך' };
+        var inv = await supa.functions.invoke('create-report-doc', { body: { action: 'getReportPdf', docUrl: docUrl } });
+        if (inv.error) return { success: false, error: 'שגיאה: ' + inv.error.message };
+        var out = inv.data || {};
+        if (!out.success) return { success: false, error: out.error || 'הכנת ה-PDF נכשלה' };
+        return { success: true, base64: out.base64 || '' };
+      } catch (e) { return { success: false, error: String(e) }; }
+    },
+
     sendReportAsPdfBySession: async function (sessionId, recipient, examineeName, docUrl) {
       try {
         if (!recipient || !docUrl) return { success: false, error: 'חסר נמען או קישור מסמך' };
@@ -5298,7 +5328,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             // שליחה (ללא שינוי, לא דורש הגנה כי זה רק שולח למייל את ה-PDF הקיים)
-            mainContent.querySelector('#send-pdf-btn')?.addEventListener('click', function() { handleSendPdf(examinee) });
+            mainContent.querySelector('#send-pdf-btn')?.addEventListener('click', function() { window._nzOpenPdfPreview(examinee.rawData['קישור למסמך הדוח'], 'תצוגה מקדימה — דוח תלמידה', function(){ handleSendPdf(examinee); }); });
             
             // מחיקת דוח תלמידה (הוספנו 'student' בקריאה לשרת)
             mainContent.querySelector('#delete-report-btn')?.addEventListener('click', function() {
@@ -5412,6 +5442,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // ג. שליחת דוח מנהלת ב-PDF
             mainContent.querySelector('#send-principal-pdf-btn')?.addEventListener('click', function() {
+                window._nzOpenPdfPreview(examinee.rawData['קישור לדוח מנהלת'], 'תצוגה מקדימה — דוח מנהלת', function() {
                 // === השינוי כאן ===
                 // אנחנו מגדירים את מייל התלמידה כברירת מחדל. אם אין לה מייל, התיבה תהיה ריקה.
                 const defaultEmail = examinee.email || ""; 
@@ -5430,6 +5461,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         })
                         .sendReportAsPdfBySession(currentSessionId, targetEmail, "דוח מנהלת - " + examinee.name, examinee.rawData['קישור לדוח מנהלת']);
                 }
+                });
                 });
             });
 
@@ -7877,6 +7909,56 @@ document.addEventListener('DOMContentLoaded', function() {
             modal.classList.add('hidden');
             if (typeof cb === 'function') cb();
         };
+    };
+    // שער תצוגת-PDF לפני שליחה: מציג את הקובץ כפי שיישלח, ואז ממשיך לזרימת השליחה הקיימת
+    window._nzOpenPdfPreview = function (docUrl, title, onConfirm) {
+        var modal = document.getElementById('nz-pdf-preview-modal');
+        if (!modal || !docUrl) { if (typeof onConfirm === 'function') onConfirm(); return; }
+        var titleEl = document.getElementById('nz-pdf-preview-title');
+        var loading = document.getElementById('nz-pdf-preview-loading');
+        var pagesEl = document.getElementById('nz-pdf-preview-pages');
+        var sendBtn = document.getElementById('nz-pdf-preview-send');
+        if (titleEl && title) titleEl.textContent = title;
+        pagesEl.innerHTML = ''; loading.style.display = ''; loading.innerHTML = '<div class="pulsing-loader"></div><div class="mt-3 text-sm">מכין תצוגה מקדימה של ה-PDF...</div>';
+        sendBtn.disabled = true;
+        modal.classList.remove('hidden');
+        try { if (typeof lucide !== 'undefined') lucide.createIcons(); } catch (e) {}
+        var closeIt = function () { modal.classList.add('hidden'); pagesEl.innerHTML = ''; };
+        document.getElementById('nz-pdf-preview-close').onclick = closeIt;
+        document.getElementById('nz-pdf-preview-cancel').onclick = closeIt;
+        sendBtn.onclick = function () { closeIt(); if (typeof onConfirm === 'function') onConfirm(); };
+        var failMsg = function (t) { loading.innerHTML = '<div class="text-red-600 text-sm text-center">' + t + '</div>'; sendBtn.disabled = false; };
+        google.script.run
+          .withSuccessHandler(function (res) {
+              if (!res || !res.success || !res.base64) { failMsg('לא ניתן להכין תצוגה מקדימה' + ((res && res.error) ? (': ' + res.error) : '') + '. אפשר לשלוח בכל זאת.'); return; }
+              try {
+                  var rawd = atob(res.base64);
+                  var arr = new Uint8Array(rawd.length);
+                  for (var i = 0; i < rawd.length; i++) arr[i] = rawd.charCodeAt(i);
+                  pdfjsLib.getDocument({ data: arr }).promise.then(function (pdf) {
+                      loading.style.display = 'none';
+                      sendBtn.disabled = false;
+                      var nPages = Math.min(pdf.numPages, 20);
+                      var seq = Promise.resolve();
+                      for (var p = 1; p <= nPages; p++) {
+                          (function (pg) {
+                              seq = seq.then(function () {
+                                  return pdf.getPage(pg).then(function (page) {
+                                      var vp = page.getViewport({ scale: 1.3 });
+                                      var canvas = document.createElement('canvas');
+                                      canvas.width = vp.width; canvas.height = vp.height;
+                                      canvas.style.cssText = 'display:block;margin:0 auto 12px;max-width:100%;box-shadow:0 2px 10px rgba(0,0,0,.12);background:#fff;border-radius:3px;';
+                                      pagesEl.appendChild(canvas);
+                                      return page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+                                  });
+                              });
+                          })(p);
+                      }
+                  }).catch(function () { failMsg('לא ניתן להציג את ה-PDF. אפשר לשלוח בכל זאת.'); });
+              } catch (e) { failMsg('שגיאה בפענוח ה-PDF. אפשר לשלוח בכל זאת.'); }
+          })
+          .withFailureHandler(function () { failMsg('שגיאת תקשורת בהכנת התצוגה. אפשר לשלוח בכל זאת.'); })
+          .getReportPdfBySession((typeof currentSessionId !== 'undefined' ? currentSessionId : ''), docUrl);
     };
     window._nzOpenEditorDirty = function () {
         var ed = document.getElementById('nz-mark-editor');
