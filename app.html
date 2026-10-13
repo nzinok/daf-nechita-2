@@ -1417,7 +1417,8 @@
         if (inv.error) return { success: false, error: 'שגיאה: ' + inv.error.message };
         var out = inv.data || {};
         if (!out.success) return { success: false, error: out.error || 'הכנת ה-PDF נכשלה' };
-        return { success: true, base64: out.base64 || '' };
+        if (!out.base64) return { success: false, error: 'לא התקבל PDF מהשרת — ודאי שה-Apps Script עודכן ונפרס מחדש (פעולת getReportPdf)' };
+        return { success: true, base64: out.base64 };
       } catch (e) { return { success: false, error: String(e) }; }
     },
 
