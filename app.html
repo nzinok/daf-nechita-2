@@ -515,6 +515,7 @@
     } catch (e) {}
   };
   window._currentUserEmail = null;
+  window._nzDocIdFromUrl = function (u) { var m = String(u || '').match(/\/d\/([a-zA-Z0-9-_]+)/) || String(u || '').match(/[?&]id=([a-zA-Z0-9-_]+)/); return m ? m[1] : ''; };
 
   // ממיר תשובות מאובייקט (שאלה→תשובה) לרשימת הקבוצות שהקוד המקורי מצפה לה
   function answersToGroups(ans) {
@@ -1257,8 +1258,10 @@
           var me = await supa.from('counselors').select('template_id, branding').eq('email', ownerEmail).maybeSingle();
           var templateId = (me.data && (me.data.template_id || (me.data.branding && me.data.branding['מזהה_תבנית_אישית']))) || null;
           var bannerId = (me.data && me.data.branding && me.data.branding['מזהה_באנר']) || '';
+          var _exLink = ''; try { var _lq = await supa.from('examinees').select('raw_data').eq('id', examineeId).maybeSingle(); _exLink = (_lq.data && _lq.data.raw_data && _lq.data.raw_data[linkKey]) || ''; } catch (e) {}
+          var _exDocId = (typeof window._nzDocIdFromUrl === 'function') ? window._nzDocIdFromUrl(_exLink) : '';
           var docInv = await supa.functions.invoke('create-report-doc', {
-            body: { reportText: reportText, examineeName: examineeName, templateId: templateId, reportType: (isPrincipal ? 'principal' : 'student'), ownerEmail: ownerEmail, bannerId: bannerId }
+            body: { reportText: reportText, examineeName: examineeName, templateId: templateId, reportType: (isPrincipal ? 'principal' : 'student'), ownerEmail: ownerEmail, bannerId: bannerId, docId: _exDocId }
           });
           if (!docInv.error && docInv.data && docInv.data.success) {
             docUrl = docInv.data.docUrl || '';
@@ -1405,11 +1408,13 @@
         var me = await supa.from('counselors').select('template_id, branding').eq('email', ownerEmail).maybeSingle();
         var templateId = (me.data && (me.data.template_id || (me.data.branding && me.data.branding['מזהה_תבנית_אישית']))) || null;
         var bannerId = (me.data && me.data.branding && me.data.branding['מזהה_באנר']) || '';
-        // חידוש מסמך הדוקס מהטקסט הערוך (אותו מנגנון כמו הפקה/מיקוד)
+        // חידוש מסמך הדוקס מהטקסט הערוך — על אותו קובץ אם קיים (docId)
         var docUrl = '';
         try {
+          var _exLink = ''; try { var _lq = await supa.from('examinees').select('raw_data').eq('id', examineeId).maybeSingle(); _exLink = (_lq.data && _lq.data.raw_data && _lq.data.raw_data[linkKey]) || ''; } catch (e) {}
+          var _exDocId = (typeof window._nzDocIdFromUrl === 'function') ? window._nzDocIdFromUrl(_exLink) : '';
           var docInv = await supa.functions.invoke('create-report-doc', {
-            body: { reportText: reportText, examineeName: examineeName, templateId: templateId, reportType: (isPrincipal ? 'principal' : 'student'), ownerEmail: ownerEmail, bannerId: bannerId }
+            body: { reportText: reportText, examineeName: examineeName, templateId: templateId, reportType: (isPrincipal ? 'principal' : 'student'), ownerEmail: ownerEmail, bannerId: bannerId, docId: _exDocId }
           });
           if (!docInv.error && docInv.data && docInv.data.success) docUrl = docInv.data.docUrl || '';
         } catch (de) {}
@@ -1478,11 +1483,13 @@
         var templateId = (me.data && (me.data.template_id || (me.data.branding && me.data.branding['מזהה_תבנית_אישית']))) || null;
         var bannerId = (me.data && me.data.branding && me.data.branding['מזהה_באנר']) || '';
 
-        // יצירת מסמך מעודכן
+        // יצירת מסמך מעודכן — על אותו קובץ אם קיים (docId)
         var docUrl = '';
         try {
+          var _exLink = ''; try { var _lq = await supa.from('examinees').select('raw_data').eq('id', examineeId).maybeSingle(); _exLink = (_lq.data && _lq.data.raw_data && _lq.data.raw_data[linkKey]) || ''; } catch (e) {}
+          var _exDocId = (typeof window._nzDocIdFromUrl === 'function') ? window._nzDocIdFromUrl(_exLink) : '';
           var docInv = await supa.functions.invoke('create-report-doc', {
-            body: { reportText: reportText, examineeName: examineeName, templateId: templateId, reportType: (isPrincipal ? 'principal' : 'student'), ownerEmail: ownerEmail, bannerId: bannerId }
+            body: { reportText: reportText, examineeName: examineeName, templateId: templateId, reportType: (isPrincipal ? 'principal' : 'student'), ownerEmail: ownerEmail, bannerId: bannerId, docId: _exDocId }
           });
           if (!docInv.error && docInv.data && docInv.data.success) docUrl = docInv.data.docUrl || '';
         } catch (de) {}
