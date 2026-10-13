@@ -3983,7 +3983,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         var html = '<details style="margin-top:10px;border-top:1px solid #e5e7eb;padding-top:8px;">' +
             '<summary style="cursor:pointer;font-size:11.5px;font-weight:700;color:#6b7280;list-style:none;display:flex;align-items:center;gap:5px;">ℹ️ פרטי הפקה</summary>' +
-            '<div style="margin-top:7px;max-height:240px;overflow-y:auto;padding-left:4px;">';
+            '<div style="margin-top:7px;max-height:240px;overflow-y:auto;padding-left:4px;padding-right:16px;">';
 
         if (Array.isArray(m.events) && m.events.length) {
             // ✨ ציר-זמן: הפקה ומיקודים לפי סדר כרונולוגי
@@ -7793,6 +7793,16 @@ document.addEventListener('DOMContentLoaded', function() {
     window._nzFindManualInsert = function (afterIdx) { for (var i = 0; i < _nzManualInserts.length; i++) { if (_nzManualInserts[i].afterIdx === afterIdx) return _nzManualInserts[i]; } return null; };
     window._nzHasManualChanges = function () { return Object.keys(_nzManualEditedIdx).length > 0 || _nzManualInserts.length > 0; };
     window._nzGetLockedLines = function () { return Object.keys(_nzManualEditedIdx).map(function (k) { return _nzRefineLines[k]; }).filter(function (t) { return t && String(t).trim(); }); };
+    window._nzScrollToReportCard = function (mode) {
+        var m = (mode === 'principal') ? 'principal' : 'student';
+        requestAnimationFrame(function () {
+            var cardEl = document.getElementById('report-card-' + m);
+            if (!cardEl) return;
+            try { cardEl.scrollIntoView({ behavior: 'auto', block: 'center' }); } catch (e) {}
+            cardEl.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50', 'transition-all', 'duration-500');
+            setTimeout(function () { cardEl.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50'); }, 2500);
+        });
+    };
     window._nzOpenEditorDirty = function () {
         var ed = document.getElementById('nz-mark-editor');
         if (!ed) return false;
@@ -8905,16 +8915,7 @@ function attachEventListeners() {
                                         }, 400);
                                     }
                                     if (modeForHighlight === 'student' || modeForHighlight === 'principal') {
-                                        setTimeout(() => {
-                                            var cardEl = document.getElementById('report-card-' + modeForHighlight);
-                                            if (cardEl) {
-                                                cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                                setTimeout(() => {
-                                                    cardEl.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50', 'transition-all', 'duration-500');
-                                                    setTimeout(() => cardEl.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50'), 2500);
-                                                }, 600);
-                                            }
-                                        }, 400);
+                                        if (typeof window._nzScrollToReportCard === 'function') window._nzScrollToReportCard(modeForHighlight);
                                     }
                                     
                                     // ✨ התיקון לטסט 3: מחכים 250 מילישניות כדי לוודא שהמסך סיים להתייצב
@@ -9025,23 +9026,26 @@ function attachEventListeners() {
 
         // ===== מסלול עריכה ידנית בלבד (בלי AI) — שמירה ישירה + חידוש מסמך הדוקס =====
         if (!_hasAI && _hasManual) {
-            btn.disabled = true; btn.querySelector('.pulsing-loader').classList.remove('hidden');
-            refineModal.classList.add('hidden');
-            showToast('שומר שינויים ומעדכן את המסמך...');
+            btn.disabled = true; btn.querySelector('.pulsing-loader').classList.remove('hidden'); btn.querySelector('.button-text').textContent = 'שומר...';
+            var _restoreBtn = function () { btn.disabled = false; btn.querySelector('.pulsing-loader').classList.add('hidden'); btn.querySelector('.button-text').textContent = 'עדכן דוח'; };
             google.script.run
               .withSuccessHandler(function (res) {
-                  btn.disabled = false; btn.querySelector('.pulsing-loader').classList.add('hidden'); btn.querySelector('.button-text').textContent = 'עדכן דוח';
-                  if (!res || !res.success) { showToast('שמירת השינויים נכשלה: ' + ((res && res.error) || 'שגיאה')); return; }
+                  if (!res || !res.success) { _restoreBtn(); showToast('שמירת השינויים נכשלה: ' + ((res && res.error) || 'שגיאה')); return; }
                   google.script.run.withSuccessHandler(function (examineesResponse) {
+                      _restoreBtn();
+                      refineModal.classList.add('hidden');
                       if (examineesResponse && examineesResponse.success) {
                           allExamineesData = examineesResponse.data;
                           var updatedExaminee = allExamineesData.find(function (e) { return e.id === examineeId; });
-                          if (currentExaminee && currentExaminee.id === examineeId && currentView === 'examinees' && updatedExaminee) renderExamineeDetails(updatedExaminee);
+                          if (currentExaminee && currentExaminee.id === examineeId && currentView === 'examinees' && updatedExaminee) {
+                              renderExamineeDetails(updatedExaminee);
+                              if (typeof window._nzScrollToReportCard === 'function') window._nzScrollToReportCard(reportMode);
+                          }
                       }
                       showToast('השינויים נשמרו והמסמך עודכן.');
-                  }).withFailureHandler(function () { showToast('השינויים נשמרו (רענון התצוגה נכשל).'); }).getSheetDataBySession(currentSessionId);
+                  }).withFailureHandler(function () { _restoreBtn(); refineModal.classList.add('hidden'); showToast('השינויים נשמרו (רענון התצוגה נכשל).'); }).getSheetDataBySession(currentSessionId);
               })
-              .withFailureHandler(function (err) { btn.disabled = false; btn.querySelector('.pulsing-loader').classList.add('hidden'); handleServerError(err); })
+              .withFailureHandler(function (err) { _restoreBtn(); handleServerError(err); })
               .saveManualEditFromServer(currentSessionId, examineeId, examinee.name, _workingText, reportMode);
             return;
         }
@@ -9209,16 +9213,7 @@ function attachEventListeners() {
                                         }, 400);
                                     }
                                     if (modeForHighlight === 'student' || modeForHighlight === 'principal') {
-                                        setTimeout(() => {
-                                            var cardEl = document.getElementById('report-card-' + modeForHighlight);
-                                            if (cardEl) {
-                                                cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                                setTimeout(() => {
-                                                    cardEl.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50', 'transition-all', 'duration-500');
-                                                    setTimeout(() => cardEl.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50'), 2500);
-                                                }, 600);
-                                            }
-                                        }, 400);
+                                        if (typeof window._nzScrollToReportCard === 'function') window._nzScrollToReportCard(modeForHighlight);
                                     }
                                     
                                     // ✨ התיקון לטסט 3: מחכים 250 מילישניות כדי לוודא שהמסך סיים להתייצב
