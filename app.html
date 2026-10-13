@@ -1396,32 +1396,16 @@
     },
 
     // ===== מיקוד דוח (refine) =====
+    // שמירת עריכה ידנית — מהירה, טקסט בלבד (חידוש הדוקס נעשה ברקע בקריאה נפרדת)
     saveManualEditFromServer: async function (sessionId, examineeId, examineeName, newText, reportMode) {
       try {
         var isPrincipal = (reportMode === 'principal' || reportMode === 'manager' || reportMode === 'מנהלת');
         var reportText = newText || '';
         var rawKey  = isPrincipal ? 'דוח מנהלת' : 'דוח אבחון';
-        var linkKey = isPrincipal ? 'קישור לדוח מנהלת' : 'קישור למסמך הדוח';
         var col     = isPrincipal ? 'principal_report' : 'student_report';
-        var ownerQ = await supa.from('examinees').select('owner_email').eq('id', examineeId).maybeSingle();
-        var ownerEmail = (ownerQ.data && ownerQ.data.owner_email) || window._currentUserEmail;
-        var me = await supa.from('counselors').select('template_id, branding').eq('email', ownerEmail).maybeSingle();
-        var templateId = (me.data && (me.data.template_id || (me.data.branding && me.data.branding['מזהה_תבנית_אישית']))) || null;
-        var bannerId = (me.data && me.data.branding && me.data.branding['מזהה_באנר']) || '';
-        // חידוש מסמך הדוקס מהטקסט הערוך — על אותו קובץ אם קיים (docId)
-        var docUrl = '';
-        try {
-          var _exLink = ''; try { var _lq = await supa.from('examinees').select('raw_data').eq('id', examineeId).maybeSingle(); _exLink = (_lq.data && _lq.data.raw_data && _lq.data.raw_data[linkKey]) || ''; } catch (e) {}
-          var _exDocId = (typeof window._nzDocIdFromUrl === 'function') ? window._nzDocIdFromUrl(_exLink) : '';
-          var docInv = await supa.functions.invoke('create-report-doc', {
-            body: { reportText: reportText, examineeName: examineeName, templateId: templateId, reportType: (isPrincipal ? 'principal' : 'student'), ownerEmail: ownerEmail, bannerId: bannerId, docId: _exDocId }
-          });
-          if (!docInv.error && docInv.data && docInv.data.success) docUrl = docInv.data.docUrl || '';
-        } catch (de) {}
         var cur = await supa.from('examinees').select('raw_data').eq('id', examineeId).maybeSingle();
         var raw = (cur.data && cur.data.raw_data) || {};
         raw[rawKey] = reportText;
-        if (docUrl) raw[linkKey] = docUrl;
         var metaKeyR = isPrincipal ? 'פרטי הפקה - דוח מנהלת' : 'פרטי הפקה - דוח תלמידה';
         var prevMeta = (raw[metaKeyR] && typeof raw[metaKeyR] === 'object') ? raw[metaKeyR] : {};
         var _now = new Date().toISOString();
@@ -1435,13 +1419,40 @@
         patch[col] = reportText;
         var upd = await supa.from('examinees').update(patch).eq('id', examineeId);
         if (upd.error) return { success: false, error: 'שמירת הדוח נכשלה: ' + upd.error.message };
-        return { success: true, report: reportText, docUrl: docUrl };
+        return { success: true, report: reportText };
       } catch (e) {
         return { success: false, error: String(e) };
       }
     },
 
-    refineReportFromServer: async function (sessionId, examineeId, examineeName, previousReport, refinementInstruction, reportMode, extraDataContext, extraDataMeta, refineItems, lockedLines) {
+    // חידוש מסמך הדוקס מהטקסט השמור (רץ ברקע, על אותו קובץ אם קיים)
+    regenReportDocBySession: async function (sessionId, examineeId, reportMode) {
+      try {
+        var isPrincipal = (reportMode === 'principal' || reportMode === 'manager' || reportMode === 'מנהלת');
+        var rawKey  = isPrincipal ? 'דוח מנהלת' : 'דוח אבחון';
+        var linkKey = isPrincipal ? 'קישור לדוח מנהלת' : 'קישור למסמך הדוח';
+        var ex = await supa.from('examinees').select('raw_data, name, owner_email, student_report, principal_report').eq('id', examineeId).maybeSingle();
+        if (!ex.data) return { success: false, error: 'not_found' };
+        var raw = ex.data.raw_data || {};
+        var reportText = (isPrincipal ? ex.data.principal_report : ex.data.student_report) || raw[rawKey] || '';
+        var examineeName = ex.data.name || raw['שם'] || 'נבחנת';
+        var ownerEmail = ex.data.owner_email || window._currentUserEmail;
+        var me = await supa.from('counselors').select('template_id, branding').eq('email', ownerEmail).maybeSingle();
+        var templateId = (me.data && (me.data.template_id || (me.data.branding && me.data.branding['מזהה_תבנית_אישית']))) || null;
+        var bannerId = (me.data && me.data.branding && me.data.branding['מזהה_באנר']) || '';
+        var _exDocId = (typeof window._nzDocIdFromUrl === 'function') ? window._nzDocIdFromUrl(raw[linkKey]) : '';
+        var docInv = await supa.functions.invoke('create-report-doc', {
+          body: { reportText: reportText, examineeName: examineeName, templateId: templateId, reportType: (isPrincipal ? 'principal' : 'student'), ownerEmail: ownerEmail, bannerId: bannerId, docId: _exDocId }
+        });
+        var docUrl = (!docInv.error && docInv.data && docInv.data.success) ? (docInv.data.docUrl || '') : '';
+        if (docUrl && docUrl !== raw[linkKey]) { raw[linkKey] = docUrl; await supa.from('examinees').update({ raw_data: raw }).eq('id', examineeId); }
+        return { success: true, docUrl: docUrl };
+      } catch (e) {
+        return { success: false, error: String(e) };
+      }
+    },
+
+    refineReportFromServer: async function (sessionId, examineeId, examineeName, previousReport, refinementInstruction, reportMode, extraDataContext, extraDataMeta, refineItems, lockedLines, hadManual) {
       try {
         var isPrincipal = (reportMode === 'principal' || reportMode === 'manager' || reportMode === 'מנהלת');
         // הנחיה מדויקת (מהמערכת המקורית): להחזיר את הדוח המלא בלבד, בלי הקדמות/הערות
@@ -1507,6 +1518,8 @@
         if (!Array.isArray(prevMeta.events)) {
           prevMeta.events = [{ t: 'gen', at: (prevMeta.generatedAt || _refNow), promptName: (prevMeta.promptName || ''), promptText: (prevMeta.promptText || ''), isProtected: !!prevMeta.isProtected, sources: (Array.isArray(prevMeta.sources) ? prevMeta.sources : []) }];
         }
+        // אירוע עריכה ידנית (אם היו עריכות ידניות יחד עם המיקוד) — מופיע ביומן בנפרד
+        if (hadManual) { prevMeta.events.push({ t: 'manual', at: _refNow }); }
         // אירוע מיקוד — צורת הזנה גמישה (text כעת; items לפסקאות בעתיד) + ציון אם בוסס על נתונים
         prevMeta.events.push({ t: 'refine', at: _refNow, instruction: { text: refinementInstruction || '', items: (Array.isArray(refineItems) ? refineItems.map(function (it) { return { op: it.op, quote: (it.quote != null ? it.quote : null), after: (it.after != null ? it.after : null), instruction: it.instruction }; }) : []) }, data: { included: !!(typeof extraDataContext !== 'undefined' && extraDataContext && String(extraDataContext).trim()), sources: (Array.isArray(extraDataMeta) ? extraDataMeta : []) } });
         prevMeta.generatedAt = _refNow;
@@ -7789,6 +7802,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var _nzRefineMarks = [];   // {id, op:'edit'|'insert', idx, text}  — הוראות AI
     var _nzManualInserts = []; // {id, afterIdx, text}  — תוכן חדש שהוקלד ידנית
     var _nzManualEditedIdx = {}; // set: idx -> true  — פסקאות שנערכו ידנית במקום
+    var _nzOrigLines = [];       // צילום המקור לשחזור בביטול עריכה ידנית
     var _nzMarkSeq = 0;
     window._nzFindManualInsert = function (afterIdx) { for (var i = 0; i < _nzManualInserts.length; i++) { if (_nzManualInserts[i].afterIdx === afterIdx) return _nzManualInserts[i]; } return null; };
     window._nzHasManualChanges = function () { return Object.keys(_nzManualEditedIdx).length > 0 || _nzManualInserts.length > 0; };
@@ -7950,7 +7964,7 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             var rm = body.querySelector('#nz-mk-remove');
             if (rm) rm.onclick = function () {
-                if (kind === 'seg') { delete _nzManualEditedIdx[idx]; }
+                if (kind === 'seg') { if (typeof _nzOrigLines[idx] !== 'undefined') _nzRefineLines[idx] = _nzOrigLines[idx]; delete _nzManualEditedIdx[idx]; }
                 else { _nzManualInserts = _nzManualInserts.filter(function (m) { return m.afterIdx !== idx; }); }
                 window._nzRenderRefineView();
             };
@@ -7978,6 +7992,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     window._nzInitRefineView = function (text) {
         _nzRefineLines = String(text == null ? '' : text).split('\n');
+        _nzOrigLines = _nzRefineLines.slice();
         _nzRefineMarks = [];
         _nzManualInserts = [];
         _nzManualEditedIdx = {};
@@ -9024,26 +9039,41 @@ function attachEventListeners() {
             return;
         }
 
-        // ===== מסלול עריכה ידנית בלבד (בלי AI) — שמירה ישירה + חידוש מסמך הדוקס =====
+        // ===== מסלול עריכה ידנית בלבד (בלי AI) — שמירה מיידית + חידוש דוקס ברקע =====
         if (!_hasAI && _hasManual) {
             btn.disabled = true; btn.querySelector('.pulsing-loader').classList.remove('hidden'); btn.querySelector('.button-text').textContent = 'שומר...';
             var _restoreBtn = function () { btn.disabled = false; btn.querySelector('.pulsing-loader').classList.add('hidden'); btn.querySelector('.button-text').textContent = 'עדכן דוח'; };
             google.script.run
               .withSuccessHandler(function (res) {
-                  if (!res || !res.success) { _restoreBtn(); showToast('שמירת השינויים נכשלה: ' + ((res && res.error) || 'שגיאה')); return; }
-                  google.script.run.withSuccessHandler(function (examineesResponse) {
-                      _restoreBtn();
-                      refineModal.classList.add('hidden');
-                      if (examineesResponse && examineesResponse.success) {
-                          allExamineesData = examineesResponse.data;
-                          var updatedExaminee = allExamineesData.find(function (e) { return e.id === examineeId; });
-                          if (currentExaminee && currentExaminee.id === examineeId && currentView === 'examinees' && updatedExaminee) {
-                              renderExamineeDetails(updatedExaminee);
-                              if (typeof window._nzScrollToReportCard === 'function') window._nzScrollToReportCard(reportMode);
-                          }
+                  _restoreBtn();
+                  if (!res || !res.success) { showToast('שמירת השינויים נכשלה: ' + ((res && res.error) || 'שגיאה')); return; }
+                  refineModal.classList.add('hidden');
+                  // עדכון מיידי בזיכרון + רינדור (בלי להמתין לדוקס)
+                  try {
+                      var _rk = (reportMode === 'principal') ? 'דוח מנהלת' : 'דוח אבחון';
+                      var _mk = (reportMode === 'principal') ? 'פרטי הפקה - דוח מנהלת' : 'פרטי הפקה - דוח תלמידה';
+                      var _nowIso = new Date().toISOString();
+                      var _applyMem = function (ex) {
+                          if (!ex || ex.id !== examineeId) return;
+                          ex.rawData = ex.rawData || {};
+                          ex.rawData[_rk] = _workingText;
+                          var m = ex.rawData[_mk];
+                          if (m && Array.isArray(m.events)) { m.events.push({ t: 'manual', at: _nowIso }); m.generatedAt = _nowIso; }
+                      };
+                      _applyMem(currentExaminee);
+                      var _row = (typeof allExamineesData !== 'undefined') ? allExamineesData.find(function (e) { return e.id === examineeId; }) : null;
+                      if (_row && _row !== currentExaminee) _applyMem(_row);
+                      if (currentExaminee && currentExaminee.id === examineeId && currentView === 'examinees') {
+                          renderExamineeDetails(currentExaminee);
+                          if (typeof window._nzScrollToReportCard === 'function') window._nzScrollToReportCard(reportMode);
                       }
-                      showToast('השינויים נשמרו והמסמך עודכן.');
-                  }).withFailureHandler(function () { _restoreBtn(); refineModal.classList.add('hidden'); showToast('השינויים נשמרו (רענון התצוגה נכשל).'); }).getSheetDataBySession(currentSessionId);
+                  } catch (e) {}
+                  showToast('השינוי נשמר. המסמך בדרייב מתעדכן ברקע...');
+                  // רקע: חידוש מסמך הדוקס (לא חוסם את היועצת)
+                  google.script.run
+                    .withSuccessHandler(function (r2) { showToast(r2 && r2.success ? 'המסמך בדרייב עודכן.' : 'הערה: חידוש המסמך בדרייב נכשל — הטקסט נשמר במערכת.'); })
+                    .withFailureHandler(function () { showToast('הערה: חידוש המסמך בדרייב נכשל — הטקסט נשמר במערכת.'); })
+                    .regenReportDocBySession(currentSessionId, examineeId, reportMode);
               })
               .withFailureHandler(function (err) { _restoreBtn(); handleServerError(err); })
               .saveManualEditFromServer(currentSessionId, examineeId, examinee.name, _workingText, reportMode);
@@ -9269,7 +9299,8 @@ function attachEventListeners() {
                     _extraDataContext,
                     _extraDataMeta,
                     _refineItems,
-                    _lockedLines
+                    _lockedLines,
+                    _hasManual
                 );
                 
         } catch (error) {
