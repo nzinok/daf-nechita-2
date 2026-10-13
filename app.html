@@ -7817,6 +7817,25 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function () { cardEl.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50'); }, 2500);
         });
     };
+    var _nzRefineSavedSomething = false;
+    window._nzMarkRefineSaved = function () { _nzRefineSavedSomething = true; };
+    window._nzConsumeRefineSaved = function () { var v = _nzRefineSavedSomething; _nzRefineSavedSomething = false; return v; };
+    // כפתור "עדכן" מופיע רק כשיש שינויים לא-שמורים (עריכה ידנית / הוספה / הנחיה)
+    window._nzUpdateUpdateBtn = function () {
+        var b = document.getElementById('submit-refinement-btn');
+        if (!b) return;
+        var ti = document.getElementById('refinement-prompt-input');
+        var freeText = ti && ti.value && ti.value.trim();
+        var has = (typeof window._nzHasManualChanges === 'function' && window._nzHasManualChanges()) || _nzRefineMarks.length > 0 || !!freeText;
+        b.style.display = has ? '' : 'none';
+    };
+    // אחרי שמירה ידנית — הטקסט הנוכחי הופך לבסיס החדש, והסימונים מתאפסים
+    window._nzCommitManualBaseline = function () {
+        _nzManualEditedIdx = {};
+        _nzManualInserts = [];
+        _nzOrigLines = _nzRefineLines.slice();
+        window._nzRenderRefineView();
+    };
     window._nzOpenEditorDirty = function () {
         var ed = document.getElementById('nz-mark-editor');
         if (!ed) return false;
@@ -7925,6 +7944,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }).join('');
             }
         }
+        if (typeof window._nzUpdateUpdateBtn === 'function') window._nzUpdateUpdateBtn();
     };
     window._nzOpenSegmentPanel = function (kind, idx, anchorEl) {
         var prev = document.getElementById('nz-mark-editor');
@@ -7997,6 +8017,7 @@ document.addEventListener('DOMContentLoaded', function() {
         _nzManualInserts = [];
         _nzManualEditedIdx = {};
         _nzMarkSeq = 0;
+        _nzRefineSavedSomething = false;
         window._nzRenderRefineView();
         var box = document.getElementById('refine-report-view');
         if (box && !box.dataset.bound) {
@@ -8030,6 +8051,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (del) { var mid = del.getAttribute('data-mid'); _nzRefineMarks = _nzRefineMarks.filter(function (m) { return m.id !== mid; }); window._nzRenderRefineView(); }
             });
         }
+        var _ti = document.getElementById('refinement-prompt-input');
+        if (_ti && !_ti.dataset.bound) { _ti.dataset.bound = '1'; _ti.addEventListener('input', function () { if (typeof window._nzUpdateUpdateBtn === 'function') window._nzUpdateUpdateBtn(); }); }
+        if (typeof window._nzUpdateUpdateBtn === 'function') window._nzUpdateUpdateBtn();
     };
     window._nzCollectRefineItems = function () {
         var lines = _nzRefineLines;
@@ -8991,7 +9015,16 @@ function attachEventListeners() {
     // <<< ✨ END: BLOCK OF CODE CHANGED ✨ >>>
     // ===================================
 
-    closeRefineModalBtn.addEventListener('click', function() { refineModal.classList.add('hidden') });
+    closeRefineModalBtn.addEventListener('click', function() {
+        refineModal.classList.add('hidden');
+        try {
+            if (typeof window._nzConsumeRefineSaved === 'function' && window._nzConsumeRefineSaved() && currentExaminee && currentView === 'examinees') {
+                var _sy = window.scrollY || document.documentElement.scrollTop || 0;
+                renderExamineeDetails(currentExaminee);
+                requestAnimationFrame(function () { try { window.scrollTo(0, _sy); } catch (e) {} });
+            }
+        } catch (e) {}
+    });
 
     refineForm.addEventListener('submit', async function(event) {
         event.preventDefault();
@@ -9047,8 +9080,7 @@ function attachEventListeners() {
               .withSuccessHandler(function (res) {
                   _restoreBtn();
                   if (!res || !res.success) { showToast('שמירת השינויים נכשלה: ' + ((res && res.error) || 'שגיאה')); return; }
-                  refineModal.classList.add('hidden');
-                  // עדכון מיידי בזיכרון + רינדור (בלי להמתין לדוקס)
+                  // עדכון בזיכרון בלבד — החלון נשאר פתוח, התצוגה בתיק תתעדכן בסגירת החלון
                   try {
                       var _rk = (reportMode === 'principal') ? 'דוח מנהלת' : 'דוח אבחון';
                       var _mk = (reportMode === 'principal') ? 'פרטי הפקה - דוח מנהלת' : 'פרטי הפקה - דוח תלמידה';
@@ -9063,11 +9095,10 @@ function attachEventListeners() {
                       _applyMem(currentExaminee);
                       var _row = (typeof allExamineesData !== 'undefined') ? allExamineesData.find(function (e) { return e.id === examineeId; }) : null;
                       if (_row && _row !== currentExaminee) _applyMem(_row);
-                      if (currentExaminee && currentExaminee.id === examineeId && currentView === 'examinees') {
-                          renderExamineeDetails(currentExaminee);
-                          if (typeof window._nzScrollToReportCard === 'function') window._nzScrollToReportCard(reportMode);
-                      }
                   } catch (e) {}
+                  // איפוס מצב "שינויים ממתינים" — הכפתור ייעלם כי אין שינויים, והחלון נשאר פתוח
+                  if (typeof window._nzCommitManualBaseline === 'function') window._nzCommitManualBaseline();
+                  if (typeof window._nzMarkRefineSaved === 'function') window._nzMarkRefineSaved();
                   showToast('השינוי נשמר. המסמך בדרייב מתעדכן ברקע...');
                   // רקע: חידוש מסמך הדוקס (לא חוסם את היועצת)
                   google.script.run
