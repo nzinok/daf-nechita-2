@@ -2032,6 +2032,60 @@
     } catch (e) { if (onError) onError('שגיאת התחברות'); }
   };
 
+  // שליחת קישור איפוס סיסמה למייל (Supabase + SMTP של Resend)
+  window._nzSendPasswordReset = async function (email, cb) {
+    try {
+      var redirect = window.location.href.split('#')[0];
+      var res = await supa.auth.resetPasswordForEmail((email || '').trim(), { redirectTo: redirect });
+      if (res && res.error) { if (cb) cb(false, 'שגיאה בשליחת הקישור. נסי שוב מאוחר יותר.'); return; }
+      if (cb) cb(true);
+    } catch (e) { if (cb) cb(false, 'שגיאת תקשורת. נסי שוב.'); }
+  };
+
+  // מסך "סיסמה חדשה" — מוצג כשהמשתמשת חוזרת מקישור האיפוס במייל
+  window._nzShowResetPasswordScreen = function () {
+    if (document.getElementById('nz-reset-overlay')) return;
+    try { var _bl = document.getElementById('nz-boot-loader'); if (_bl) _bl.remove(); } catch (e) {}
+    try { var _lo = document.getElementById('nz-login-overlay'); if (_lo) _lo.remove(); } catch (e) {}
+    var ov = document.createElement('div');
+    ov.id = 'nz-reset-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:100000;direction:rtl;font-family:Heebo,sans-serif;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;background:radial-gradient(760px 420px at 82% -10%, rgba(31,191,222,.18), transparent 60%), linear-gradient(158deg, #0E2A46, #0C2340 62%, #081a30);';
+    ov.innerHTML =
+      '<div style="background:#fff;border-radius:20px;max-width:420px;width:100%;padding:32px 30px;box-shadow:0 34px 90px -34px rgba(6,18,40,.72);text-align:center;">' +
+        '<h1 style="font-family:Heebo,sans-serif;font-weight:800;color:#0C2340;font-size:1.35rem;margin-bottom:6px;">הגדרת סיסמה חדשה</h1>' +
+        '<p style="color:#5C748C;font-size:.92rem;margin-bottom:18px;">בחרי סיסמה חדשה לחשבון שלך.</p>' +
+        '<div id="nz-reset-err" style="display:none;background:#FEF1F1;color:#C53030;padding:10px 12px;border-radius:10px;margin-bottom:12px;border:1px solid #F5C2C2;font-size:.9rem;text-align:right;"></div>' +
+        '<div id="nz-reset-ok" style="display:none;background:#ECFDF5;color:#065F46;padding:10px 12px;border-radius:10px;margin-bottom:12px;border:1px solid #A7F3D0;font-size:.9rem;text-align:right;"></div>' +
+        '<div style="text-align:right;margin-bottom:12px;"><label style="display:block;font-weight:600;color:#12293F;font-size:.9rem;margin-bottom:4px;">סיסמה חדשה</label><input type="password" id="nz-reset-p1" autocomplete="new-password" style="width:100%;padding:10px 14px;border:2px solid #DDE6EE;border-radius:12px;font-size:.98rem;font-family:Heebo,sans-serif;box-sizing:border-box;"></div>' +
+        '<div style="text-align:right;margin-bottom:16px;"><label style="display:block;font-weight:600;color:#12293F;font-size:.9rem;margin-bottom:4px;">אימות סיסמה</label><input type="password" id="nz-reset-p2" autocomplete="new-password" style="width:100%;padding:10px 14px;border:2px solid #DDE6EE;border-radius:12px;font-size:.98rem;font-family:Heebo,sans-serif;box-sizing:border-box;"></div>' +
+        '<button id="nz-reset-save" style="width:100%;padding:11px;background:linear-gradient(135deg,#F5821F,#C4640F);color:#fff;border:none;border-radius:12px;font-size:1.05rem;font-weight:700;cursor:pointer;font-family:Heebo,sans-serif;">שמירת סיסמה</button>' +
+      '</div>';
+    document.body.appendChild(ov);
+    var p1 = document.getElementById('nz-reset-p1'), p2 = document.getElementById('nz-reset-p2');
+    var errD = document.getElementById('nz-reset-err'), okD = document.getElementById('nz-reset-ok');
+    var btn = document.getElementById('nz-reset-save');
+    try { p1.focus(); } catch (e) {}
+    var doSave = async function () {
+      errD.style.display = 'none';
+      var a = p1.value || '', b = p2.value || '';
+      if (a.length < 6) { errD.textContent = 'הסיסמה חייבת להכיל לפחות 6 תווים.'; errD.style.display = 'block'; return; }
+      if (a !== b) { errD.textContent = 'הסיסמאות אינן תואמות.'; errD.style.display = 'block'; return; }
+      btn.disabled = true; btn.textContent = 'שומר...';
+      try {
+        var res = await supa.auth.updateUser({ password: a });
+        if (res && res.error) { errD.textContent = 'לא ניתן לעדכן את הסיסמה. ייתכן שהקישור פג תוקף — בקשי קישור חדש ממסך הכניסה.'; errD.style.display = 'block'; btn.disabled = false; btn.textContent = 'שמירת סיסמה'; return; }
+        okD.textContent = 'הסיסמה עודכנה בהצלחה! מעבירה אותך למסך הכניסה...'; okD.style.display = 'block';
+        window._nzInRecovery = false;
+        setTimeout(async function () {
+          try { await supa.auth.signOut(); } catch (e) {}
+          window.location.href = window.location.href.split('#')[0];
+        }, 1800);
+      } catch (e) { errD.textContent = 'שגיאת תקשורת. נסי שוב.'; errD.style.display = 'block'; btn.disabled = false; btn.textContent = 'שמירת סיסמה'; }
+    };
+    btn.onclick = doSave;
+    p2.addEventListener('keydown', function (e) { if (e.key === 'Enter') doSave(); });
+  };
+
   // טקסט מסמכים כהקשר (כל המסמכים אם taggedNames=null, אחרת רק המתויגים)
   window._nzGetDocsContext = async function (examineeId, taggedNames) {
     try {
@@ -2543,6 +2597,12 @@
 
   // מאזין: ברגע שההתחברות נקלטת (או משתנה) — מרענן את הדף כדי להיכנס נקי
   supa.auth.onAuthStateChange(async function (event, session) {
+    // === איפוס סיסמה: חזרה מקישור המייל — מציגים מסך "סיסמה חדשה", בלי רענון ===
+    if (event === 'PASSWORD_RECOVERY' || window._nzInRecovery || (window.location.hash && window.location.hash.indexOf('type=recovery') !== -1)) {
+      window._nzInRecovery = true;
+      if (window._nzShowResetPasswordScreen) window._nzShowResetPasswordScreen();
+      return;
+    }
     if (event === 'SIGNED_IN' && session) {
       var email = session.user.email;
       // אימות: רק מייל הרשום במאגר היועצות מורשה. אחרת — ניתוק מיידי.
@@ -3274,6 +3334,8 @@ document.addEventListener('DOMContentLoaded', function() {
               '<div class="form-group"><label for="nz-login-email">כתובת מייל</label><input type="email" id="nz-login-email" autocomplete="username"></div>' +
               '<div class="form-group"><label for="nz-login-pass">סיסמה</label><input type="password" id="nz-login-pass" autocomplete="current-password"></div>' +
               '<button class="login-btn" id="nz-email-signin">כניסה</button>' +
+              '<div style="text-align:center;margin-top:8px;"><a href="#" id="nz-forgot-pass" style="font-size:.86rem;color:#128AA6;text-decoration:none;font-weight:500;">שכחת סיסמה?</a></div>' +
+              '<div id="nz-login-info" style="display:none;background:#ECFDF5;color:#065F46;padding:11px 13px;border-radius:10px;margin-top:10px;border:1px solid #A7F3D0;font-weight:500;font-size:.9rem;text-align:right;"></div>' +
               '<div style="display:flex;align-items:center;gap:10px;margin:8px 0;color:#94a3b8;font-size:.8rem;"><div style="flex:1;height:1px;background:#e2e8f0;"></div>או<div style="flex:1;height:1px;background:#e2e8f0;"></div></div>' +
               '<button id="nz-google-signin" style="width:100%;background:#fff;color:#334155;border:1px solid var(--line,#DDE6EE);padding:10px;border-radius:12px;font-size:.92rem;font-weight:600;cursor:pointer;">התחברות עם Google</button>' +
             '</div>' +
@@ -3296,6 +3358,20 @@ document.addEventListener('DOMContentLoaded', function() {
         passInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
         emailInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
         document.getElementById('nz-google-signin').onclick = function () { window._doGoogleSignIn(); };
+        var forgotLink = document.getElementById('nz-forgot-pass');
+        var infoDiv = document.getElementById('nz-login-info');
+        if (forgotLink) forgotLink.onclick = function (e) {
+            e.preventDefault();
+            errDiv.style.display = 'none'; if (infoDiv) infoDiv.style.display = 'none';
+            var em = (emailInp.value || '').trim();
+            if (!em) { errDiv.textContent = 'מלאי קודם את כתובת המייל שלך ואז לחצי "שכחת סיסמה?"'; errDiv.style.display = 'block'; emailInp.focus(); return; }
+            forgotLink.textContent = 'שולח קישור...';
+            window._nzSendPasswordReset(em, function (ok, msg) {
+                forgotLink.textContent = 'שכחת סיסמה?';
+                if (ok) { if (infoDiv) { infoDiv.textContent = 'אם הכתובת רשומה במערכת, נשלח אליה קישור לאיפוס סיסמה. בדקי את תיבת הדואר (וגם את תיקיית הספאם).'; infoDiv.style.display = 'block'; } }
+                else { errDiv.textContent = msg || 'אירעה שגיאה בשליחת הקישור. נסי שוב.'; errDiv.style.display = 'block'; }
+            });
+        };
         emailInp.focus();
     }
 
