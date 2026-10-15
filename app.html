@@ -558,6 +558,8 @@
     } catch (e) {}
   };
   window._currentUserEmail = null;
+  // זיהוי מוקדם (סינכרוני) של חזרה מקישור איפוס סיסמה — לפני כל לוגיקת אתחול/כניסה
+  try { if (window.location.hash && window.location.hash.indexOf('type=recovery') !== -1) window._nzInRecovery = true; } catch (e) {}
   window._nzDocIdFromUrl = function (u) { var m = String(u || '').match(/\/d\/([a-zA-Z0-9-_]+)/) || String(u || '').match(/[?&]id=([a-zA-Z0-9-_]+)/); return m ? m[1] : ''; };
 
   // ממיר תשובות מאובייקט (שאלה→תשובה) לרשימת הקבוצות שהקוד המקורי מצפה לה
@@ -2008,6 +2010,7 @@
     try { sessionStorage.removeItem('nz_unregistered'); } catch (e) {}
   };
   window._ensureAuth = async function () {
+    if (window._nzInRecovery) return null;  // מצב איפוס סיסמה — לא נכנסים למערכת ולא מנתקים את session האיפוס
     const { data: { session } } = await supa.auth.getSession();
     if (session) {
       const email = session.user.email;
@@ -11861,6 +11864,12 @@ async function buildPromptData(examinee) {
 
   // גישור התחברות: מוודאים auth מול Supabase לפני שמריצים את המערכת
   async function _bootWithAuth() {
+    if (window._nzInRecovery || (window.location.hash && window.location.hash.indexOf('type=recovery') !== -1)) {
+      window._nzInRecovery = true;
+      try { var _bl = document.getElementById('nz-boot-loader'); if (_bl) _bl.remove(); } catch (e) {}
+      if (window._nzShowResetPasswordScreen) window._nzShowResetPasswordScreen();
+      return;
+    }
     var _sess = await window._ensureAuth();
     if (!_sess || !window._currentUserEmail) return;
     waitReadyThenInit();
