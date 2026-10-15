@@ -558,8 +558,12 @@
     } catch (e) {}
   };
   window._currentUserEmail = null;
-  // זיהוי מוקדם (סינכרוני) של חזרה מקישור איפוס סיסמה — לפני כל לוגיקת אתחול/כניסה
-  try { if (window.location.hash && window.location.hash.indexOf('type=recovery') !== -1) window._nzInRecovery = true; } catch (e) {}
+  // זיהוי מוקדם (סינכרוני) של חזרה מקישור איפוס סיסמה — לפני כל לוגיקת אתחול/כניסה (נשמר גם לרענון)
+  try {
+    var _rec0 = (window.location.hash && window.location.hash.indexOf('type=recovery') !== -1);
+    if (!_rec0) { try { _rec0 = sessionStorage.getItem('nz_recovery') === '1'; } catch (e) {} }
+    if (_rec0) { window._nzInRecovery = true; try { sessionStorage.setItem('nz_recovery', '1'); } catch (e) {} }
+  } catch (e) {}
   window._nzDocIdFromUrl = function (u) { var m = String(u || '').match(/\/d\/([a-zA-Z0-9-_]+)/) || String(u || '').match(/[?&]id=([a-zA-Z0-9-_]+)/); return m ? m[1] : ''; };
 
   // ממיר תשובות מאובייקט (שאלה→תשובה) לרשימת הקבוצות שהקוד המקורי מצפה לה
@@ -2062,12 +2066,23 @@
         '<div style="text-align:right;margin-bottom:12px;"><label style="display:block;font-weight:600;color:#12293F;font-size:.9rem;margin-bottom:4px;">סיסמה חדשה</label><input type="password" id="nz-reset-p1" autocomplete="new-password" style="width:100%;padding:10px 14px;border:2px solid #DDE6EE;border-radius:12px;font-size:.98rem;font-family:Heebo,sans-serif;box-sizing:border-box;"></div>' +
         '<div style="text-align:right;margin-bottom:16px;"><label style="display:block;font-weight:600;color:#12293F;font-size:.9rem;margin-bottom:4px;">אימות סיסמה</label><input type="password" id="nz-reset-p2" autocomplete="new-password" style="width:100%;padding:10px 14px;border:2px solid #DDE6EE;border-radius:12px;font-size:.98rem;font-family:Heebo,sans-serif;box-sizing:border-box;"></div>' +
         '<button id="nz-reset-save" style="width:100%;padding:11px;background:linear-gradient(135deg,#F5821F,#C4640F);color:#fff;border:none;border-radius:12px;font-size:1.05rem;font-weight:700;cursor:pointer;font-family:Heebo,sans-serif;">שמירת סיסמה</button>' +
+        '<div style="margin-top:12px;"><a href="#" id="nz-reset-back" style="font-size:.85rem;color:#5C748C;text-decoration:none;">חזרה למסך הכניסה</a></div>' +
       '</div>';
     document.body.appendChild(ov);
     var p1 = document.getElementById('nz-reset-p1'), p2 = document.getElementById('nz-reset-p2');
     var errD = document.getElementById('nz-reset-err'), okD = document.getElementById('nz-reset-ok');
     var btn = document.getElementById('nz-reset-save');
     try { p1.focus(); } catch (e) {}
+    var _origTxt = 'שמירת סיסמה';
+    // המתנה לקליטת ה-session מהקישור לפני שמאפשרים שמירה (מונע כשל של "אין session" בלחיצה מוקדמת)
+    btn.disabled = true; btn.textContent = 'מאמת קישור...';
+    (function waitSession(tries) {
+      supa.auth.getSession().then(function (_s) {
+        if (_s && _s.data && _s.data.session) { btn.disabled = false; btn.textContent = _origTxt; return; }
+        if (tries > 0) { setTimeout(function () { waitSession(tries - 1); }, 400); }
+        else { btn.textContent = _origTxt; errD.textContent = 'לא זוהתה בקשת איפוס פעילה. ייתכן שהקישור כבר נוצל או פג תוקפו — בקשי קישור חדש ממסך הכניסה.'; errD.style.display = 'block'; }
+      }).catch(function () { if (tries > 0) setTimeout(function () { waitSession(tries - 1); }, 400); });
+    })(12);
     var doSave = async function () {
       errD.style.display = 'none';
       var a = p1.value || '', b = p2.value || '';
@@ -2075,18 +2090,29 @@
       if (a !== b) { errD.textContent = 'הסיסמאות אינן תואמות.'; errD.style.display = 'block'; return; }
       btn.disabled = true; btn.textContent = 'שומר...';
       try {
+        var _sx = await supa.auth.getSession();
+        if (!_sx || !_sx.data || !_sx.data.session) { errD.textContent = 'הקישור אינו פעיל יותר (ייתכן שכבר נוצל). בקשי קישור חדש ממסך הכניסה.'; errD.style.display = 'block'; btn.disabled = false; btn.textContent = _origTxt; return; }
         var res = await supa.auth.updateUser({ password: a });
-        if (res && res.error) { errD.textContent = 'לא ניתן לעדכן את הסיסמה. ייתכן שהקישור פג תוקף — בקשי קישור חדש ממסך הכניסה.'; errD.style.display = 'block'; btn.disabled = false; btn.textContent = 'שמירת סיסמה'; return; }
+        if (res && res.error) { errD.textContent = 'לא ניתן לעדכן: ' + (res.error.message || 'שגיאה לא ידועה'); errD.style.display = 'block'; btn.disabled = false; btn.textContent = _origTxt; return; }
+        try { sessionStorage.removeItem('nz_recovery'); } catch (e) {}
         okD.textContent = 'הסיסמה עודכנה בהצלחה! מעבירה אותך למסך הכניסה...'; okD.style.display = 'block';
         window._nzInRecovery = false;
         setTimeout(async function () {
           try { await supa.auth.signOut(); } catch (e) {}
           window.location.href = window.location.href.split('#')[0];
         }, 1800);
-      } catch (e) { errD.textContent = 'שגיאת תקשורת. נסי שוב.'; errD.style.display = 'block'; btn.disabled = false; btn.textContent = 'שמירת סיסמה'; }
+      } catch (e) { errD.textContent = 'שגיאת תקשורת. נסי שוב.'; errD.style.display = 'block'; btn.disabled = false; btn.textContent = _origTxt; }
     };
     btn.onclick = doSave;
-    p2.addEventListener('keydown', function (e) { if (e.key === 'Enter') doSave(); });
+    p2.addEventListener('keydown', function (e) { if (e.key === 'Enter') { if (!btn.disabled) doSave(); } });
+    var backL = document.getElementById('nz-reset-back');
+    if (backL) backL.onclick = async function (e) {
+      e.preventDefault();
+      try { sessionStorage.removeItem('nz_recovery'); } catch (e2) {}
+      window._nzInRecovery = false;
+      try { await supa.auth.signOut(); } catch (e2) {}
+      window.location.href = window.location.href.split('#')[0];
+    };
   };
 
   // טקסט מסמכים כהקשר (כל המסמכים אם taggedNames=null, אחרת רק המתויגים)
