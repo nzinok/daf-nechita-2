@@ -437,7 +437,7 @@
                 <button id="nz-pdf-preview-close" type="button" class="text-gray-400 hover:text-gray-700 text-3xl leading-none">&times;</button>
             </div>
             <div class="flex-1 overflow-y-auto bg-gray-100 p-4" style="min-height:300px;">
-                <div id="nz-pdf-preview-loading" class="flex flex-col items-center justify-center py-16 text-gray-500"><div class="pulsing-loader"></div><div class="mt-3 text-sm">מכין תצוגה מקדימה של ה-PDF...</div></div>
+                <div id="nz-pdf-preview-loading" class="flex flex-col items-center justify-center py-16 text-gray-500"><div class="loader"></div><div class="mt-4 text-sm text-gray-600">טוען תצוגה מקדימה של הדוח…</div><div class="mt-1 text-xs text-gray-400">רק רגע, מכינים את הקובץ</div></div>
                 <div id="nz-pdf-preview-pages"></div>
             </div>
             <div class="flex items-center justify-between gap-3 p-4 border-t bg-white">
@@ -8056,7 +8056,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var pagesEl = document.getElementById('nz-pdf-preview-pages');
         var sendBtn = document.getElementById('nz-pdf-preview-send');
         if (titleEl && title) titleEl.textContent = title;
-        pagesEl.innerHTML = ''; loading.style.display = ''; loading.innerHTML = '<div class="pulsing-loader"></div><div class="mt-3 text-sm">מכין תצוגה מקדימה של ה-PDF...</div>';
+        pagesEl.innerHTML = ''; loading.style.display = ''; loading.innerHTML = '<div class="loader"></div><div class="mt-4 text-sm text-gray-600">טוען תצוגה מקדימה של הדוח…</div><div class="mt-1 text-xs text-gray-400">רק רגע, מכינים את הקובץ</div>';
         sendBtn.disabled = true;
         modal.classList.remove('hidden');
         try { if (typeof lucide !== 'undefined') lucide.createIcons(); } catch (e) {}
