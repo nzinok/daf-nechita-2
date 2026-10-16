@@ -7076,6 +7076,7 @@ document.addEventListener('DOMContentLoaded', function() {
             var _reStudent   = /דו["״]?ח(?:ות)?\s+ה?תלמיד/;
             var _rePrincipal = /דו["״]?ח(?:ות)?\s+ה?מנהל/;
             var _mentionsReport = /דו["״]?ח(ות)?(?![א-ת])/.test(_qForCheck);
+            var _mentionsDoc = /מסמ[ךכ]|קוב[ץצ]|קבצ/.test(_qForCheck);
             var _rd = (examinee && examinee.rawData) || {};
             var _hasStudentRep   = !!_rd['דוח אבחון'];
             var _hasPrincipalRep = !!_rd['דוח מנהלת'];
@@ -7122,6 +7123,21 @@ document.addEventListener('DOMContentLoaded', function() {
                         else { var _sb2 = document.querySelector('#chat-form button[type="submit"]'); if (_sb2) _sb2.disabled = false; }
                         return;
                     }
+                }
+            } else if (_mentionsDoc && (typeof selectedContexts === 'undefined' || !selectedContexts || selectedContexts.length === 0)) {
+                var _proceedNoDoc = await appConfirm({
+                    title: 'שכחת לצרף מסמך?',
+                    message: 'הזכרת "מסמך" או "קובץ" בשאלה, אך לא צירפת שום מסמך לשיחה. היועץ הפנימי אינו רואה מסמכים אלא אם תצרפי אותם (באמצעות האטב שליד תיבת השאלה). לחזור ולצרף, או לשלוח כך?',
+                    icon: 'paperclip',
+                    okText: 'שלח בכל זאת',
+                    cancelText: 'חזרה לצרף מסמך'
+                });
+                if (!_proceedNoDoc) {
+                    var _si3 = document.getElementById('chat-input');
+                    if (_si3 && !_si3.value) { _si3.value = _qForCheck; _si3.style.height = 'auto'; }
+                    if (typeof updateSendButtonState === 'function') updateSendButtonState();
+                    else { var _sb3 = document.querySelector('#chat-form button[type="submit"]'); if (_sb3) _sb3.disabled = false; }
+                    return;
                 }
             }
         } catch (e) {}
