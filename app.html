@@ -2043,11 +2043,11 @@
   window._nzSendPasswordReset = async function (email, cb) {
     var em = (email || '').trim();
     try {
-      // בדיקה אם המייל רשום במערכת — שולחים קישור רק למייל רשום
+      // בדיקה אם המייל רשום במערכת (דרך פונקציית-קצה עם הרשאות שרת) — שולחים קישור רק למייל רשום
       var reg = false, checkFailed = false;
       try {
-        var q = await supa.from('counselors').select('email').eq('email', em).maybeSingle();
-        if (q.error) checkFailed = true; else reg = !!q.data;
+        var inv = await supa.functions.invoke('check-counselor', { body: { email: em } });
+        if (inv.error) checkFailed = true; else reg = !!(inv.data && inv.data.registered);
       } catch (e) { checkFailed = true; }
       if (checkFailed) { if (cb) cb(false, 'לא ניתן לבדוק את הכתובת כעת. נסי שוב מאוחר יותר.'); return; }
       if (!reg) { if (cb) cb(false, 'כתובת המייל אינה רשומה במערכת.'); return; }
