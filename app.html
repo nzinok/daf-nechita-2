@@ -2041,9 +2041,17 @@
 
   // שליחת קישור איפוס סיסמה למייל (Supabase + SMTP של Resend)
   window._nzSendPasswordReset = async function (email, cb) {
+    var em = (email || '').trim();
     try {
-      var redirect = window.location.href.split('#')[0];
-      var res = await supa.auth.resetPasswordForEmail((email || '').trim(), { redirectTo: redirect });
+      // בדיקה אם המייל רשום במערכת — שולחים קישור רק למייל רשום
+      var reg = false, checkFailed = false;
+      try {
+        var q = await supa.from('counselors').select('email').eq('email', em).maybeSingle();
+        if (q.error) checkFailed = true; else reg = !!q.data;
+      } catch (e) { checkFailed = true; }
+      if (checkFailed) { if (cb) cb(false, 'לא ניתן לבדוק את הכתובת כעת. נסי שוב מאוחר יותר.'); return; }
+      if (!reg) { if (cb) cb(false, 'כתובת המייל אינה רשומה במערכת.'); return; }
+      var res = await supa.auth.resetPasswordForEmail(em, { redirectTo: window.location.href.split('#')[0] });
       if (res && res.error) { if (cb) cb(false, 'שגיאה בשליחת הקישור. נסי שוב מאוחר יותר.'); return; }
       if (cb) cb(true);
     } catch (e) { if (cb) cb(false, 'שגיאת תקשורת. נסי שוב.'); }
@@ -2093,7 +2101,14 @@
         var _sx = await supa.auth.getSession();
         if (!_sx || !_sx.data || !_sx.data.session) { errD.textContent = 'הקישור אינו פעיל יותר (ייתכן שכבר נוצל). בקשי קישור חדש ממסך הכניסה.'; errD.style.display = 'block'; btn.disabled = false; btn.textContent = _origTxt; return; }
         var res = await supa.auth.updateUser({ password: a });
-        if (res && res.error) { errD.textContent = 'לא ניתן לעדכן: ' + (res.error.message || 'שגיאה לא ידועה'); errD.style.display = 'block'; btn.disabled = false; btn.textContent = _origTxt; return; }
+        if (res && res.error) {
+          var _em = String(res.error.message || '');
+          var _he = 'לא ניתן לעדכן את הסיסמה. נסי שוב.';
+          if (/different from the old|should be different/i.test(_em)) _he = 'יש לבחור סיסמה חדשה, שונה מהסיסמה הקודמת.';
+          else if (/at least|characters|weak|short/i.test(_em)) _he = 'הסיסמה אינה עומדת בדרישות. בחרי סיסמה ארוכה או חזקה יותר.';
+          else if (/expired|invalid|session|token/i.test(_em)) _he = 'הקישור אינו פעיל יותר. בקשי קישור חדש ממסך הכניסה.';
+          errD.textContent = _he; errD.style.display = 'block'; btn.disabled = false; btn.textContent = _origTxt; return;
+        }
         try { sessionStorage.removeItem('nz_recovery'); } catch (e) {}
         okD.textContent = 'הסיסמה עודכנה בהצלחה! מעבירה אותך למסך הכניסה...'; okD.style.display = 'block';
         window._nzInRecovery = false;
@@ -3397,7 +3412,7 @@ document.addEventListener('DOMContentLoaded', function() {
             forgotLink.textContent = 'שולח קישור...';
             window._nzSendPasswordReset(em, function (ok, msg) {
                 forgotLink.textContent = 'שכחת סיסמה?';
-                if (ok) { if (infoDiv) { infoDiv.textContent = 'אם הכתובת רשומה במערכת, נשלח אליה קישור לאיפוס סיסמה. בדקי את תיבת הדואר (וגם את תיקיית הספאם).'; infoDiv.style.display = 'block'; } }
+                if (ok) { if (infoDiv) { infoDiv.textContent = 'קישור לאיפוס סיסמה נשלח לכתובת ' + em + '. בדקי את תיבת הדואר (וגם את תיקיית הספאם).'; infoDiv.style.display = 'block'; } }
                 else { errDiv.textContent = msg || 'אירעה שגיאה בשליחת הקישור. נסי שוב.'; errDiv.style.display = 'block'; }
             });
         };
