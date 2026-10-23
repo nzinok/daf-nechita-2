@@ -177,6 +177,7 @@
                 </div>
                 <h2 id="list-title" class="text-2xl font-bold text-blue-600">רשימת נבחנות</h2>
                 <input type="text" id="search-input" placeholder="חיפוש..." class="mt-3 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                <select id="counselor-filter" title="סינון לפי יועצת" class="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition" style="display:none;"><option value="all">כל היועצות</option></select>
                 <div id="examinee-filters" class="flex space-x-2 space-x-reverse mt-3">
                     <button id="filter-all" class="filter-btn flex-1 px-3 py-1 bg-blue-500 text-white rounded-md text-sm transition-colors">הכל</button>
                     <button id="filter-new" class="filter-btn flex-1 px-3 py-1 bg-gray-200 text-gray-700 rounded-md text-sm hover:bg-gray-300 transition-colors">חדשות</button>
@@ -2807,6 +2808,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var savedPrompts = [];
     var currentExamineeDocs = [];
     var currentFilter = 'all';
+    var currentCounselorFilter = 'all';
     var currentSessionId = null;
     var currentView = 'examinees';
     var currentImageData = null;
@@ -4057,6 +4059,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    function setupCounselorFilter() {
+        var sel = document.getElementById('counselor-filter');
+        if (!sel) return;
+        var isAdmin = (window._nzUserRole === 'מנהל-על') || (currentUser && currentUser.role === 'מנהל-על');
+        if (!isAdmin) { sel.style.display = 'none'; return; }
+        var nameByEmail = {};
+        (allClientsManagementData || []).forEach(function (c) { if (c && c.email) nameByEmail[c.email] = c.name || c.email; });
+        var owners = {};
+        (allExamineesData || []).forEach(function (e) { var o = (e && e.ownerEmail) || ''; if (o) owners[o] = (owners[o] || 0) + 1; });
+        var emails = Object.keys(owners).sort(function (a, b) { return String(nameByEmail[a] || a).localeCompare(String(nameByEmail[b] || b), 'he'); });
+        var html = '<option value="all">כל היועצות (' + (allExamineesData ? allExamineesData.length : 0) + ')</option>';
+        emails.forEach(function (em) { html += '<option value="' + String(em).replace(/"/g, '&quot;') + '">' + String(nameByEmail[em] || em).replace(/</g, '&lt;') + ' (' + owners[em] + ')</option>'; });
+        sel.innerHTML = html;
+        if (!owners[currentCounselorFilter]) currentCounselorFilter = 'all';
+        sel.value = currentCounselorFilter || 'all';
+        sel.style.display = 'block';
+        if (!sel.dataset.bound) {
+            sel.dataset.bound = '1';
+            sel.addEventListener('change', function () { currentCounselorFilter = sel.value || 'all'; renderExamineeList(); });
+        }
+    }
     function renderExamineeList() {
         var listLoader = document.getElementById('list-loader-container');
         if(listLoader) listLoader.style.display = 'none';
@@ -4067,6 +4090,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 return e.name.toLowerCase().includes(searchTerm) || 
                        (e.institution && e.institution.toLowerCase().includes(searchTerm));
             });
+        }
+        if (currentCounselorFilter && currentCounselorFilter !== 'all') {
+            dataToRender = dataToRender.filter(function(e) { return (e.ownerEmail || '') === currentCounselorFilter; });
         }
         
         // שומרים את ה-ID של הנבחנת הפעילה כדי להחזיר לה את הצבע!
@@ -8724,6 +8750,7 @@ document.addEventListener('DOMContentLoaded', function() {
             searchInput.placeholder = 'חיפוש לפי שם נבחנת...';
             examineeFilters.style.display = 'flex';
             listContainer.style.display = 'block';
+            setupCounselorFilter();
             renderExamineeList();
             showWelcomeMessage();
         } else if (viewName === 'links') {
@@ -8731,6 +8758,7 @@ document.addEventListener('DOMContentLoaded', function() {
             listTitle.textContent = 'סטטוס קישורים';
             searchInput.placeholder = 'חיפוש לפי מייל נבחן...';
             examineeFilters.style.display = 'none';
+            (function(){ var _cf = document.getElementById('counselor-filter'); if (_cf) _cf.style.display = 'none'; })();
             listContainer.innerHTML = '';
             listContainer.style.display = 'none';
             fetchAndRenderLinksStatus();
@@ -8739,6 +8767,7 @@ document.addEventListener('DOMContentLoaded', function() {
             listTitle.textContent = 'ניהול לקוחות';
             searchInput.placeholder = 'חיפוש לקוח...';
             examineeFilters.style.display = 'none';
+            (function(){ var _cf = document.getElementById('counselor-filter'); if (_cf) _cf.style.display = 'none'; })();
             listContainer.innerHTML = '';
             listContainer.style.display = 'none';
             renderClientManagementView();
