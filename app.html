@@ -2809,6 +2809,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var currentExamineeDocs = [];
     var currentFilter = 'all';
     var currentCounselorFilter = 'all';
+    var currentLinksCounselorFilter = 'all';
     var currentSessionId = null;
     var currentView = 'examinees';
     var currentImageData = null;
@@ -8430,6 +8431,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function renderLinksStatusView(linksData) {
+        var nameByEmail = {};
+        (allClientsManagementData || []).forEach(function (c) { if (c && c.email) nameByEmail[c.email] = c.name || c.email; });
         var searchTerm = searchInput.value.toLowerCase();
         var filteredLinks = searchTerm
             ? linksData.filter(function(link) { 
@@ -8438,6 +8441,9 @@ document.addEventListener('DOMContentLoaded', function() {
                        link.groupName.toLowerCase().includes(searchTerm);
               })
             : linksData;
+        if (currentUser.role === 'מנהל-על' && currentLinksCounselorFilter && currentLinksCounselorFilter !== 'all') {
+            filteredLinks = filteredLinks.filter(function(link) { return (link.ownerEmail || '') === currentLinksCounselorFilter; });
+        }
 
         var tableRows = filteredLinks.map(function(link) {
             var statusInfo = LINK_STATUS_MAP[link.status] || { text: link.status, color: 'bg-gray-100 text-gray-800' };
@@ -8445,7 +8451,8 @@ document.addEventListener('DOMContentLoaded', function() {
             var submissionDate = link.submissionDate ? new Date(link.submissionDate).toLocaleDateString('he-IL') : '-';
             var linkUrl = 'https://nzinok.github.io/otek/?token=' + link.token; 
             
-            var ownerCell = (currentUser.role === 'מנהל-על') ? '<td class="text-sm text-gray-600">' + link.ownerEmail + '</td>' : '';
+            var _ownerName = nameByEmail[link.ownerEmail] || link.ownerEmail || '-';
+            var ownerCell = (currentUser.role === 'מנהל-על') ? '<td class="text-sm text-gray-600">' + String(_ownerName).replace(/</g, '&lt;') + '</td>' : '';
 
             // עיצוב התגיות כצ'יפים
             var tagsHtml = '<span class="text-gray-400">-</span>';
@@ -8490,12 +8497,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 '</tr>';
         }).join('');
 
+        var linksFilterHtml = '';
+        if (currentUser.role === 'מנהל-על') {
+            var _lowners = {};
+            (linksData || []).forEach(function (l) { var o = (l && l.ownerEmail) || ''; if (o) _lowners[o] = (_lowners[o] || 0) + 1; });
+            if (currentLinksCounselorFilter !== 'all' && !_lowners[currentLinksCounselorFilter]) currentLinksCounselorFilter = 'all';
+            var _lemails = Object.keys(_lowners).sort(function (a, b) { return String(nameByEmail[a] || a).localeCompare(String(nameByEmail[b] || b), 'he'); });
+            var _lopts = '<option value="all">כל היועצות</option>';
+            _lemails.forEach(function (em) { _lopts += '<option value="' + String(em).replace(/"/g, '&quot;') + '"' + (em === currentLinksCounselorFilter ? ' selected' : '') + '>' + String(nameByEmail[em] || em).replace(/</g, '&lt;') + ' (' + _lowners[em] + ')</option>'; });
+            linksFilterHtml = '<select id="links-counselor-filter" title="סינון לפי יועצת" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">' + _lopts + '</select>';
+        }
         var ownerHeader = currentUser.role === 'מנהל-על' ? '<th>נוצר ע"י</th>' : '';
         
         mainContent.innerHTML = 
             '<div class="bg-white p-6 shadow-md h-full flex flex-col">' + // הפכנו ל-flex column בגובה מלא
                 '<div class="flex justify-between items-center border-b pb-4 mb-4 flex-shrink-0">' + // מונע מהכותרת העליונה להעלם
-                    '<h3 class="text-2xl font-bold text-gray-800">סטטוס קישורים וזיכויים</h3>' +
+                    '<div class="flex items-center gap-3"><h3 class="text-2xl font-bold text-gray-800">סטטוס קישורים וזיכויים</h3>' + linksFilterHtml + '</div>' +
                     '<button id="create-link-btn-in-view" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold flex items-center text-sm">' +
                         '<i data-lucide="plus" class="w-4 h-4 ml-2"></i>' +
                         'יצירת קישור חדש' +
@@ -8522,6 +8539,9 @@ document.addEventListener('DOMContentLoaded', function() {
             '</div>';
 
         if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        var _lcf = document.getElementById('links-counselor-filter');
+        if (_lcf) _lcf.addEventListener('change', function () { currentLinksCounselorFilter = _lcf.value || 'all'; renderLinksStatusView(allLinksData); });
 
         // מאזינים לכפתורי העתקה
         mainContent.querySelectorAll('.copy-btn').forEach(function(btn) {
