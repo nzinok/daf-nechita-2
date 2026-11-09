@@ -1578,6 +1578,9 @@
           // קוראים את הדוקס החי *לפני* החידוש כדי לתפוס את המצב האמיתי (כולל עריכות ידניות).
           // כבוי כברירת מחדל → אפס השפעה על היועצות.
           try {
+            if (window._NZ_SHADOW) {
+              console.log('%c[מצב צל] אבחון תנאים:', 'color:#4f46e5;font-weight:bold', { link: _exLink || '(ריק)', reportMode: reportMode, hasRead: (typeof window._nzReadDocStructured === 'function'), hasDiff: !!window._nzDiff });
+            }
             if (window._NZ_SHADOW && _exLink && typeof window._nzReadDocStructured === 'function' && window._nzDiff) {
               var _sr = await window._nzReadDocStructured(_exLink);
               if (_sr && _sr.success) {
@@ -1590,6 +1593,8 @@
               } else {
                 console.warn('[מצב צל] קריאת דוקס נכשלה:', _sr && _sr.error);
               }
+            } else if (window._NZ_SHADOW) {
+              console.warn('[מצב צל] דולג — ' + (!_exLink ? 'אין קישור דוקס שמור לדוח הזה (_exLink ריק)' : 'חסר רכיב גשר'));
             }
           } catch (_se) { console.warn('[מצב צל] שגיאה (לא משפיע על השמירה):', _se); }
           var docInv = await supa.functions.invoke('create-report-doc', {
