@@ -427,6 +427,15 @@
                         </div>
                     </div>
                 </div>
+                <div id="nz-bridge-toggle-wrap" class="hidden mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <label class="flex items-start gap-2 cursor-pointer">
+                        <input type="checkbox" id="nz-bridge-toggle" class="w-4 h-4 mt-1">
+                        <span class="text-sm">
+                            <span class="font-bold text-amber-800">🧪 שמירה חכמה (בדיקה — יועצת בכירה)</span>
+                            <span class="block text-xs text-gray-600 mt-0.5">כשמסומן: עדכוני הדוח נכתבים במסמך בצורה כירורגית, כך שעריכות ידניות שהוספת ישירות בדוקס (למשל תאריך בצד) נשמרות ולא נמחקות. האפשרות פתוחה לך כיועצת בכירה לבדיקה לפני שתופעל לכלל היועצות.</span>
+                        </span>
+                    </label>
+                </div>
                 <div class="text-left mt-6"><button type="submit" id="submit-refinement-btn" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 font-bold flex items-center justify-center min-w-[150px] h-[40px]"><span class="button-text">עדכן דוח</span><div class="pulsing-loader hidden"></div></button></div>
             </form>
         </div>
@@ -2178,9 +2187,9 @@
       return String(t == null ? '' : t)
         .replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g, '')
         .replace(/\u00A0/g, ' ')
+        .replace(/\*\*/g, '')
         .replace(/^[\s]*[•\u2022\-\*\+]\s*/, '')
         .replace(/^#{1,6}\s*/, '')
-        .replace(/\*\*/g, '')
         .replace(/^\d+[\.\)]\s*/, '')
         .replace(/[\s:\u05C3\uFE55\uFF1A]+$/, '')
         .replace(/\s+/g, ' ')
@@ -2283,7 +2292,42 @@
       }
       return { ops: ops, report: report };
     }
-    window._nzDiff = { computeRefineOps: computeRefineOps, nzKey: nzKey, nzMdToBlocks: nzMdToBlocks, nzMdLineToBlock: nzMdLineToBlock, nzLcsPairs: nzLcsPairs };
+    function nzWeaveManualIntoText(baseMd, currentBlocks) {
+      var baseLines = String(baseMd == null ? '' : baseMd).split(/\r?\n/);
+      var baseContent = [];
+      for (var i = 0; i < baseLines.length; i++) {
+        if (baseLines[i].trim() === '' || nzIsHR(baseLines[i])) continue;
+        baseContent.push({ line: i, key: nzKey(baseLines[i]) });
+      }
+      var cur = [];
+      for (var c = 0; c < currentBlocks.length; c++) {
+        var cb = currentBlocks[c];
+        if (nzIsHR(cb.text)) continue;
+        var ck = nzKey(cb.text);
+        if (ck === '') continue;
+        cur.push({ key: ck, text: cb.text });
+      }
+      var curKeys = cur.map(function (x) { return x.key; });
+      var baseKeys = baseContent.map(function (x) { return x.key; });
+      var pairs = nzLcsPairs(curKeys, baseKeys);
+      var matchedCur = {};
+      pairs.forEach(function (p) { matchedCur[p[0]] = p[1]; });
+      var inserts = {};
+      var lastBaseLine = -1;
+      for (var k = 0; k < cur.length; k++) {
+        if (matchedCur.hasOwnProperty(k)) { lastBaseLine = baseContent[matchedCur[k]].line; }
+        else { (inserts[lastBaseLine] = inserts[lastBaseLine] || []).push(cur[k].text); }
+      }
+      if (!Object.keys(inserts).length) return baseMd;
+      var out = [];
+      if (inserts[-1]) { inserts[-1].forEach(function (t) { out.push(t); out.push(''); }); }
+      for (var li = 0; li < baseLines.length; li++) {
+        out.push(baseLines[li]);
+        if (inserts[li]) { inserts[li].forEach(function (t) { out.push(''); out.push(t); }); }
+      }
+      return out.join('\n');
+    }
+    window._nzDiff = { computeRefineOps: computeRefineOps, nzKey: nzKey, nzIsHR: nzIsHR, nzMdToBlocks: nzMdToBlocks, nzMdLineToBlock: nzMdLineToBlock, nzLcsPairs: nzLcsPairs, nzWeaveManualIntoText: nzWeaveManualIntoText };
   })();
 
   // מסך "סיסמה חדשה" — מוצג כשהמשתמשת חוזרת מקישור האיפוס במייל
@@ -8252,6 +8296,62 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     _docsList.innerHTML = '';
                     if (_docsWrap) _docsWrap.classList.add('hidden');
+                }
+            }
+        } catch (e) {}
+
+        // מתג "שמירה חכמה" (גשר הדוקס) — מופיע רק ליועצת בכירה / מנהל-על, לבדיקה לפני הפעלה לכולן
+        try {
+            var _isSenior = currentUser && (currentUser.role === 'יועצת בכירה' || currentUser.role === 'מנהל-על');
+            var _btWrap = document.getElementById('nz-bridge-toggle-wrap');
+            var _btCb = document.getElementById('nz-bridge-toggle');
+            if (_btWrap && _btCb) {
+                if (_isSenior) {
+                    _btWrap.classList.remove('hidden');
+                    var _on = false; try { _on = localStorage.getItem('nz_bridge_apply') === '1'; } catch (e) {}
+                    _btCb.checked = _on;
+                    window._NZ_APPLY = _on;
+                    _btCb.onchange = function () {
+                        window._NZ_APPLY = _btCb.checked;
+                        try { localStorage.setItem('nz_bridge_apply', _btCb.checked ? '1' : '0'); } catch (e) {}
+                    };
+                } else {
+                    _btWrap.classList.add('hidden');
+                    window._NZ_APPLY = false;
+                }
+            }
+        } catch (e) {}
+
+        // קריאה-בפתיחה: כשהגשר פעיל (יועצת בכירה) — קוראים את הדוקס החי ושוזרים לתצוגה את התוספות הידניות שלה
+        try {
+            if (window._NZ_APPLY && window._nzReadDocStructured && window._nzDiff && window._nzDiff.nzWeaveManualIntoText) {
+                var _roLink = (examinee.rawData && examinee.rawData[reportMode === 'principal' ? 'קישור לדוח מנהלת' : 'קישור למסמך הדוח']) || '';
+                if (_roLink) {
+                    var _roView = document.getElementById('refine-report-view');
+                    var _roOld = document.getElementById('nz-sync-badge'); if (_roOld) _roOld.remove();
+                    var _roBadge = document.createElement('div');
+                    _roBadge.id = 'nz-sync-badge';
+                    _roBadge.className = 'text-xs text-amber-700 mb-1 font-semibold';
+                    _roBadge.textContent = '🔄 מסנכרן מהדוקס...';
+                    if (_roView && _roView.parentNode) _roView.parentNode.insertBefore(_roBadge, _roView);
+                    (async function () {
+                        try {
+                            var _rd = await window._nzReadDocStructured(_roLink);
+                            if (!_rd || !_rd.success) { var _b0 = document.getElementById('nz-sync-badge'); if (_b0) _b0.remove(); return; }
+                            var _blocks = (_rd.doc && _rd.doc.blocks) ? _rd.doc.blocks : [];
+                            var _woven = window._nzDiff.nzWeaveManualIntoText(currentReportDisplay.value || '', _blocks);
+                            var _busy = (typeof _nzRefineMarks !== 'undefined' && _nzRefineMarks && _nzRefineMarks.length) || (typeof _nzManualInserts !== 'undefined' && _nzManualInserts && _nzManualInserts.length);
+                            if (_woven && _woven !== currentReportDisplay.value && !_busy) {
+                                currentReportDisplay.value = _woven;
+                                try { window._nzInitRefineView(_woven); } catch (e) {}
+                                _roBadge.textContent = '✓ מסונכרן מהדוקס — כולל התוספות הידניות שלך';
+                                _roBadge.className = 'text-xs text-green-700 mb-1 font-semibold';
+                            } else {
+                                _roBadge.textContent = '✓ מסונכרן מהדוקס';
+                                _roBadge.className = 'text-xs text-green-600 mb-1';
+                            }
+                        } catch (e) { var _b1 = document.getElementById('nz-sync-badge'); if (_b1) _b1.remove(); }
+                    })();
                 }
             }
         } catch (e) {}
