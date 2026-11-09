@@ -1574,6 +1574,24 @@
         try {
           var _exLink = ''; try { var _lq = await supa.from('examinees').select('raw_data').eq('id', examineeId).maybeSingle(); _exLink = (_lq.data && _lq.data.raw_data && _lq.data.raw_data[linkKey]) || ''; } catch (e) {}
           var _exDocId = (typeof window._nzDocIdFromUrl === 'function') ? window._nzDocIdFromUrl(_exLink) : '';
+          // --- מצב צל (שלב 3ג): חישוב פעולות diff בלי להחיל, רק כשהדגל window._NZ_SHADOW דלוק ---
+          // קוראים את הדוקס החי *לפני* החידוש כדי לתפוס את המצב האמיתי (כולל עריכות ידניות).
+          // כבוי כברירת מחדל → אפס השפעה על היועצות.
+          try {
+            if (window._NZ_SHADOW && _exLink && typeof window._nzReadDocStructured === 'function' && window._nzDiff) {
+              var _sr = await window._nzReadDocStructured(_exLink);
+              if (_sr && _sr.success) {
+                var _sblocks = (_sr.doc && _sr.doc.blocks) ? _sr.doc.blocks : (Array.isArray(_sr.doc) ? _sr.doc : []);
+                var _sres = window._nzDiff.computeRefineOps(previousReport || '', _sblocks, reportText || '');
+                console.log('%c[מצב צל] ' + _sres.ops.length + ' פעולות שהיו מוחלות (לא הוחל כלום):', 'color:#4f46e5;font-weight:bold;font-size:13px');
+                try { console.table(_sres.ops.map(function (o) { return { op: o.op, index: o.index, text: (o.text || '').slice(0, 70) }; })); } catch (_te) { console.log(_sres.ops); }
+                console.log('[מצב צל] סיכום:', _sres.report);
+                if (_sres.report.manualPreserved) { console.log('%c[מצב צל] ✓ ' + _sres.report.manualPreserved + ' תוספות ידניות זוהו ונשמרות:', 'color:#059669;font-weight:bold', _sres.report.manualList); }
+              } else {
+                console.warn('[מצב צל] קריאת דוקס נכשלה:', _sr && _sr.error);
+              }
+            }
+          } catch (_se) { console.warn('[מצב צל] שגיאה (לא משפיע על השמירה):', _se); }
           var docInv = await supa.functions.invoke('create-report-doc', {
             body: { reportText: reportText, examineeName: examineeName, templateId: templateId, reportType: (isPrincipal ? 'principal' : 'student'), ownerEmail: ownerEmail, bannerId: bannerId, docId: _exDocId }
           });
@@ -2109,6 +2127,116 @@
     console.log('[גשר דוקס] ✓✓ הגשר עובד מקצה לקצה! תוצאות:', w.results);
     return { success: true, blocks: blocks.length, write: w.results };
   };
+
+  // ===== מנוע diff לגשר (שלב 3ג — שלב 1). לוגיקה טהורה, נבדקה אופליין. =====
+  // נחשף כ-window._nzDiff.computeRefineOps(baseMd, currentBlocks, nextMd) → { ops, report }
+  (function () {
+    function nzKey(t) {
+      return String(t == null ? '' : t)
+        .replace(/ /g, ' ')
+        .replace(/^[\s]*[••\-\*\+]\s*/, '')
+        .replace(/^#{1,6}\s*/, '')
+        .replace(/\*\*/g, '')
+        .replace(/^\d+[\.\)]\s*/, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+    function nzMdLineToBlock(rawLine) {
+      var text = String(rawLine).replace(/\s+$/, '').trim();
+      var type = 'normal', align = 'START', direction = 'RIGHT_TO_LEFT';
+      if (text.indexOf('## ') === 0) { type = 'h2'; text = text.substring(3).trim(); align = 'CENTER'; }
+      else if (text.indexOf('# ') === 0) { type = 'h1'; text = text.substring(2).trim(); align = 'CENTER'; }
+      else if (/^#{3,6}\s/.test(text)) { type = 'h3'; text = text.replace(/^#{3,6}\s+/, '').trim(); }
+      else if (/^\*\*.*:\*\*$/.test(text)) { type = 'subhead'; }
+      var runs = [], out = '', re = /\*\*(.*?)\*\*/g, last = 0, m;
+      while ((m = re.exec(text)) !== null) {
+        out += text.substring(last, m.index);
+        var s = out.length; out += m[1];
+        runs.push({ start: s, end: out.length, bold: true });
+        last = m.index + m[0].length;
+      }
+      out += text.substring(last);
+      if (type === 'h1' || type === 'h2' || type === 'h3' || type === 'subhead') { runs = out.length ? [{ start: 0, end: out.length, bold: true }] : []; }
+      return { type: type, text: out, align: align, direction: direction, runs: runs };
+    }
+    function nzMdToBlocks(md) {
+      if (!md) return [];
+      var lines = String(md).split(/\r?\n/), blocks = [];
+      for (var i = 0; i < lines.length; i++) { if (lines[i].trim() === '') continue; blocks.push(nzMdLineToBlock(lines[i])); }
+      return blocks;
+    }
+    function nzLcsPairs(a, b) {
+      var n = a.length, mlen = b.length, dp = [];
+      for (var i = 0; i <= n; i++) { dp.push(new Array(mlen + 1).fill(0)); }
+      for (var i = n - 1; i >= 0; i--) {
+        for (var j = mlen - 1; j >= 0; j--) {
+          if (a[i] === b[j] && a[i] !== '') dp[i][j] = dp[i + 1][j + 1] + 1;
+          else dp[i][j] = Math.max(dp[i + 1][j], dp[i][j + 1]);
+        }
+      }
+      var pairs = [], i2 = 0, j2 = 0;
+      while (i2 < n && j2 < mlen) {
+        if (a[i2] === b[j2] && a[i2] !== '') { pairs.push([i2, j2]); i2++; j2++; }
+        else if (dp[i2 + 1][j2] >= dp[i2][j2 + 1]) i2++;
+        else j2++;
+      }
+      return pairs;
+    }
+    function computeRefineOps(baseMd, currentBlocks, nextMd) {
+      var baseBlocks = nzMdToBlocks(baseMd), nextBlocks = nzMdToBlocks(nextMd);
+      var baseKeySet = {};
+      baseBlocks.forEach(function (b) { var k = nzKey(b.text); if (k) baseKeySet[k] = true; });
+      var cur = [];
+      for (var ci = 0; ci < currentBlocks.length; ci++) {
+        var cb = currentBlocks[ci], ck = nzKey(cb.text);
+        if (ck === '') continue;
+        cur.push({ idx: cb.index, key: ck, block: cb, ord: ci });
+      }
+      var nextArr = nextBlocks.map(function (b) { return { key: nzKey(b.text), block: b }; });
+      var curKeys = cur.map(function (x) { return x.key; });
+      var nextKeys = nextArr.map(function (x) { return x.key; });
+      var pairs = nzLcsPairs(curKeys, nextKeys);
+      var matchedCur = {}, matchedNext = {};
+      pairs.forEach(function (p) { matchedCur[p[0]] = p[1]; matchedNext[p[1]] = p[0]; });
+      var ops = [], report = { kept: 0, manualPreserved: 0, replaced: 0, inserted: 0, deleted: 0, manualList: [] };
+      var lastAnchorIdx = null, ci2 = 0, ni2 = 0;
+      while (ci2 < cur.length || ni2 < nextArr.length) {
+        if (ci2 < cur.length && matchedCur.hasOwnProperty(ci2) && matchedCur[ci2] === ni2) {
+          lastAnchorIdx = cur[ci2].idx; report.kept++; ci2++; ni2++; continue;
+        }
+        var gapCur = [];
+        while (ci2 < cur.length && !(matchedCur.hasOwnProperty(ci2) && matchedCur[ci2] === ni2)) {
+          if (matchedCur.hasOwnProperty(ci2) && matchedCur[ci2] > ni2) break;
+          gapCur.push(cur[ci2]); ci2++;
+        }
+        var gapNext = [];
+        while (ni2 < nextArr.length && !(matchedNext.hasOwnProperty(ni2) && matchedNext[ni2] === ci2)) {
+          if (matchedNext.hasOwnProperty(ni2) && matchedNext[ni2] > ci2) break;
+          gapNext.push(nextArr[ni2]); ni2++;
+        }
+        var deletable = [];
+        for (var g = 0; g < gapCur.length; g++) {
+          var it = gapCur[g];
+          if (baseKeySet[it.key]) { deletable.push(it); }
+          else { report.manualPreserved++; report.manualList.push({ index: it.idx, text: it.block.text }); lastAnchorIdx = it.idx; }
+        }
+        var pairCount = Math.min(deletable.length, gapNext.length);
+        for (var t = 0; t < pairCount; t++) {
+          var nb = gapNext[t].block;
+          ops.push({ op: 'replace', index: deletable[t].idx, text: nb.text, runs: nb.runs, align: nb.align, direction: nb.direction });
+          lastAnchorIdx = deletable[t].idx; report.replaced++;
+        }
+        for (var d = pairCount; d < deletable.length; d++) { ops.push({ op: 'delete', index: deletable[d].idx }); report.deleted++; }
+        for (var k = pairCount; k < gapNext.length; k++) {
+          var nb2 = gapNext[k].block;
+          ops.push({ op: 'insertAfter', index: (lastAnchorIdx === null ? -1 : lastAnchorIdx), text: nb2.text, runs: nb2.runs, align: nb2.align, direction: nb2.direction });
+          report.inserted++;
+        }
+      }
+      return { ops: ops, report: report };
+    }
+    window._nzDiff = { computeRefineOps: computeRefineOps, nzKey: nzKey, nzMdToBlocks: nzMdToBlocks, nzMdLineToBlock: nzMdLineToBlock, nzLcsPairs: nzLcsPairs };
+  })();
 
   // מסך "סיסמה חדשה" — מוצג כשהמשתמשת חוזרת מקישור האיפוס במייל
   window._nzShowResetPasswordScreen = function () {
