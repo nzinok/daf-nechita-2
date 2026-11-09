@@ -2191,10 +2191,11 @@
       if (type === 'h1' || type === 'h2' || type === 'h3' || type === 'subhead') { runs = out.length ? [{ start: 0, end: out.length, bold: true }] : []; }
       return { type: type, text: out, align: align, direction: direction, runs: runs };
     }
+    function nzIsHR(t) { return /^(\*{3,}|-{3,}|_{3,})$/.test(String(t == null ? '' : t).trim()); }
     function nzMdToBlocks(md) {
       if (!md) return [];
       var lines = String(md).split(/\r?\n/), blocks = [];
-      for (var i = 0; i < lines.length; i++) { if (lines[i].trim() === '') continue; blocks.push(nzMdLineToBlock(lines[i])); }
+      for (var i = 0; i < lines.length; i++) { if (lines[i].trim() === '') continue; if (nzIsHR(lines[i])) continue; blocks.push(nzMdLineToBlock(lines[i])); }
       return blocks;
     }
     function nzLcsPairs(a, b) {
@@ -2220,7 +2221,9 @@
       baseBlocks.forEach(function (b) { var k = nzKey(b.text); if (k) baseKeySet[k] = true; });
       var cur = [];
       for (var ci = 0; ci < currentBlocks.length; ci++) {
-        var cb = currentBlocks[ci], ck = nzKey(cb.text);
+        var cb = currentBlocks[ci];
+        if (nzIsHR(cb.text)) continue;
+        var ck = nzKey(cb.text);
         if (ck === '') continue;
         cur.push({ idx: cb.index, key: ck, block: cb, ord: ci });
       }
