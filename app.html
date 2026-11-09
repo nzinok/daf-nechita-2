@@ -2072,6 +2072,44 @@
     } catch (e) { if (cb) cb(false, 'שגיאת תקשורת. נסי שוב.'); }
   };
 
+  // ===== גשר דוקס מבני (שלב 3ב — תשתית + בדיקה נסתרת; לא מחובר לזרימת המיקוד) =====
+  window._nzReadDocStructured = async function (docUrl) {
+    try {
+      if (!docUrl) return { success: false, error: 'חסר קישור מסמך' };
+      var inv = await supa.functions.invoke('create-report-doc', { body: { action: 'readDocStructured', docUrl: docUrl } });
+      if (inv.error) return { success: false, error: 'שגיאה: ' + inv.error.message };
+      var out = inv.data || {};
+      if (!out.success) return { success: false, error: out.error || 'קריאת המסמך נכשלה' };
+      return { success: true, doc: out.doc };
+    } catch (e) { return { success: false, error: String(e) }; }
+  };
+  window._nzApplyDocOps = async function (docUrl, ops) {
+    try {
+      if (!docUrl) return { success: false, error: 'חסר קישור מסמך' };
+      var inv = await supa.functions.invoke('create-report-doc', { body: { action: 'applyDocOps', docUrl: docUrl, ops: ops || [] } });
+      if (inv.error) return { success: false, error: 'שגיאה: ' + inv.error.message };
+      var out = inv.data || {};
+      if (!out.success) return { success: false, error: out.error || 'החלת הפעולות נכשלה', results: out.results };
+      return { success: true, results: out.results };
+    } catch (e) { return { success: false, error: String(e) }; }
+  };
+  // בדיקה נסתרת מהקונסול:  await _nzTestDocBridge('<קישור לדוח בדוקס>')
+  window._nzTestDocBridge = async function (docUrl) {
+    console.log('[גשר דוקס] קורא מסמך...');
+    var r = await window._nzReadDocStructured(docUrl);
+    if (!r.success) { console.error('[גשר דוקס] ✗ קריאה נכשלה:', r.error); return r; }
+    var blocks = (r.doc && r.doc.blocks) || [];
+    console.log('[גשר דוקס] ✓ נקראו ' + blocks.length + ' בלוקים');
+    var i = Math.min(11, blocks.length - 1);
+    var b = blocks[i];
+    if (!b) { console.warn('[גשר דוקס] אין בלוק לבדיקה'); return r; }
+    console.log('[גשר דוקס] round-trip על בלוק ' + i + ': "' + (b.text || '').slice(0, 50) + '"');
+    var w = await window._nzApplyDocOps(docUrl, [{ op: 'replace', index: i, text: b.text, runs: b.runs, align: b.align, direction: b.direction }]);
+    if (!w.success) { console.error('[גשר דוקס] ✗ כתיבה נכשלה:', w.error, w.results); return w; }
+    console.log('[גשר דוקס] ✓✓ הגשר עובד מקצה לקצה! תוצאות:', w.results);
+    return { success: true, blocks: blocks.length, write: w.results };
+  };
+
   // מסך "סיסמה חדשה" — מוצג כשהמשתמשת חוזרת מקישור האיפוס במייל
   window._nzShowResetPasswordScreen = function () {
     if (document.getElementById('nz-reset-overlay')) return;
