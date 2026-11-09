@@ -1517,33 +1517,41 @@
         var templateId = (me.data && (me.data.template_id || (me.data.branding && me.data.branding['מזהה_תבנית_אישית']))) || null;
         var bannerId = (me.data && me.data.branding && me.data.branding['מזהה_באנר']) || '';
         var _exDocId = (typeof window._nzDocIdFromUrl === 'function') ? window._nzDocIdFromUrl(raw[linkKey]) : '';
-        // --- מצב צל (שלב 3ג) במסלול העריכה הידנית: חישוב diff בלי להחיל, רק כשהדגל דלוק ---
+        // --- גשר דוקס (שלב 3) במסלול העריכה הידנית: חישוב, לוג במצב-צל, והחלה כשהדגל _NZ_APPLY דלוק; נפילה בטוחה לבנייה-מחדש ---
+        var docUrl = '';
+        var _bridgeApplied = false;
         try {
-          if (window._NZ_SHADOW) {
-            var _slink = raw[linkKey] || '';
-            console.log('%c[מצב צל/ידני] אבחון תנאים:', 'color:#4f46e5;font-weight:bold', { link: _slink || '(ריק)', reportMode: reportMode, hasRead: (typeof window._nzReadDocStructured === 'function'), hasDiff: !!window._nzDiff });
-            if (_slink && typeof window._nzReadDocStructured === 'function' && window._nzDiff) {
-              var _sr = await window._nzReadDocStructured(_slink);
-              if (_sr && _sr.success) {
-                var _sblocks = (_sr.doc && _sr.doc.blocks) ? _sr.doc.blocks : (Array.isArray(_sr.doc) ? _sr.doc : []);
-                var _sres = window._nzDiff.computeRefineOps(window._NZ_SHADOW_BASE || '', _sblocks, reportText || '');
-                console.log('%c[מצב צל/ידני] ' + _sres.ops.length + ' פעולות שהיו מוחלות (לא הוחל כלום):', 'color:#4f46e5;font-weight:bold;font-size:13px');
-                try { console.table(_sres.ops.map(function (o) { return { op: o.op, index: o.index, text: (o.text || '').slice(0, 70) }; })); } catch (_te) { console.log(_sres.ops); }
-                console.log('[מצב צל/ידני] סיכום:', _sres.report);
-                if (_sres.report.manualPreserved) { console.log('%c[מצב צל/ידני] ✓ ' + _sres.report.manualPreserved + ' תוספות ידניות זוהו ונשמרות:', 'color:#059669;font-weight:bold', _sres.report.manualList); }
-                try { var _ck = {}; _sblocks.forEach(function (b) { var k = window._nzDiff.nzKey(b.text); if (k) _ck[k] = true; }); var _dup = _sres.ops.filter(function (o) { return o.op === 'insertAfter' && _ck[window._nzDiff.nzKey(o.text || '')]; }).length; console.log('%c[מצב צל/ידני] COPY — העתק את השורה הבאה ושלח:', 'color:#b45309;font-weight:bold'); console.log(JSON.stringify({ cur: _sblocks.length, dupInsert: _dup, summary: { kept: _sres.report.kept, manual: _sres.report.manualPreserved, replaced: _sres.report.replaced, inserted: _sres.report.inserted, deleted: _sres.report.deleted }, ops: _sres.ops.map(function (o) { return { op: o.op, i: o.index, t: (o.text || '').slice(0, 45) }; }), manual: _sres.report.manualList.map(function (m) { return { i: m.index, t: (m.text || '').slice(0, 45) }; }) })); } catch (_ce) {}
-              } else {
-                console.warn('[מצב צל/ידני] קריאת דוקס נכשלה:', _sr && _sr.error);
+          var _slink = raw[linkKey] || '';
+          if ((window._NZ_SHADOW || window._NZ_APPLY) && _slink && typeof window._nzReadDocStructured === 'function' && window._nzDiff) {
+            var _sr = await window._nzReadDocStructured(_slink);
+            if (_sr && _sr.success) {
+              var _sblocks = (_sr.doc && _sr.doc.blocks) ? _sr.doc.blocks : (Array.isArray(_sr.doc) ? _sr.doc : []);
+              var _sres = window._nzDiff.computeRefineOps(window._NZ_SHADOW_BASE || '', _sblocks, reportText || '');
+              var _ck = {}; _sblocks.forEach(function (b) { var k = window._nzDiff.nzKey(b.text); if (k) _ck[k] = true; });
+              var _dup = _sres.ops.filter(function (o) { return o.op === 'insertAfter' && _ck[window._nzDiff.nzKey(o.text || '')]; }).length;
+              var _safe = (_dup === 0) && (_sres.ops.length >= 1) && (_sres.ops.length <= Math.max(20, Math.ceil(_sblocks.length * 0.6)));
+              if (window._NZ_SHADOW) {
+                console.log('%c[גשר/ידני] ' + _sres.ops.length + ' פעולות (dup=' + _dup + ', בטוח=' + _safe + '):', 'color:#4f46e5;font-weight:bold');
+                try { console.table(_sres.ops.map(function (o) { return { op: o.op, index: o.index, text: (o.text || '').slice(0, 70) }; })); } catch (_te) {}
+                console.log('[גשר/ידני] סיכום:', _sres.report, 'תוספות ידניות:', _sres.report.manualList);
+                try { console.log('[גשר/ידני] COPY:', JSON.stringify({ cur: _sblocks.length, dupInsert: _dup, safe: _safe, summary: { kept: _sres.report.kept, manual: _sres.report.manualPreserved, replaced: _sres.report.replaced, inserted: _sres.report.inserted, deleted: _sres.report.deleted }, ops: _sres.ops.map(function (o) { return { op: o.op, i: o.index, t: (o.text || '').slice(0, 45) }; }), manual: _sres.report.manualList.map(function (m) { return { i: m.index, t: (m.text || '').slice(0, 45) }; }) })); } catch (_ce) {}
               }
-            } else {
-              console.warn('[מצב צל/ידני] דולג — ' + (!_slink ? 'אין קישור דוקס שמור (ריק)' : 'חסר רכיב גשר'));
-            }
+              if (window._NZ_APPLY && _safe) {
+                var _wr = await window._nzApplyDocOps(_slink, _sres.ops);
+                if (_wr && _wr.success) { _bridgeApplied = true; docUrl = _slink; console.log('%c[גשר/ידני] ✓ הוחל על הדוקס (' + _sres.ops.length + ' פעולות) — עריכות ידניות נשמרו', 'color:#059669;font-weight:bold'); }
+                else { console.warn('[גשר/ידני] החלה נכשלה — נופל לבנייה מחדש:', _wr && _wr.error); }
+              } else if (window._NZ_APPLY && !_safe) {
+                console.warn('[גשר/ידני] דיף לא בטוח (dup=' + _dup + ', ops=' + _sres.ops.length + ') — נופל לבנייה מחדש');
+              }
+            } else if (window._NZ_SHADOW || window._NZ_APPLY) { console.warn('[גשר/ידני] קריאת דוקס נכשלה — נופל לבנייה מחדש:', _sr && _sr.error); }
           }
-        } catch (_se) { console.warn('[מצב צל/ידני] שגיאה (לא משפיע על השמירה):', _se); }
-        var docInv = await supa.functions.invoke('create-report-doc', {
-          body: { reportText: reportText, examineeName: examineeName, templateId: templateId, reportType: (isPrincipal ? 'principal' : 'student'), ownerEmail: ownerEmail, bannerId: bannerId, docId: _exDocId }
-        });
-        var docUrl = (!docInv.error && docInv.data && docInv.data.success) ? (docInv.data.docUrl || '') : '';
+        } catch (_se) { console.warn('[גשר/ידני] שגיאה — נופל לבנייה מחדש:', _se); }
+        if (!_bridgeApplied) {
+          var docInv = await supa.functions.invoke('create-report-doc', {
+            body: { reportText: reportText, examineeName: examineeName, templateId: templateId, reportType: (isPrincipal ? 'principal' : 'student'), ownerEmail: ownerEmail, bannerId: bannerId, docId: _exDocId }
+          });
+          docUrl = (!docInv.error && docInv.data && docInv.data.success) ? (docInv.data.docUrl || '') : '';
+        }
         if (docUrl && docUrl !== raw[linkKey]) { raw[linkKey] = docUrl; await supa.from('examinees').update({ raw_data: raw }).eq('id', examineeId); }
         return { success: true, docUrl: docUrl };
       } catch (e) {
@@ -1598,34 +1606,39 @@
         try {
           var _exLink = ''; try { var _lq = await supa.from('examinees').select('raw_data').eq('id', examineeId).maybeSingle(); _exLink = (_lq.data && _lq.data.raw_data && _lq.data.raw_data[linkKey]) || ''; } catch (e) {}
           var _exDocId = (typeof window._nzDocIdFromUrl === 'function') ? window._nzDocIdFromUrl(_exLink) : '';
-          // --- מצב צל (שלב 3ג): חישוב פעולות diff בלי להחיל, רק כשהדגל window._NZ_SHADOW דלוק ---
-          // קוראים את הדוקס החי *לפני* החידוש כדי לתפוס את המצב האמיתי (כולל עריכות ידניות).
-          // כבוי כברירת מחדל → אפס השפעה על היועצות.
+          // --- גשר דוקס (שלב 3): חישוב, לוג במצב-צל, והחלה כשהדגל _NZ_APPLY דלוק; נפילה בטוחה לבנייה-מחדש ---
+          var _bridgeApplied = false;
           try {
-            if (window._NZ_SHADOW) {
-              console.log('%c[מצב צל] אבחון תנאים:', 'color:#4f46e5;font-weight:bold', { link: _exLink || '(ריק)', reportMode: reportMode, hasRead: (typeof window._nzReadDocStructured === 'function'), hasDiff: !!window._nzDiff });
-            }
-            if (window._NZ_SHADOW && _exLink && typeof window._nzReadDocStructured === 'function' && window._nzDiff) {
+            if ((window._NZ_SHADOW || window._NZ_APPLY) && _exLink && typeof window._nzReadDocStructured === 'function' && window._nzDiff) {
               var _sr = await window._nzReadDocStructured(_exLink);
               if (_sr && _sr.success) {
                 var _sblocks = (_sr.doc && _sr.doc.blocks) ? _sr.doc.blocks : (Array.isArray(_sr.doc) ? _sr.doc : []);
                 var _sres = window._nzDiff.computeRefineOps(previousReport || '', _sblocks, reportText || '');
-                console.log('%c[מצב צל] ' + _sres.ops.length + ' פעולות שהיו מוחלות (לא הוחל כלום):', 'color:#4f46e5;font-weight:bold;font-size:13px');
-                try { console.table(_sres.ops.map(function (o) { return { op: o.op, index: o.index, text: (o.text || '').slice(0, 70) }; })); } catch (_te) { console.log(_sres.ops); }
-                console.log('[מצב צל] סיכום:', _sres.report);
-                if (_sres.report.manualPreserved) { console.log('%c[מצב צל] ✓ ' + _sres.report.manualPreserved + ' תוספות ידניות זוהו ונשמרות:', 'color:#059669;font-weight:bold', _sres.report.manualList); }
-                try { var _ck = {}; _sblocks.forEach(function (b) { var k = window._nzDiff.nzKey(b.text); if (k) _ck[k] = true; }); var _dup = _sres.ops.filter(function (o) { return o.op === 'insertAfter' && _ck[window._nzDiff.nzKey(o.text || '')]; }).length; console.log('%c[מצב צל] COPY — העתק את השורה הבאה ושלח:', 'color:#b45309;font-weight:bold'); console.log(JSON.stringify({ cur: _sblocks.length, dupInsert: _dup, summary: { kept: _sres.report.kept, manual: _sres.report.manualPreserved, replaced: _sres.report.replaced, inserted: _sres.report.inserted, deleted: _sres.report.deleted }, ops: _sres.ops.map(function (o) { return { op: o.op, i: o.index, t: (o.text || '').slice(0, 45) }; }), manual: _sres.report.manualList.map(function (m) { return { i: m.index, t: (m.text || '').slice(0, 45) }; }) })); } catch (_ce) {}
-              } else {
-                console.warn('[מצב צל] קריאת דוקס נכשלה:', _sr && _sr.error);
-              }
-            } else if (window._NZ_SHADOW) {
-              console.warn('[מצב צל] דולג — ' + (!_exLink ? 'אין קישור דוקס שמור לדוח הזה (_exLink ריק)' : 'חסר רכיב גשר'));
+                var _ck = {}; _sblocks.forEach(function (b) { var k = window._nzDiff.nzKey(b.text); if (k) _ck[k] = true; });
+                var _dup = _sres.ops.filter(function (o) { return o.op === 'insertAfter' && _ck[window._nzDiff.nzKey(o.text || '')]; }).length;
+                var _safe = (_dup === 0) && (_sres.ops.length >= 1) && (_sres.ops.length <= Math.max(20, Math.ceil(_sblocks.length * 0.6)));
+                if (window._NZ_SHADOW) {
+                  console.log('%c[גשר] ' + _sres.ops.length + ' פעולות (dup=' + _dup + ', בטוח=' + _safe + '):', 'color:#4f46e5;font-weight:bold');
+                  try { console.table(_sres.ops.map(function (o) { return { op: o.op, index: o.index, text: (o.text || '').slice(0, 70) }; })); } catch (_te) {}
+                  console.log('[גשר] סיכום:', _sres.report, 'תוספות ידניות:', _sres.report.manualList);
+                  try { console.log('[גשר] COPY:', JSON.stringify({ cur: _sblocks.length, dupInsert: _dup, safe: _safe, summary: { kept: _sres.report.kept, manual: _sres.report.manualPreserved, replaced: _sres.report.replaced, inserted: _sres.report.inserted, deleted: _sres.report.deleted }, ops: _sres.ops.map(function (o) { return { op: o.op, i: o.index, t: (o.text || '').slice(0, 45) }; }), manual: _sres.report.manualList.map(function (m) { return { i: m.index, t: (m.text || '').slice(0, 45) }; }) })); } catch (_ce) {}
+                }
+                if (window._NZ_APPLY && _safe) {
+                  var _wr = await window._nzApplyDocOps(_exLink, _sres.ops);
+                  if (_wr && _wr.success) { _bridgeApplied = true; docUrl = _exLink; console.log('%c[גשר] ✓ הוחל על הדוקס (' + _sres.ops.length + ' פעולות) — עריכות ידניות נשמרו', 'color:#059669;font-weight:bold'); }
+                  else { console.warn('[גשר] החלה נכשלה — נופל לבנייה מחדש:', _wr && _wr.error); }
+                } else if (window._NZ_APPLY && !_safe) {
+                  console.warn('[גשר] דיף לא בטוח (dup=' + _dup + ', ops=' + _sres.ops.length + ') — נופל לבנייה מחדש');
+                }
+              } else if (window._NZ_SHADOW || window._NZ_APPLY) { console.warn('[גשר] קריאת דוקס נכשלה — נופל לבנייה מחדש:', _sr && _sr.error); }
             }
-          } catch (_se) { console.warn('[מצב צל] שגיאה (לא משפיע על השמירה):', _se); }
-          var docInv = await supa.functions.invoke('create-report-doc', {
-            body: { reportText: reportText, examineeName: examineeName, templateId: templateId, reportType: (isPrincipal ? 'principal' : 'student'), ownerEmail: ownerEmail, bannerId: bannerId, docId: _exDocId }
-          });
-          if (!docInv.error && docInv.data && docInv.data.success) docUrl = docInv.data.docUrl || '';
+          } catch (_se) { console.warn('[גשר] שגיאה — נופל לבנייה מחדש:', _se); }
+          if (!_bridgeApplied) {
+            var docInv = await supa.functions.invoke('create-report-doc', {
+              body: { reportText: reportText, examineeName: examineeName, templateId: templateId, reportType: (isPrincipal ? 'principal' : 'student'), ownerEmail: ownerEmail, bannerId: bannerId, docId: _exDocId }
+            });
+            if (!docInv.error && docInv.data && docInv.data.success) docUrl = docInv.data.docUrl || '';
+          }
         } catch (de) {}
 
         // שמירה
