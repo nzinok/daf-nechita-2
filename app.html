@@ -431,8 +431,8 @@
                     <label class="flex items-start gap-2 cursor-pointer">
                         <input type="checkbox" id="nz-bridge-toggle" class="w-4 h-4 mt-1">
                         <span class="text-sm">
-                            <span class="font-bold text-amber-800">🧪 שמירה חכמה (בדיקה — יועצת בכירה)</span>
-                            <span class="block text-xs text-gray-600 mt-0.5">כשמסומן: עדכוני הדוח נכתבים במסמך בצורה כירורגית, כך שעריכות ידניות שהוספת ישירות בדוקס (למשל תאריך בצד) נשמרות ולא נמחקות. האפשרות פתוחה לך כיועצת בכירה לבדיקה לפני שתופעל לכלל היועצות.</span>
+                            <span class="font-bold text-amber-800">🧪 סנכרון מלא עם הדוקס (בבדיקה — פתוח לך כיועצת בכירה)</span>
+                            <span class="block text-xs text-gray-600 mt-1 leading-relaxed">עד היום הסנכרון היה <b>חלקי</b>: אם הוספת משהו ידני ישירות במסמך בדוקס (למשל תאריך בצד), עדכון נוסף מכאן היה מוחק אותו, והוא גם לא הופיע כאן.<br>כשתסמני — יופעל <b>סנכרון מלא</b>: המערכת תזהה את התוספות הידניות שלך מהדוקס, תציג אותן כאן, <b>ותשמור עליהן</b> גם אחרי עדכון. סמני ונסי — אפשר לבטל בכל רגע. (האפשרות פתוחה לך לבדיקה לפני שנפעיל אותה לכל היועצות.)</span>
                         </span>
                     </label>
                 </div>
@@ -8300,7 +8300,59 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (e) {}
 
-        // מתג "שמירה חכמה" (גשר הדוקס) — מופיע רק ליועצת בכירה / מנהל-על, לבדיקה לפני הפעלה לכולן
+        // איפוס מפת היישור של תוספות ידניות (מתעדכן בקריאה-בפתיחה)
+        window._nzManualAligns = {};
+
+        // קריאה-בפתיחה: קוראת את הדוקס החי, שוזרת לתצוגה את התוספות הידניות ושומרת את יישורן (למשל תאריך בצד שמאל)
+        var _runReadOnOpen = function () {
+            try {
+                if (!(window._NZ_APPLY && window._nzReadDocStructured && window._nzDiff && window._nzDiff.nzWeaveManualIntoText)) return;
+                var _roLink = (examinee.rawData && examinee.rawData[reportMode === 'principal' ? 'קישור לדוח מנהלת' : 'קישור למסמך הדוח']) || '';
+                if (!_roLink) return;
+                var _roView = document.getElementById('refine-report-view');
+                var _roOld = document.getElementById('nz-sync-badge'); if (_roOld) _roOld.remove();
+                var _roBadge = document.createElement('div');
+                _roBadge.id = 'nz-sync-badge';
+                _roBadge.className = 'text-xs text-amber-700 mb-1 font-semibold';
+                _roBadge.textContent = '🔄 מסנכרן מהדוקס...';
+                if (_roView && _roView.parentNode) _roView.parentNode.insertBefore(_roBadge, _roView);
+                (async function () {
+                    try {
+                        var _rd = await window._nzReadDocStructured(_roLink);
+                        if (!_rd || !_rd.success) { var _b0 = document.getElementById('nz-sync-badge'); if (_b0) _b0.remove(); return; }
+                        var _blocks = (_rd.doc && _rd.doc.blocks) ? _rd.doc.blocks : [];
+                        var _base = currentReportDisplay.value || '';
+                        var _woven = window._nzDiff.nzWeaveManualIntoText(_base, _blocks);
+                        var _aligns = {};
+                        try {
+                            var _bk = {}; window._nzDiff.nzMdToBlocks(_base).forEach(function (b) { var k = window._nzDiff.nzKey(b.text); if (k) _bk[k] = 1; });
+                            _blocks.forEach(function (b) {
+                                var k = window._nzDiff.nzKey(b.text);
+                                if (!k || _bk[k]) return; // רק תוספות ידניות (אינן בבסיס)
+                                if (b.align === 'CENTER' || b.align === 'JUSTIFIED') return;
+                                var _rtl = (b.direction === 'RIGHT_TO_LEFT');
+                                var _left = _rtl ? (b.align === 'END') : (b.align === 'START' || !b.align || b.direction === 'LEFT_TO_RIGHT');
+                                if (_left) _aligns[String(b.text).trim()] = 'left';
+                            });
+                        } catch (e) {}
+                        window._nzManualAligns = _aligns;
+                        var _busy = (typeof _nzRefineMarks !== 'undefined' && _nzRefineMarks && _nzRefineMarks.length) || (typeof _nzManualInserts !== 'undefined' && _nzManualInserts && _nzManualInserts.length);
+                        if (_woven && _woven !== _base && !_busy) {
+                            currentReportDisplay.value = _woven;
+                            try { window._nzInitRefineView(_woven); } catch (e) {}
+                            _roBadge.textContent = '✓ מסונכרן מהדוקס — כולל התוספות הידניות שלך';
+                            _roBadge.className = 'text-xs text-green-700 mb-1 font-semibold';
+                        } else if (!_busy) {
+                            try { window._nzRenderRefineView(); } catch (e) {}
+                            _roBadge.textContent = '✓ מסונכרן מהדוקס';
+                            _roBadge.className = 'text-xs text-green-600 mb-1';
+                        }
+                    } catch (e) { var _b1 = document.getElementById('nz-sync-badge'); if (_b1) _b1.remove(); }
+                })();
+            } catch (e) {}
+        };
+
+        // מתג "סנכרון מלא" — מופיע רק ליועצת בכירה / מנהל-על, לבדיקה לפני הפעלה לכולן
         try {
             var _isSenior = currentUser && (currentUser.role === 'יועצת בכירה' || currentUser.role === 'מנהל-על');
             var _btWrap = document.getElementById('nz-bridge-toggle-wrap');
@@ -8314,6 +8366,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     _btCb.onchange = function () {
                         window._NZ_APPLY = _btCb.checked;
                         try { localStorage.setItem('nz_bridge_apply', _btCb.checked ? '1' : '0'); } catch (e) {}
+                        if (_btCb.checked) { _runReadOnOpen(); }
+                        else { var _b = document.getElementById('nz-sync-badge'); if (_b) _b.remove(); window._nzManualAligns = {}; try { window._nzRenderRefineView(); } catch (e) {} }
                     };
                 } else {
                     _btWrap.classList.add('hidden');
@@ -8322,39 +8376,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (e) {}
 
-        // קריאה-בפתיחה: כשהגשר פעיל (יועצת בכירה) — קוראים את הדוקס החי ושוזרים לתצוגה את התוספות הידניות שלה
-        try {
-            if (window._NZ_APPLY && window._nzReadDocStructured && window._nzDiff && window._nzDiff.nzWeaveManualIntoText) {
-                var _roLink = (examinee.rawData && examinee.rawData[reportMode === 'principal' ? 'קישור לדוח מנהלת' : 'קישור למסמך הדוח']) || '';
-                if (_roLink) {
-                    var _roView = document.getElementById('refine-report-view');
-                    var _roOld = document.getElementById('nz-sync-badge'); if (_roOld) _roOld.remove();
-                    var _roBadge = document.createElement('div');
-                    _roBadge.id = 'nz-sync-badge';
-                    _roBadge.className = 'text-xs text-amber-700 mb-1 font-semibold';
-                    _roBadge.textContent = '🔄 מסנכרן מהדוקס...';
-                    if (_roView && _roView.parentNode) _roView.parentNode.insertBefore(_roBadge, _roView);
-                    (async function () {
-                        try {
-                            var _rd = await window._nzReadDocStructured(_roLink);
-                            if (!_rd || !_rd.success) { var _b0 = document.getElementById('nz-sync-badge'); if (_b0) _b0.remove(); return; }
-                            var _blocks = (_rd.doc && _rd.doc.blocks) ? _rd.doc.blocks : [];
-                            var _woven = window._nzDiff.nzWeaveManualIntoText(currentReportDisplay.value || '', _blocks);
-                            var _busy = (typeof _nzRefineMarks !== 'undefined' && _nzRefineMarks && _nzRefineMarks.length) || (typeof _nzManualInserts !== 'undefined' && _nzManualInserts && _nzManualInserts.length);
-                            if (_woven && _woven !== currentReportDisplay.value && !_busy) {
-                                currentReportDisplay.value = _woven;
-                                try { window._nzInitRefineView(_woven); } catch (e) {}
-                                _roBadge.textContent = '✓ מסונכרן מהדוקס — כולל התוספות הידניות שלך';
-                                _roBadge.className = 'text-xs text-green-700 mb-1 font-semibold';
-                            } else {
-                                _roBadge.textContent = '✓ מסונכרן מהדוקס';
-                                _roBadge.className = 'text-xs text-green-600 mb-1';
-                            }
-                        } catch (e) { var _b1 = document.getElementById('nz-sync-badge'); if (_b1) _b1.remove(); }
-                    })();
-                }
-            }
-        } catch (e) {}
+        if (window._NZ_APPLY) { _runReadOnOpen(); }
 
         refineModal.classList.remove('hidden');
         if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -8566,7 +8588,8 @@ document.addEventListener('DOMContentLoaded', function() {
             var hl = '';
             if (em) hl += 'background:#fef9c3;border-right:3px solid #eab308;';
             if (meEdited) hl += 'background:#eff6ff;border-right:3px solid #3b82f6;';
-            html += '<div class="nz-seg" data-idx="' + i + '" style="padding:3px 6px;border-radius:5px;cursor:pointer;margin:1px 0;' + hl + '" title="לחצי למיקוד פסקה זו">' + window._nzFmtLine(raw) + '</div>';
+            var _al = (window._nzManualAligns && window._nzManualAligns[String(raw).trim()]) ? 'text-align:left;direction:ltr;' : '';
+            html += '<div class="nz-seg" data-idx="' + i + '" style="padding:3px 6px;border-radius:5px;cursor:pointer;margin:1px 0;' + _al + hl + '" title="לחצי למיקוד פסקה זו">' + window._nzFmtLine(raw) + '</div>';
             if (em) {
                 html += '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:4px 8px;margin:2px 0 6px;font-size:12px;color:#92400e;display:flex;align-items:center;gap:6px;">✏️ <span style="flex:1;">' + window._nzEscHtml(em.text) + '</span><button type="button" class="nz-mark-del" data-mid="' + em.id + '" style="background:none;border:none;color:#b91c1c;font-weight:800;cursor:pointer;font-size:15px;line-height:1;">×</button></div>';
             }
