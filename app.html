@@ -1613,7 +1613,7 @@
         // יצירת מסמך מעודכן — על אותו קובץ אם קיים (docId)
         var docUrl = '';
         try {
-          var _exLink = ''; try { var _lq = await supa.from('examinees').select('raw_data').eq('id', examineeId).maybeSingle(); _exLink = (_lq.data && _lq.data.raw_data && _lq.data.raw_data[linkKey]) || ''; } catch (e) {}
+          var _exLink = ''; var _dbBase = ''; try { var _lq = await supa.from('examinees').select('raw_data').eq('id', examineeId).maybeSingle(); _exLink = (_lq.data && _lq.data.raw_data && _lq.data.raw_data[linkKey]) || ''; _dbBase = (_lq.data && _lq.data.raw_data && _lq.data.raw_data[rawKey]) || ''; } catch (e) {}
           var _exDocId = (typeof window._nzDocIdFromUrl === 'function') ? window._nzDocIdFromUrl(_exLink) : '';
           // --- גשר דוקס (שלב 3): חישוב, לוג במצב-צל, והחלה כשהדגל _NZ_APPLY דלוק; נפילה בטוחה לבנייה-מחדש ---
           var _bridgeApplied = false;
@@ -1622,7 +1622,7 @@
               var _sr = await window._nzReadDocStructured(_exLink);
               if (_sr && _sr.success) {
                 var _sblocks = (_sr.doc && _sr.doc.blocks) ? _sr.doc.blocks : (Array.isArray(_sr.doc) ? _sr.doc : []);
-                var _sres = window._nzDiff.computeRefineOps(previousReport || '', _sblocks, reportText || '');
+                var _sres = window._nzDiff.computeRefineOps(_dbBase || previousReport || '', _sblocks, reportText || '');
                 var _ck = {}; _sblocks.forEach(function (b) { var k = window._nzDiff.nzKey(b.text); if (k) _ck[k] = true; });
                 var _dup = _sres.ops.filter(function (o) { return o.op === 'insertAfter' && _ck[window._nzDiff.nzKey(o.text || '')]; }).length;
                 var _safe = (_dup === 0) && (_sres.ops.length >= 1) && (_sres.ops.length <= Math.max(20, Math.ceil(_sblocks.length * 0.6)));
@@ -2280,7 +2280,19 @@
         var pairCount = Math.min(deletable.length, gapNext.length);
         for (var t = 0; t < pairCount; t++) {
           var nb = gapNext[t].block;
-          ops.push({ op: 'replace', index: deletable[t].idx, text: nb.text, runs: nb.runs, align: nb.align, direction: nb.direction });
+          var _ob = deletable[t].block;
+          var _bstyle = null;
+          try {
+            if (_ob && _ob.runs && _ob.runs.length && _ob.runs[0].style) {
+              _bstyle = {};
+              Object.keys(_ob.runs[0].style).forEach(function (kk) { if (kk !== 'bold' && kk !== 'italic') _bstyle[kk] = _ob.runs[0].style[kk]; });
+              if (!Object.keys(_bstyle).length) _bstyle = null;
+            }
+          } catch (e) {}
+          var _rruns = [];
+          if (_bstyle) _rruns.push({ start: 0, end: (nb.text || '').length, style: _bstyle });
+          (nb.runs || []).forEach(function (r) { _rruns.push(r); });
+          ops.push({ op: 'replace', index: deletable[t].idx, text: nb.text, runs: _rruns, align: (_ob && _ob.align) || nb.align, direction: (_ob && _ob.direction) || nb.direction });
           lastAnchorIdx = deletable[t].idx; report.replaced++;
         }
         for (var d = pairCount; d < deletable.length; d++) { ops.push({ op: 'delete', index: deletable[d].idx }); report.deleted++; }
@@ -2291,6 +2303,28 @@
         }
       }
       return { ops: ops, report: report };
+    }
+    function nzIsHeadingLine(line) {
+      var t = String(line == null ? '' : line).trim();
+      return /^#{1,6}\s/.test(t) || /^\*\*.*\*\*$/.test(t);
+    }
+    function nzBlockToMarkdownInline(block) {
+      var text = String(block && block.text != null ? block.text : '');
+      var runs = ((block && block.runs) || []).filter(function (r) { return r && r.bold && r.end > r.start; })
+        .map(function (r) { return { s: Math.max(0, r.start | 0), e: Math.min(text.length, r.end | 0) }; })
+        .filter(function (r) { return r.e > r.s; })
+        .sort(function (a, b) { return a.s - b.s; });
+      if (!runs.length) return text;
+      var merged = [runs[0]];
+      for (var i = 1; i < runs.length; i++) {
+        var last = merged[merged.length - 1];
+        if (runs[i].s <= last.e) last.e = Math.max(last.e, runs[i].e);
+        else merged.push(runs[i]);
+      }
+      var out = '', pos = 0;
+      merged.forEach(function (r) { out += text.slice(pos, r.s) + '**' + text.slice(r.s, r.e) + '**'; pos = r.e; });
+      out += text.slice(pos);
+      return out;
     }
     function nzWeaveManualIntoText(baseMd, currentBlocks) {
       var baseLines = String(baseMd == null ? '' : baseMd).split(/\r?\n/);
@@ -2305,29 +2339,35 @@
         if (nzIsHR(cb.text)) continue;
         var ck = nzKey(cb.text);
         if (ck === '') continue;
-        cur.push({ key: ck, text: cb.text });
+        cur.push({ key: ck, text: cb.text, block: cb });
       }
       var curKeys = cur.map(function (x) { return x.key; });
       var baseKeys = baseContent.map(function (x) { return x.key; });
       var pairs = nzLcsPairs(curKeys, baseKeys);
       var matchedCur = {};
-      pairs.forEach(function (p) { matchedCur[p[0]] = p[1]; });
+      var lineToBlock = {};
+      pairs.forEach(function (p) { matchedCur[p[0]] = p[1]; lineToBlock[baseContent[p[1]].line] = cur[p[0]].block; });
       var inserts = {};
       var lastBaseLine = -1;
       for (var k = 0; k < cur.length; k++) {
         if (matchedCur.hasOwnProperty(k)) { lastBaseLine = baseContent[matchedCur[k]].line; }
         else { (inserts[lastBaseLine] = inserts[lastBaseLine] || []).push(cur[k].text); }
       }
-      if (!Object.keys(inserts).length) return baseMd;
       var out = [];
       if (inserts[-1]) { inserts[-1].forEach(function (t) { out.push(t); out.push(''); }); }
       for (var li = 0; li < baseLines.length; li++) {
-        out.push(baseLines[li]);
+        var line = baseLines[li];
+        var blk = lineToBlock[li];
+        if (blk && !nzIsHeadingLine(line) && (blk.runs || []).some(function (r) { return r && r.bold && r.end > r.start; })) {
+          var recon = nzBlockToMarkdownInline(blk);
+          if (recon) line = recon;
+        }
+        out.push(line);
         if (inserts[li]) { inserts[li].forEach(function (t) { out.push(''); out.push(t); }); }
       }
       return out.join('\n');
     }
-    window._nzDiff = { computeRefineOps: computeRefineOps, nzKey: nzKey, nzIsHR: nzIsHR, nzMdToBlocks: nzMdToBlocks, nzMdLineToBlock: nzMdLineToBlock, nzLcsPairs: nzLcsPairs, nzWeaveManualIntoText: nzWeaveManualIntoText };
+    window._nzDiff = { computeRefineOps: computeRefineOps, nzKey: nzKey, nzIsHR: nzIsHR, nzIsHeadingLine: nzIsHeadingLine, nzBlockToMarkdownInline: nzBlockToMarkdownInline, nzMdToBlocks: nzMdToBlocks, nzMdLineToBlock: nzMdLineToBlock, nzLcsPairs: nzLcsPairs, nzWeaveManualIntoText: nzWeaveManualIntoText };
   })();
 
   // מסך "סיסמה חדשה" — מוצג כשהמשתמשת חוזרת מקישור האיפוס במייל
@@ -8549,6 +8589,14 @@ document.addEventListener('DOMContentLoaded', function() {
     window._nzFmtLine = function (raw) {
         var e = window._nzEscHtml(raw);
         var trimmed = e.trim();
+        var mH = trimmed.match(/^(#{1,6})\s+(.+)$/);
+        if (mH) {
+            var lvl = mH[1].length;
+            var htxt = mH[2].replace(/\s*#+\s*$/, '');
+            var hsz = lvl <= 1 ? '18px' : (lvl === 2 ? '16.5px' : '14.5px');
+            var hcenter = lvl <= 2 ? 'text-align:center;' : '';
+            return '<span style="display:block;font-weight:800;color:#1e293b;font-size:' + hsz + ';' + hcenter + '">' + window._nzInlineMd(htxt) + '</span>';
+        }
         var mHead = trimmed.match(/^\*\*(.+)\*\*$/);
         if (mHead) {
             var inner = mHead[1];
