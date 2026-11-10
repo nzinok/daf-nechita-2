@@ -1526,7 +1526,8 @@
             var _sr = await window._nzReadDocStructured(_slink);
             if (_sr && _sr.success) {
               var _sblocks = (_sr.doc && _sr.doc.blocks) ? _sr.doc.blocks : (Array.isArray(_sr.doc) ? _sr.doc : []);
-              var _sres = window._nzDiff.computeRefineOps(window._NZ_SHADOW_BASE || '', _sblocks, reportText || '');
+              var _recBase = window._nzDiff.nzReconcileDocToText(window._NZ_SHADOW_BASE || '', _sblocks).text;
+              var _sres = window._nzDiff.computeRefineOps(_recBase, _sblocks, reportText || '');
               var _ck = {}; _sblocks.forEach(function (b) { var k = window._nzDiff.nzKey(b.text); if (k) _ck[k] = true; });
               var _dup = _sres.ops.filter(function (o) { return o.op === 'insertAfter' && _ck[window._nzDiff.nzKey(o.text || '')]; }).length;
               var _hasTable = _sblocks.some(function (b) { return b && b.opaque; });
@@ -1614,7 +1615,8 @@
               var _sr = await window._nzReadDocStructured(_exLink);
               if (_sr && _sr.success) {
                 var _sblocks = (_sr.doc && _sr.doc.blocks) ? _sr.doc.blocks : (Array.isArray(_sr.doc) ? _sr.doc : []);
-                var _sres = window._nzDiff.computeRefineOps(_dbBase || previousReport || '', _sblocks, reportText || '');
+                var _recBase = window._nzDiff.nzReconcileDocToText(_dbBase || previousReport || '', _sblocks).text;
+                var _sres = window._nzDiff.computeRefineOps(_recBase, _sblocks, reportText || '');
                 var _ck = {}; _sblocks.forEach(function (b) { var k = window._nzDiff.nzKey(b.text); if (k) _ck[k] = true; });
                 var _dup = _sres.ops.filter(function (o) { return o.op === 'insertAfter' && _ck[window._nzDiff.nzKey(o.text || '')]; }).length;
                 var _hasTable = _sblocks.some(function (b) { return b && b.opaque; });
@@ -8402,10 +8404,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // קריאה-בפתיחה: קוראת את הדוקס החי, שוזרת לתצוגה את התוספות הידניות ושומרת את יישורן (למשל תאריך בצד שמאל)
         var _runReadOnOpen = function () {
+            var _subBtn = document.getElementById('submit-refinement-btn');
+            var _reenable = function () { if (_subBtn) { _subBtn.disabled = false; _subBtn.style.opacity = ''; _subBtn.title = ''; } };
+            var _safety = null;
             try {
-                if (window._NZ_NO_BRIDGE || !(window._nzReadDocStructured && window._nzDiff && window._nzDiff.nzReconcileDocToText)) return;
+                if (window._NZ_NO_BRIDGE || !(window._nzReadDocStructured && window._nzDiff && window._nzDiff.nzReconcileDocToText)) { _reenable(); return; }
                 var _roLink = (examinee.rawData && examinee.rawData[reportMode === 'principal' ? 'קישור לדוח מנהלת' : 'קישור למסמך הדוח']) || '';
-                if (!_roLink) return;
+                if (!_roLink) { _reenable(); return; }
+                if (_subBtn) { _subBtn.disabled = true; _subBtn.style.opacity = '0.6'; _subBtn.title = 'מסנכרן מהדוקס...'; }
+                _safety = setTimeout(_reenable, 10000);
                 var _roView = document.getElementById('refine-report-view');
                 var _roOld = document.getElementById('nz-sync-badge'); if (_roOld) _roOld.remove();
                 var _roBadge = document.createElement('div');
@@ -8444,8 +8451,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             var _bb = document.getElementById('nz-sync-badge'); if (_bb) _bb.remove();
                         }
                     } catch (e) { var _b1 = document.getElementById('nz-sync-badge'); if (_b1) _b1.remove(); }
+                    finally { if (_safety) clearTimeout(_safety); _reenable(); }
                 })();
-            } catch (e) {}
+            } catch (e) { _reenable(); }
         };
 
         // גשר דוקס פעיל כברירת מחדל (כיבוי חירום: window._NZ_NO_BRIDGE = true)
