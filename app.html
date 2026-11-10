@@ -2360,7 +2360,71 @@
       }
       return out.join('\n');
     }
-    window._nzDiff = { computeRefineOps: computeRefineOps, nzKey: nzKey, nzIsHR: nzIsHR, nzIsHeadingLine: nzIsHeadingLine, nzBlockToMarkdownInline: nzBlockToMarkdownInline, nzMdToBlocks: nzMdToBlocks, nzMdLineToBlock: nzMdLineToBlock, nzLcsPairs: nzLcsPairs, nzWeaveManualIntoText: nzWeaveManualIntoText };
+    function nzStructPrefix(line) {
+      var m = String(line == null ? '' : line).match(/^(\s*#{1,6}\s+)/);
+      if (m) return m[1];
+      var b = String(line).match(/^(\s*(?:[••]\t?|[-*+]\s))/);
+      if (b) return b[1];
+      return '';
+    }
+    function nzReconLine_(baseRaw, docBlock) {
+      if (nzIsHeadingLine(baseRaw)) return baseRaw;
+      if ((docBlock.runs || []).some(function (r) { return r && r.bold && r.end > r.start; })) {
+        var r = nzBlockToMarkdownInline(docBlock);
+        if (r) return r;
+      }
+      return baseRaw;
+    }
+    function nzReconcileDocToText(baseMd, currentBlocks) {
+      var baseLines = String(baseMd == null ? '' : baseMd).split(/\r?\n/);
+      var baseContent = [];
+      for (var i = 0; i < baseLines.length; i++) {
+        if (baseLines[i].trim() === '' || nzIsHR(baseLines[i])) continue;
+        baseContent.push({ idx: i, key: nzKey(baseLines[i]), raw: baseLines[i] });
+      }
+      var cur = [];
+      for (var c = 0; c < currentBlocks.length; c++) {
+        var cb = currentBlocks[c];
+        if (nzIsHR(cb.text)) continue;
+        if (nzKey(cb.text) === '') continue;
+        cur.push({ key: nzKey(cb.text), block: cb });
+      }
+      var curKeys = cur.map(function (x) { return x.key; });
+      var baseKeys = baseContent.map(function (x) { return x.key; });
+      var pairs = nzLcsPairs(curKeys, baseKeys);
+      var matchedCur = {}, matchedBase = {};
+      pairs.forEach(function (p) { matchedCur[p[0]] = p[1]; matchedBase[p[1]] = p[0]; });
+      var out = [], changed = false, ci = 0, bi = 0;
+      while (ci < cur.length || bi < baseContent.length) {
+        if (ci < cur.length && matchedCur.hasOwnProperty(ci) && matchedCur[ci] === bi) {
+          var ln = nzReconLine_(baseContent[bi].raw, cur[ci].block);
+          if (ln !== baseContent[bi].raw) changed = true;
+          out.push(ln); ci++; bi++;
+          continue;
+        }
+        var gapCur = [], gapBase = [];
+        while (ci < cur.length && !(matchedCur.hasOwnProperty(ci) && matchedCur[ci] === bi)) {
+          if (matchedCur.hasOwnProperty(ci) && matchedCur[ci] > bi) break;
+          gapCur.push(cur[ci]); ci++;
+        }
+        while (bi < baseContent.length && !(matchedBase.hasOwnProperty(bi) && matchedBase[bi] === ci)) {
+          if (matchedBase.hasOwnProperty(bi) && matchedBase[bi] > ci) break;
+          gapBase.push(baseContent[bi]); bi++;
+        }
+        if (gapCur.length || gapBase.length) changed = true;
+        var pc = Math.min(gapCur.length, gapBase.length);
+        for (var t = 0; t < pc; t++) {
+          var prefix = nzStructPrefix(gapBase[t].raw);
+          var txt;
+          if (/#{1,6}\s/.test(prefix)) { txt = String(gapCur[t].block.text == null ? '' : gapCur[t].block.text).replace(/\t/g, ' ').replace(/\s+/g, ' ').trim(); }
+          else { txt = nzBlockToMarkdownInline(gapCur[t].block); }
+          out.push(prefix ? (prefix + txt) : txt);
+        }
+        for (var n = pc; n < gapCur.length; n++) { out.push(nzBlockToMarkdownInline(gapCur[n].block)); }
+      }
+      return { text: out.join('\n\n'), changed: changed };
+    }
+    window._nzDiff = { computeRefineOps: computeRefineOps, nzKey: nzKey, nzIsHR: nzIsHR, nzIsHeadingLine: nzIsHeadingLine, nzBlockToMarkdownInline: nzBlockToMarkdownInline, nzMdToBlocks: nzMdToBlocks, nzMdLineToBlock: nzMdLineToBlock, nzLcsPairs: nzLcsPairs, nzWeaveManualIntoText: nzWeaveManualIntoText, nzStructPrefix: nzStructPrefix, nzReconcileDocToText: nzReconcileDocToText };
   })();
 
   // מסך "סיסמה חדשה" — מוצג כשהמשתמשת חוזרת מקישור האיפוס במייל
@@ -8339,7 +8403,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // קריאה-בפתיחה: קוראת את הדוקס החי, שוזרת לתצוגה את התוספות הידניות ושומרת את יישורן (למשל תאריך בצד שמאל)
         var _runReadOnOpen = function () {
             try {
-                if (window._NZ_NO_BRIDGE || !(window._nzReadDocStructured && window._nzDiff && window._nzDiff.nzWeaveManualIntoText)) return;
+                if (window._NZ_NO_BRIDGE || !(window._nzReadDocStructured && window._nzDiff && window._nzDiff.nzReconcileDocToText)) return;
                 var _roLink = (examinee.rawData && examinee.rawData[reportMode === 'principal' ? 'קישור לדוח מנהלת' : 'קישור למסמך הדוח']) || '';
                 if (!_roLink) return;
                 var _roView = document.getElementById('refine-report-view');
@@ -8355,7 +8419,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (!_rd || !_rd.success) { var _b0 = document.getElementById('nz-sync-badge'); if (_b0) _b0.remove(); return; }
                         var _blocks = (_rd.doc && _rd.doc.blocks) ? _rd.doc.blocks : [];
                         var _base = currentReportDisplay.value || '';
-                        var _woven = window._nzDiff.nzWeaveManualIntoText(_base, _blocks);
+                        var _rec = window._nzDiff.nzReconcileDocToText(_base, _blocks);
+                        var _woven = _rec.text; var _changed = _rec.changed;
                         var _aligns = {};
                         try {
                             _blocks.forEach(function (b) {
@@ -8369,7 +8434,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         } catch (e) {}
                         window._nzManualAligns = _aligns;
                         var _busy = (typeof _nzRefineMarks !== 'undefined' && _nzRefineMarks && _nzRefineMarks.length) || (typeof _nzManualInserts !== 'undefined' && _nzManualInserts && _nzManualInserts.length);
-                        if (_woven && _woven !== _base && !_busy) {
+                        if (_changed && _woven && !_busy) {
                             currentReportDisplay.value = _woven;
                             try { window._nzInitRefineView(_woven); } catch (e) {}
                             _roBadge.textContent = '✓ מסונכרן מהדוקס — כולל התוספות הידניות שלך';
