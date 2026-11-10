@@ -427,15 +427,6 @@
                         </div>
                     </div>
                 </div>
-                <div id="nz-bridge-toggle-wrap" class="hidden mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                    <label class="flex items-start gap-2 cursor-pointer">
-                        <input type="checkbox" id="nz-bridge-toggle" class="w-4 h-4 mt-1">
-                        <span class="text-sm">
-                            <span class="font-bold text-amber-800">🧪 סנכרון מלא עם הדוקס (בבדיקה — פתוח לך כיועצת בכירה)</span>
-                            <span class="block text-xs text-gray-600 mt-1 leading-relaxed">עד היום הסנכרון היה <b>חלקי</b>: אם הוספת משהו ידני ישירות במסמך בדוקס (למשל תאריך בצד), עדכון נוסף מכאן היה מוחק אותו, והוא גם לא הופיע כאן.<br>כשתסמני — יופעל <b>סנכרון מלא</b>: המערכת תזהה את התוספות הידניות שלך מהדוקס, תציג אותן כאן, <b>ותשמור עליהן</b> גם אחרי עדכון. סמני ונסי — אפשר לבטל בכל רגע. (האפשרות פתוחה לך לבדיקה לפני שנפעיל אותה לכל היועצות.)</span>
-                        </span>
-                    </label>
-                </div>
                 <div class="text-left mt-6"><button type="submit" id="submit-refinement-btn" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 font-bold flex items-center justify-center min-w-[150px] h-[40px]"><span class="button-text">עדכן דוח</span><div class="pulsing-loader hidden"></div></button></div>
             </form>
         </div>
@@ -1526,33 +1517,34 @@
         var templateId = (me.data && (me.data.template_id || (me.data.branding && me.data.branding['מזהה_תבנית_אישית']))) || null;
         var bannerId = (me.data && me.data.branding && me.data.branding['מזהה_באנר']) || '';
         var _exDocId = (typeof window._nzDocIdFromUrl === 'function') ? window._nzDocIdFromUrl(raw[linkKey]) : '';
-        // --- גשר דוקס (שלב 3) במסלול העריכה הידנית: חישוב, לוג במצב-צל, והחלה כשהדגל _NZ_APPLY דלוק; נפילה בטוחה לבנייה-מחדש ---
+        // --- גשר דוקס: במסלול העריכה הידנית — החלה כירורגית כברירת מחדל; נפילה בטוחה לבנייה-מחדש (כיבוי: _NZ_NO_BRIDGE) ---
         var docUrl = '';
         var _bridgeApplied = false;
         try {
           var _slink = raw[linkKey] || '';
-          if ((window._NZ_SHADOW || window._NZ_APPLY) && _slink && typeof window._nzReadDocStructured === 'function' && window._nzDiff) {
+          if (!window._NZ_NO_BRIDGE && _slink && typeof window._nzReadDocStructured === 'function' && window._nzDiff) {
             var _sr = await window._nzReadDocStructured(_slink);
             if (_sr && _sr.success) {
               var _sblocks = (_sr.doc && _sr.doc.blocks) ? _sr.doc.blocks : (Array.isArray(_sr.doc) ? _sr.doc : []);
               var _sres = window._nzDiff.computeRefineOps(window._NZ_SHADOW_BASE || '', _sblocks, reportText || '');
               var _ck = {}; _sblocks.forEach(function (b) { var k = window._nzDiff.nzKey(b.text); if (k) _ck[k] = true; });
               var _dup = _sres.ops.filter(function (o) { return o.op === 'insertAfter' && _ck[window._nzDiff.nzKey(o.text || '')]; }).length;
-              var _safe = (_dup === 0) && (_sres.ops.length >= 1) && (_sres.ops.length <= Math.max(20, Math.ceil(_sblocks.length * 0.6)));
+              var _hasTable = _sblocks.some(function (b) { return b && b.opaque; });
+              var _safe = (_dup === 0) && (_sres.ops.length >= 1) && (_sres.ops.length <= Math.max(20, Math.ceil(_sblocks.length * 0.6))) && !_hasTable;
               if (window._NZ_SHADOW) {
                 console.log('%c[גשר/ידני] ' + _sres.ops.length + ' פעולות (dup=' + _dup + ', בטוח=' + _safe + '):', 'color:#4f46e5;font-weight:bold');
                 try { console.table(_sres.ops.map(function (o) { return { op: o.op, index: o.index, text: (o.text || '').slice(0, 70) }; })); } catch (_te) {}
                 console.log('[גשר/ידני] סיכום:', _sres.report, 'תוספות ידניות:', _sres.report.manualList);
                 try { console.log('[גשר/ידני] COPY:', JSON.stringify({ cur: _sblocks.length, dupInsert: _dup, safe: _safe, summary: { kept: _sres.report.kept, manual: _sres.report.manualPreserved, replaced: _sres.report.replaced, inserted: _sres.report.inserted, deleted: _sres.report.deleted }, ops: _sres.ops.map(function (o) { return { op: o.op, i: o.index, t: (o.text || '').slice(0, 45) }; }), manual: _sres.report.manualList.map(function (m) { return { i: m.index, t: (m.text || '').slice(0, 45) }; }) })); } catch (_ce) {}
               }
-              if (window._NZ_APPLY && _safe) {
+              if (_safe) {
                 var _wr = await window._nzApplyDocOps(_slink, _sres.ops);
-                if (_wr && _wr.success) { _bridgeApplied = true; docUrl = _slink; console.log('%c[גשר/ידני] ✓ הוחל על הדוקס (' + _sres.ops.length + ' פעולות) — עריכות ידניות נשמרו', 'color:#059669;font-weight:bold'); }
+                if (_wr && _wr.success) { _bridgeApplied = true; docUrl = _slink; if (window._NZ_SHADOW) console.log('%c[גשר/ידני] ✓ הוחל על הדוקס (' + _sres.ops.length + ' פעולות) — עריכות ידניות נשמרו', 'color:#059669;font-weight:bold'); }
                 else { console.warn('[גשר/ידני] החלה נכשלה — נופל לבנייה מחדש:', _wr && _wr.error); }
-              } else if (window._NZ_APPLY && !_safe) {
-                console.warn('[גשר/ידני] דיף לא בטוח (dup=' + _dup + ', ops=' + _sres.ops.length + ') — נופל לבנייה מחדש');
+              } else if (window._NZ_SHADOW) {
+                console.warn('[גשר/ידני] דיף לא בטוח (dup=' + _dup + ', ops=' + _sres.ops.length + ', table=' + _hasTable + ') — נופל לבנייה מחדש');
               }
-            } else if (window._NZ_SHADOW || window._NZ_APPLY) { console.warn('[גשר/ידני] קריאת דוקס נכשלה — נופל לבנייה מחדש:', _sr && _sr.error); }
+            } else if (window._NZ_SHADOW) { console.warn('[גשר/ידני] קריאת דוקס נכשלה — נופל לבנייה מחדש:', _sr && _sr.error); }
           }
         } catch (_se) { console.warn('[גשר/ידני] שגיאה — נופל לבנייה מחדש:', _se); }
         if (!_bridgeApplied) {
@@ -1615,31 +1607,32 @@
         try {
           var _exLink = ''; var _dbBase = ''; try { var _lq = await supa.from('examinees').select('raw_data').eq('id', examineeId).maybeSingle(); _exLink = (_lq.data && _lq.data.raw_data && _lq.data.raw_data[linkKey]) || ''; _dbBase = (_lq.data && _lq.data.raw_data && _lq.data.raw_data[rawKey]) || ''; } catch (e) {}
           var _exDocId = (typeof window._nzDocIdFromUrl === 'function') ? window._nzDocIdFromUrl(_exLink) : '';
-          // --- גשר דוקס (שלב 3): חישוב, לוג במצב-צל, והחלה כשהדגל _NZ_APPLY דלוק; נפילה בטוחה לבנייה-מחדש ---
+          // --- גשר דוקס: החלה כירורגית כברירת מחדל; נפילה בטוחה לבנייה-מחדש (כיבוי: _NZ_NO_BRIDGE) ---
           var _bridgeApplied = false;
           try {
-            if ((window._NZ_SHADOW || window._NZ_APPLY) && _exLink && typeof window._nzReadDocStructured === 'function' && window._nzDiff) {
+            if (!window._NZ_NO_BRIDGE && _exLink && typeof window._nzReadDocStructured === 'function' && window._nzDiff) {
               var _sr = await window._nzReadDocStructured(_exLink);
               if (_sr && _sr.success) {
                 var _sblocks = (_sr.doc && _sr.doc.blocks) ? _sr.doc.blocks : (Array.isArray(_sr.doc) ? _sr.doc : []);
                 var _sres = window._nzDiff.computeRefineOps(_dbBase || previousReport || '', _sblocks, reportText || '');
                 var _ck = {}; _sblocks.forEach(function (b) { var k = window._nzDiff.nzKey(b.text); if (k) _ck[k] = true; });
                 var _dup = _sres.ops.filter(function (o) { return o.op === 'insertAfter' && _ck[window._nzDiff.nzKey(o.text || '')]; }).length;
-                var _safe = (_dup === 0) && (_sres.ops.length >= 1) && (_sres.ops.length <= Math.max(20, Math.ceil(_sblocks.length * 0.6)));
+                var _hasTable = _sblocks.some(function (b) { return b && b.opaque; });
+                var _safe = (_dup === 0) && (_sres.ops.length >= 1) && (_sres.ops.length <= Math.max(20, Math.ceil(_sblocks.length * 0.6))) && !_hasTable;
                 if (window._NZ_SHADOW) {
                   console.log('%c[גשר] ' + _sres.ops.length + ' פעולות (dup=' + _dup + ', בטוח=' + _safe + '):', 'color:#4f46e5;font-weight:bold');
                   try { console.table(_sres.ops.map(function (o) { return { op: o.op, index: o.index, text: (o.text || '').slice(0, 70) }; })); } catch (_te) {}
                   console.log('[גשר] סיכום:', _sres.report, 'תוספות ידניות:', _sres.report.manualList);
                   try { console.log('[גשר] COPY:', JSON.stringify({ cur: _sblocks.length, dupInsert: _dup, safe: _safe, summary: { kept: _sres.report.kept, manual: _sres.report.manualPreserved, replaced: _sres.report.replaced, inserted: _sres.report.inserted, deleted: _sres.report.deleted }, ops: _sres.ops.map(function (o) { return { op: o.op, i: o.index, t: (o.text || '').slice(0, 45) }; }), manual: _sres.report.manualList.map(function (m) { return { i: m.index, t: (m.text || '').slice(0, 45) }; }) })); } catch (_ce) {}
                 }
-                if (window._NZ_APPLY && _safe) {
+                if (_safe) {
                   var _wr = await window._nzApplyDocOps(_exLink, _sres.ops);
-                  if (_wr && _wr.success) { _bridgeApplied = true; docUrl = _exLink; console.log('%c[גשר] ✓ הוחל על הדוקס (' + _sres.ops.length + ' פעולות) — עריכות ידניות נשמרו', 'color:#059669;font-weight:bold'); }
+                  if (_wr && _wr.success) { _bridgeApplied = true; docUrl = _exLink; if (window._NZ_SHADOW) console.log('%c[גשר] ✓ הוחל על הדוקס (' + _sres.ops.length + ' פעולות) — עריכות ידניות נשמרו', 'color:#059669;font-weight:bold'); }
                   else { console.warn('[גשר] החלה נכשלה — נופל לבנייה מחדש:', _wr && _wr.error); }
-                } else if (window._NZ_APPLY && !_safe) {
-                  console.warn('[גשר] דיף לא בטוח (dup=' + _dup + ', ops=' + _sres.ops.length + ') — נופל לבנייה מחדש');
+                } else if (window._NZ_SHADOW) {
+                  console.warn('[גשר] דיף לא בטוח (dup=' + _dup + ', ops=' + _sres.ops.length + ', table=' + _hasTable + ') — נופל לבנייה מחדש');
                 }
-              } else if (window._NZ_SHADOW || window._NZ_APPLY) { console.warn('[גשר] קריאת דוקס נכשלה — נופל לבנייה מחדש:', _sr && _sr.error); }
+              } else if (window._NZ_SHADOW) { console.warn('[גשר] קריאת דוקס נכשלה — נופל לבנייה מחדש:', _sr && _sr.error); }
             }
           } catch (_se) { console.warn('[גשר] שגיאה — נופל לבנייה מחדש:', _se); }
           if (!_bridgeApplied) {
@@ -8346,7 +8339,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // קריאה-בפתיחה: קוראת את הדוקס החי, שוזרת לתצוגה את התוספות הידניות ושומרת את יישורן (למשל תאריך בצד שמאל)
         var _runReadOnOpen = function () {
             try {
-                if (!(window._NZ_APPLY && window._nzReadDocStructured && window._nzDiff && window._nzDiff.nzWeaveManualIntoText)) return;
+                if (window._NZ_NO_BRIDGE || !(window._nzReadDocStructured && window._nzDiff && window._nzDiff.nzWeaveManualIntoText)) return;
                 var _roLink = (examinee.rawData && examinee.rawData[reportMode === 'principal' ? 'קישור לדוח מנהלת' : 'קישור למסמך הדוח']) || '';
                 if (!_roLink) return;
                 var _roView = document.getElementById('refine-report-view');
@@ -8381,41 +8374,17 @@ document.addEventListener('DOMContentLoaded', function() {
                             try { window._nzInitRefineView(_woven); } catch (e) {}
                             _roBadge.textContent = '✓ מסונכרן מהדוקס — כולל התוספות הידניות שלך';
                             _roBadge.className = 'text-xs text-green-700 mb-1 font-semibold';
-                        } else if (!_busy) {
-                            try { window._nzRenderRefineView(); } catch (e) {}
-                            _roBadge.textContent = '✓ מסונכרן מהדוקס';
-                            _roBadge.className = 'text-xs text-green-600 mb-1';
+                        } else {
+                            if (!_busy) { try { window._nzRenderRefineView(); } catch (e) {} }
+                            var _bb = document.getElementById('nz-sync-badge'); if (_bb) _bb.remove();
                         }
                     } catch (e) { var _b1 = document.getElementById('nz-sync-badge'); if (_b1) _b1.remove(); }
                 })();
             } catch (e) {}
         };
 
-        // מתג "סנכרון מלא" — מופיע רק ליועצת בכירה / מנהל-על, לבדיקה לפני הפעלה לכולן
-        try {
-            var _isSenior = currentUser && (currentUser.role === 'יועצת בכירה' || currentUser.role === 'מנהל-על');
-            var _btWrap = document.getElementById('nz-bridge-toggle-wrap');
-            var _btCb = document.getElementById('nz-bridge-toggle');
-            if (_btWrap && _btCb) {
-                if (_isSenior) {
-                    _btWrap.classList.remove('hidden');
-                    var _on = false; try { _on = localStorage.getItem('nz_bridge_apply') === '1'; } catch (e) {}
-                    _btCb.checked = _on;
-                    window._NZ_APPLY = _on;
-                    _btCb.onchange = function () {
-                        window._NZ_APPLY = _btCb.checked;
-                        try { localStorage.setItem('nz_bridge_apply', _btCb.checked ? '1' : '0'); } catch (e) {}
-                        if (_btCb.checked) { _runReadOnOpen(); }
-                        else { var _b = document.getElementById('nz-sync-badge'); if (_b) _b.remove(); window._nzManualAligns = {}; try { window._nzRenderRefineView(); } catch (e) {} }
-                    };
-                } else {
-                    _btWrap.classList.add('hidden');
-                    window._NZ_APPLY = false;
-                }
-            }
-        } catch (e) {}
-
-        if (window._NZ_APPLY) { _runReadOnOpen(); }
+        // גשר דוקס פעיל כברירת מחדל (כיבוי חירום: window._NZ_NO_BRIDGE = true)
+        if (!window._NZ_NO_BRIDGE) { _runReadOnOpen(); }
 
         refineModal.classList.remove('hidden');
         if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -8480,25 +8449,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     // שער תצוגת-PDF לפני שליחה: מציג את הקובץ כפי שיישלח, ואז ממשיך לזרימת השליחה הקיימת
     // התראה חד-פעמית לפני פתיחת המסמך בדוקס — ממליצה לבצע עריכות דוקס בשלב אחרון
-    window._nzOpenDocWithNotice = function (url) {
-        if (!url) return;
-        var KEY = 'nz_hide_docedit_notice';
-        var hide = false;
-        try { hide = localStorage.getItem(KEY) === '1'; } catch (e) {}
-        var modal = document.getElementById('nz-docedit-modal');
-        if (hide || !modal) { window.open(url, '_blank'); return; }
-        var cbx = document.getElementById('nz-docedit-hide');
-        if (cbx) cbx.checked = false;
-        modal.classList.remove('hidden');
-        try { if (typeof lucide !== 'undefined') lucide.createIcons(); } catch (e) {}
-        modal.onclick = function (e) { if (e.target === modal) modal.classList.add('hidden'); };
-        var ok = document.getElementById('nz-docedit-ok');
-        if (ok) ok.onclick = function () {
-            try { if (cbx && cbx.checked) localStorage.setItem(KEY, '1'); } catch (e) {}
-            modal.classList.add('hidden');
-            window.open(url, '_blank');
-        };
-    };
+    window._nzOpenDocWithNotice = function (url) { if (url) window.open(url, '_blank'); };
     window._nzOpenPdfPreview = function (docUrl, title, onConfirm) {
         var modal = document.getElementById('nz-pdf-preview-modal');
         if (!modal || !docUrl) { if (typeof onConfirm === 'function') onConfirm(); return; }
