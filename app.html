@@ -9221,12 +9221,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 + '<h3 style="font-size:19px;font-weight:800;color:#b91c1c;text-align:center;margin:10px 0 4px;">קישורים שלא הגיעו ליעד</h3>'
                 + '<p style="font-size:14px;color:#475569;text-align:center;margin:0 0 15px;">הקישורים הבאים לא נמסרו לנבחנות — ככל הנראה כתובת המייל שגויה. כדאי לבדוק את הכתובת ולשלוח מחדש:</p>'
                 + '<ul style="list-style:none;padding:0;margin:0 0 17px;max-height:250px;overflow:auto;">' + items + '</ul>'
-                + '<button id="nz-bounce-ok" style="width:100%;background:#4f46e5;color:#fff;border:none;border-radius:11px;padding:11px;font-weight:700;font-size:15px;cursor:pointer;">הבנתי, תודה</button>'
+                + '<button id="nz-bounce-goto" style="width:100%;background:#4f46e5;color:#fff;border:none;border-radius:11px;padding:11px;font-weight:700;font-size:15px;cursor:pointer;">מעבר לרשימת הקישורים</button>'
+                + '<button id="nz-bounce-ok" style="width:100%;background:none;color:#64748b;border:none;padding:10px 0 0;font-size:14px;cursor:pointer;">סגירה</button>'
                 + '</div>';
             document.body.appendChild(ov);
             var close = function () { try { ov.remove(); } catch (e) {} };
             ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
             var b = document.getElementById('nz-bounce-ok'); if (b) b.onclick = close;
+            var g = document.getElementById('nz-bounce-goto');
+            if (g) g.onclick = function () { close(); try { var lb = document.getElementById('view-links-btn'); if (lb) lb.click(); } catch (e) {} };
         } catch (e) {}
     }
 
