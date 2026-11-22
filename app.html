@@ -9170,6 +9170,66 @@ document.addEventListener('DOMContentLoaded', function() {
             .withFailureHandler(handleServerError)
             .getLinksStatusBySession(currentSessionId);
     }
+
+    // ===== התראת קישורים שלא נמסרו — הודעה קופצת בכניסה =====
+    function nzCheckBounces() {
+        try {
+            google.script.run
+                .withSuccessHandler(function (response) {
+                    try {
+                        var links = (response && response.data) || [];
+                        if (!links.length) return;
+                        var seen = {};
+                        try { seen = JSON.parse(localStorage.getItem('nz_seen_bounces') || '{}') || {}; } catch (e) {}
+                        var fresh = links.filter(function (l) {
+                            if (!l || !l.token || !l.status) return false;
+                            var st = String(l.status);
+                            // "לא נמסר" שעדיין לא סומן כנצפה (✓) ולא נראה כבר במכשיר הזה
+                            return st.indexOf('לא נמסר') > -1 && st.indexOf('✓') === -1 && !seen[l.token];
+                        });
+                        if (!fresh.length) return;
+                        nzShowBouncePopup(fresh);
+                        var toks = fresh.map(function (l) { return l.token; });
+                        toks.forEach(function (t) { seen[t] = 1; });
+                        try { localStorage.setItem('nz_seen_bounces', JSON.stringify(seen)); } catch (e) {}
+                        // סימון בגיליון (חוצה-מכשירים) — שלא יקפוץ שוב מכניסה/מחשב אחר
+                        try { supa.functions.invoke('manage-links', { body: { action: 'bounceSeen', tokens: toks } }); } catch (e) {}
+                    } catch (e) {}
+                })
+                .withFailureHandler(function () {})
+                .getLinksStatusBySession(currentSessionId);
+        } catch (e) {}
+    }
+
+    function nzShowBouncePopup(list) {
+        try {
+            if (document.getElementById('nz-bounce-overlay')) return;
+            var esc = window._nzEscHtml || function (t) { return String(t == null ? '' : t); };
+            var items = list.map(function (l) {
+                var nm = l.examineeName || l.examineeEmail || 'נבחנת';
+                var em = l.examineeEmail || '';
+                return '<li style="margin:6px 0;padding:9px 11px;background:#fef2f2;border:1px solid #fecaca;border-radius:9px;text-align:right;">'
+                     + '<span style="font-weight:700;color:#991b1b;">' + esc(nm) + '</span>'
+                     + (em ? '<span style="color:#64748b;font-size:13px;"> — ' + esc(em) + '</span>' : '')
+                     + '</li>';
+            }).join('');
+            var ov = document.createElement('div');
+            ov.id = 'nz-bounce-overlay';
+            ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:999999;display:flex;align-items:center;justify-content:center;padding:16px;';
+            ov.innerHTML = '<div dir="rtl" style="background:#fff;border-radius:16px;max-width:460px;width:100%;padding:22px;box-shadow:0 20px 55px rgba(0,0,0,.35);font-family:inherit;">'
+                + '<div style="font-size:32px;text-align:center;line-height:1;">📭</div>'
+                + '<h3 style="font-size:19px;font-weight:800;color:#b91c1c;text-align:center;margin:10px 0 4px;">קישורים שלא הגיעו ליעד</h3>'
+                + '<p style="font-size:14px;color:#475569;text-align:center;margin:0 0 15px;">הקישורים הבאים לא נמסרו לנבחנות — ככל הנראה כתובת המייל שגויה. כדאי לבדוק את הכתובת ולשלוח מחדש:</p>'
+                + '<ul style="list-style:none;padding:0;margin:0 0 17px;max-height:250px;overflow:auto;">' + items + '</ul>'
+                + '<button id="nz-bounce-ok" style="width:100%;background:#4f46e5;color:#fff;border:none;border-radius:11px;padding:11px;font-weight:700;font-size:15px;cursor:pointer;">הבנתי, תודה</button>'
+                + '</div>';
+            document.body.appendChild(ov);
+            var close = function () { try { ov.remove(); } catch (e) {} };
+            ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+            var b = document.getElementById('nz-bounce-ok'); if (b) b.onclick = close;
+        } catch (e) {}
+    }
+
     function switchToView(viewName) {
         currentView = viewName;
         searchInput.value = '';
@@ -10536,6 +10596,11 @@ async function buildPromptData(examinee) {
                     attachEventListeners();
                     fetchAndRenderPrompts();
                     fetchAvailableTags(); // קריאה לשרת לטעינת התגיות לממשק
+
+                    // התראה קופצת על קישורים שלא נמסרו (לא למנהל-על — רק ליועצות)
+                    if (currentUser.role !== 'מנהל-על') {
+                        setTimeout(function () { try { nzCheckBounces(); } catch (e) {} }, 3500);
+                    }
 
                     // הוספת השהיה קצרה של חצי שנייה למניעת שגיאה בטעינה ראשונית
                     setTimeout(function() {
