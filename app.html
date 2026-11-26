@@ -3902,13 +3902,37 @@ document.addEventListener('DOMContentLoaded', function() {
         var _srcEx = (typeof currentExaminee !== 'undefined' && currentExaminee && examinee && currentExaminee.id === examinee.id) ? currentExaminee : examinee;
         var _hCode = String((_srcEx && _srcEx.rawData && _srcEx.rawData['קוד הולנד סופי']) || '').toUpperCase().replace(/[^RIASEC]/g, '');
         var _hNames = _hCode.split('').map(function (l) { return _hMapR[l]; }).filter(Boolean).join(', ');
-        var _hLine = _hCode
-            ? ('הדוח החדש יהיה כפוף לקוד ההולנד שבתיק הנבחנת: ' + _hCode + (_hNames ? ' — ' + _hNames : '') + '.')
-            : 'הדוח החדש יהיה כפוף לקוד ההולנד שנקבע בתיק הנבחנת.';
         var _overwrite = (mode === 'principal')
             ? 'הפקה מחדש תדרוס את הטקסט הקיים בדוח המנהלת. האם להמשיך?'
             : 'הפקה מחדש תדרוס את הטקסט הקיים בדוח. האם להמשיך?';
+        // אין קוד הולנד שמור — בלי שום התייחסות אליו בהודעה
+        if (!_hCode) return _overwrite;
+        var _hLine = 'הדוח החדש יהיה כפוף לקוד ההולנד שבתיק הנבחנת: ' + _hCode + (_hNames ? ' — ' + _hNames : '') + '.';
         return _hLine + '\n\n' + _overwrite;
+    }
+
+    function nzHasHollandCode(examinee) {
+        var _srcEx = (typeof currentExaminee !== 'undefined' && currentExaminee && examinee && currentExaminee.id === examinee.id) ? currentExaminee : examinee;
+        var c = String((_srcEx && _srcEx.rawData && _srcEx.rawData['קוד הולנד סופי']) || '').toUpperCase().replace(/[^RIASEC]/g, '');
+        return !!c;
+    }
+
+    function nzResetHollandCode(examinee) {
+        appConfirm({
+            title: 'איפוס קוד הולנד',
+            message: 'פעולה זו תנקה את קוד ההולנד שנקבע לנבחנת. בהפקה הבאה ייקבע קוד חדש אוטומטית.\n\nלאפס את קוד ההולנד?',
+            danger: true, icon: 'rotate-ccw', okText: 'אפס קוד הולנד'
+        }).then(function(ok) {
+            if (!ok) return;
+            var s1 = document.getElementById('holland-1');
+            var s2 = document.getElementById('holland-2');
+            var s3 = document.getElementById('holland-3');
+            if (s1) s1.value = '';
+            if (s2) s2.value = '';
+            if (s3) s3.value = '';
+            try { if (typeof saveExamineeData === 'function') saveExamineeData(examinee, 'holland', true); } catch (e) {}
+            try { showToast('קוד ההולנד אופס — הפיקי מחדש לקבלת כיוון חדש'); } catch (e) {}
+        });
     }
 
     function appConfirm(options) {
@@ -3924,6 +3948,7 @@ document.addEventListener('DOMContentLoaded', function() {
             var ackWrap = document.getElementById('app-confirm-ack-wrap');
             var ackBox = document.getElementById('app-confirm-ack');
             var ackTextEl = document.getElementById('app-confirm-ack-text');
+            var extraBtn = document.getElementById('app-confirm-extra');
 
             titleEl.textContent = options.title || 'אישור פעולה';
             msgEl.textContent = options.message || '';
@@ -3959,18 +3984,27 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             _syncOk();
 
+            // כפתור פעולה נוסף אופציונלי (למשל "אפס קוד הולנד")
+            var hasExtra = !!(options.extraBtn && extraBtn);
+            if (extraBtn) {
+                extraBtn.classList.toggle('hidden', !hasExtra);
+                if (hasExtra) extraBtn.textContent = options.extraBtn.text || 'פעולה';
+            }
+
             function cleanup(result) {
                 modal.classList.add('hidden');
                 okBtn.onclick = null;
                 cancelBtn.onclick = null;
                 inputEl.onkeydown = null;
                 if (ackBox) ackBox.onchange = null;
+                if (extraBtn) { extraBtn.onclick = null; extraBtn.classList.add('hidden'); }
                 okBtn.disabled = false;
                 okBtn.classList.remove('opacity-50', 'cursor-not-allowed');
                 resolve(result);
             }
             okBtn.onclick = function() { cleanup(isPrompt ? inputEl.value.trim() : true); };
             cancelBtn.onclick = function() { cleanup(isPrompt ? null : false); };
+            if (extraBtn) extraBtn.onclick = hasExtra ? function() { var _cb = options.extraBtn.onClick; cleanup(false); if (typeof _cb === 'function') _cb(); } : null;
             inputEl.onkeydown = function(e) { if (e.key === 'Enter') okBtn.click(); };
 
             modal.classList.remove('hidden');
@@ -5884,12 +5918,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 executeWithDirtyCheck(function() { openAiModal(examinee, 'student'); }); 
             });
             mainContent.querySelector('#regenerate-student-btn')?.addEventListener('click', function() { 
-                appConfirm({
+                var _o = {
                     title: 'הפקת דוח מחדש',
                     message: nzRegenHollandMsg(examinee, 'student'),
                     danger: true, icon: 'refresh-cw', okText: 'הפק מחדש בכל זאת',
-                    requireAck: true, ackText: 'הבנתי — הדוח יופק לפי קוד ההולנד הנוכחי'
-                }).then(function(ok) {
+                    requireAck: true, ackText: 'הבנתי'
+                };
+                if (nzHasHollandCode(examinee)) _o.extraBtn = { text: 'אפס קוד הולנד', onClick: function() { nzResetHollandCode(examinee); } };
+                appConfirm(_o).then(function(ok) {
                     if (ok) executeWithDirtyCheck(function() { openAiModal(examinee, 'student'); });
                 });
             });
@@ -5953,12 +5989,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 executeWithDirtyCheck(function() { openAiModal(examinee, 'principal'); }); 
             });
             mainContent.querySelector('#regenerate-principal-btn')?.addEventListener('click', function() { 
-                appConfirm({
+                var _o = {
                     title: 'הפקת דוח מנהלת מחדש',
                     message: nzRegenHollandMsg(examinee, 'principal'),
                     danger: true, icon: 'refresh-cw', okText: 'הפק מחדש בכל זאת',
-                    requireAck: true, ackText: 'הבנתי — הדוח יופק לפי קוד ההולנד הנוכחי'
-                }).then(function(ok) {
+                    requireAck: true, ackText: 'הבנתי'
+                };
+                if (nzHasHollandCode(examinee)) _o.extraBtn = { text: 'אפס קוד הולנד', onClick: function() { nzResetHollandCode(examinee); } };
+                appConfirm(_o).then(function(ok) {
                     if (ok) executeWithDirtyCheck(function() { openAiModal(examinee, 'principal'); });
                 });
             });
@@ -11376,6 +11414,7 @@ async function buildPromptData(examinee) {
             </div>
         </div>
         <div class="flex justify-end gap-3 mt-6">
+            <button id="app-confirm-extra" class="hidden px-4 py-2 rounded-xl border border-indigo-300 bg-white text-sm font-bold text-indigo-700 hover:bg-indigo-50 transition-colors" style="margin-inline-end:auto;"></button>
             <button id="app-confirm-cancel" class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">ביטול</button>
             <button id="app-confirm-ok" class="px-4 py-2 rounded-xl bg-blue-600 text-sm font-bold text-white hover:bg-blue-700 transition-colors">אישור</button>
         </div>
