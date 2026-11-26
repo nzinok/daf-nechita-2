@@ -3917,11 +3917,11 @@ document.addEventListener('DOMContentLoaded', function() {
         return !!c;
     }
 
-    function nzResetHollandCode(examinee) {
+    function nzResetHollandCode(examinee, mode) {
         appConfirm({
             title: 'איפוס קוד הולנד',
-            message: 'פעולה זו תנקה את קוד ההולנד שנקבע לנבחנת. בהפקה הבאה ייקבע קוד חדש אוטומטית.\n\nלאפס את קוד ההולנד?',
-            danger: true, icon: 'rotate-ccw', okText: 'אפס קוד הולנד'
+            message: 'פעולה זו תנקה את קוד ההולנד שנקבע לנבחנת, וימשיך ישירות להפקת הדוח — שבה ייקבע קוד חדש אוטומטית.\n\nלאפס ולהמשיך להפקה?',
+            danger: true, icon: 'rotate-ccw', okText: 'אפס והמשך להפקה'
         }).then(function(ok) {
             if (!ok) return;
             var s1 = document.getElementById('holland-1');
@@ -3930,8 +3930,16 @@ document.addEventListener('DOMContentLoaded', function() {
             if (s1) s1.value = '';
             if (s2) s2.value = '';
             if (s3) s3.value = '';
+            // עדכון מיידי של האובייקטים כדי שחלון ההפקה יקרא קוד ריק (לפני שהשמירה הא-סינכרונית מסתיימת)
+            try { if (examinee && examinee.rawData) examinee.rawData['קוד הולנד סופי'] = ''; } catch (e) {}
+            try { if (typeof currentExaminee !== 'undefined' && currentExaminee && examinee && currentExaminee.id === examinee.id) { currentExaminee.rawData = currentExaminee.rawData || {}; currentExaminee.rawData['קוד הולנד סופי'] = ''; } } catch (e) {}
             try { if (typeof saveExamineeData === 'function') saveExamineeData(examinee, 'holland', true); } catch (e) {}
-            try { showToast('קוד ההולנד אופס — הפיקי מחדש לקבלת כיוון חדש'); } catch (e) {}
+            try { showToast('קוד ההולנד אופס'); } catch (e) {}
+            // המשך ישיר לחלונית ההפקה
+            try {
+                if (typeof executeWithDirtyCheck === 'function') executeWithDirtyCheck(function() { openAiModal(examinee, mode || 'student'); });
+                else if (typeof openAiModal === 'function') openAiModal(examinee, mode || 'student');
+            } catch (e) {}
         });
     }
 
@@ -5924,7 +5932,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     danger: true, icon: 'refresh-cw', okText: 'הפק מחדש בכל זאת',
                     requireAck: true, ackText: 'הבנתי'
                 };
-                if (nzHasHollandCode(examinee)) _o.extraBtn = { text: 'אפס קוד הולנד', onClick: function() { nzResetHollandCode(examinee); } };
+                if (nzHasHollandCode(examinee)) _o.extraBtn = { text: 'אפס קוד הולנד', onClick: function() { nzResetHollandCode(examinee, 'student'); } };
                 appConfirm(_o).then(function(ok) {
                     if (ok) executeWithDirtyCheck(function() { openAiModal(examinee, 'student'); });
                 });
@@ -5995,7 +6003,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     danger: true, icon: 'refresh-cw', okText: 'הפק מחדש בכל זאת',
                     requireAck: true, ackText: 'הבנתי'
                 };
-                if (nzHasHollandCode(examinee)) _o.extraBtn = { text: 'אפס קוד הולנד', onClick: function() { nzResetHollandCode(examinee); } };
+                if (nzHasHollandCode(examinee)) _o.extraBtn = { text: 'אפס קוד הולנד', onClick: function() { nzResetHollandCode(examinee, 'principal'); } };
                 appConfirm(_o).then(function(ok) {
                     if (ok) executeWithDirtyCheck(function() { openAiModal(examinee, 'principal'); });
                 });
