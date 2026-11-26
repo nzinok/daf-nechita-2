@@ -4356,8 +4356,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderPromptsManager() {
         promptsListContainer.innerHTML = '';
         
-        // בדיקת הרשאה: האם המשתמש רשאי ליצור הנחיות מערכת?
-        var isSystemAdmin = currentUser && (currentUser.role === 'מנהל-על' || currentUser.role === 'יועצת בכירה');
+        // בדיקת הרשאה: ניהול הנחיות מערכת (יצירה/עריכה/מחיקה) — מנהל-על בלבד.
+        // יועצת בכירה רשאית לצפות בתוכן (לפי מדיניות ה-RLS), אך לא לערוך — ולכן לא מציגים לה כפתורי עריכה.
+        var isSystemAdmin = currentUser && (currentUser.role === 'מנהל-על');
 
         // הצגה/הסתרה של האופציה "הגדר כהנחיית מערכת" בטופס החדש
         if (isSystemAdmin) {
@@ -5411,7 +5412,7 @@ document.addEventListener('DOMContentLoaded', function() {
                <div class="flex items-center justify-between mb-4 border-b border-gray-200 pb-3">
                    <h5 class="font-bold text-gray-800 flex items-center"><i data-lucide="graduation-cap" class="w-5 h-5 ml-2 text-purple-600"></i>דוח תלמידה</h5>
                    <div class="flex items-center gap-2">
-                       ${hasStudent ? '<button id="regenerate-student-btn" class="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center transition-colors" title="הפקה מחדש תדרוס את הטקסט אך תשמור על הקובץ בדרייב"><i data-lucide="refresh-cw" class="w-3 h-3 ml-1"></i>הפק מחדש</button>' : ''}
+                       ${hasStudent ? '<button id="regenerate-student-btn" class="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center transition-colors" title="הפקה מחדש תדרוס את הטקסט הקיים"><i data-lucide="refresh-cw" class="w-3 h-3 ml-1"></i>הפק מחדש</button>' : ''}
                        <span class="text-[10px] font-bold px-2 py-1 rounded-md ${hasStudent ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'}">${hasStudent ? '✅ קיים בתיק' : '⚪ טרם הופק'}</span>
                    </div>
                </div>
@@ -5436,7 +5437,7 @@ document.addEventListener('DOMContentLoaded', function() {
                <div class="flex items-center justify-between mb-4 border-b border-gray-200 pb-3">
                    <h5 class="font-bold text-gray-800 flex items-center"><i data-lucide="briefcase" class="w-5 h-5 ml-2 text-slate-600"></i>דוח מנהלת</h5>
                    <div class="flex items-center gap-2">
-                       ${hasPrincipal ? '<button id="regenerate-principal-btn" class="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center transition-colors" title="הפקה מחדש תדרוס את הטקסט אך תשמור על הקובץ בדרייב"><i data-lucide="refresh-cw" class="w-3 h-3 ml-1"></i>הפק מחדש</button>' : ''}
+                       ${hasPrincipal ? '<button id="regenerate-principal-btn" class="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center transition-colors" title="הפקה מחדש תדרוס את הטקסט הקיים"><i data-lucide="refresh-cw" class="w-3 h-3 ml-1"></i>הפק מחדש</button>' : ''}
                        <span class="text-[10px] font-bold px-2 py-1 rounded-md ${hasPrincipal ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'}">${hasPrincipal ? '✅ קיים בתיק' : '⚪ טרם הופק'}</span>
                    </div>
                </div>
