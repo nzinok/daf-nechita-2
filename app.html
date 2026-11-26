@@ -3897,6 +3897,20 @@ document.addEventListener('DOMContentLoaded', function() {
         return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
+    function nzRegenHollandMsg(examinee, mode) {
+        var _hMapR = { 'R': 'ריאליסטי', 'I': 'חקרני', 'A': 'אמנותי', 'S': 'חברתי', 'E': 'יזמי', 'C': 'שיטתי' };
+        var _srcEx = (typeof currentExaminee !== 'undefined' && currentExaminee && examinee && currentExaminee.id === examinee.id) ? currentExaminee : examinee;
+        var _hCode = String((_srcEx && _srcEx.rawData && _srcEx.rawData['קוד הולנד סופי']) || '').toUpperCase().replace(/[^RIASEC]/g, '');
+        var _hNames = _hCode.split('').map(function (l) { return _hMapR[l]; }).filter(Boolean).join(', ');
+        var _hLine = _hCode
+            ? ('הדוח החדש יהיה כפוף לקוד ההולנד שבתיק הנבחנת: ' + _hCode + (_hNames ? ' — ' + _hNames : '') + '.')
+            : 'הדוח החדש יהיה כפוף לקוד ההולנד שנקבע בתיק הנבחנת.';
+        var _overwrite = (mode === 'principal')
+            ? 'הפקה מחדש תדרוס את הטקסט הקיים בדוח המנהלת. האם להמשיך?'
+            : 'הפקה מחדש תדרוס את הטקסט הקיים בדוח. האם להמשיך?';
+        return _hLine + '\n\n' + _overwrite;
+    }
+
     function appConfirm(options) {
         return new Promise(function(resolve) {
             var modal = document.getElementById('app-confirm-modal');
@@ -3907,6 +3921,9 @@ document.addEventListener('DOMContentLoaded', function() {
             var cancelBtn = document.getElementById('app-confirm-cancel');
             var iconEl = document.getElementById('app-confirm-icon');
             var iconWrap = document.getElementById('app-confirm-icon-wrap');
+            var ackWrap = document.getElementById('app-confirm-ack-wrap');
+            var ackBox = document.getElementById('app-confirm-ack');
+            var ackTextEl = document.getElementById('app-confirm-ack-text');
 
             titleEl.textContent = options.title || 'אישור פעולה';
             msgEl.textContent = options.message || '';
@@ -3924,11 +3941,32 @@ document.addEventListener('DOMContentLoaded', function() {
             okBtn.textContent = options.okText || 'אישור';
             cancelBtn.textContent = options.cancelText || 'ביטול';
 
+            // תיבת סימון "הבנתי" אופציונלית — חוסמת את כפתור האישור עד שמסמנים
+            var requireAck = options.requireAck === true && ackWrap && ackBox;
+            if (ackWrap) ackWrap.classList.toggle('hidden', !requireAck);
+            function _syncOk() {
+                var blocked = requireAck && !ackBox.checked;
+                okBtn.disabled = blocked;
+                okBtn.classList.toggle('opacity-50', blocked);
+                okBtn.classList.toggle('cursor-not-allowed', blocked);
+            }
+            if (requireAck) {
+                ackBox.checked = false;
+                if (ackTextEl) ackTextEl.textContent = options.ackText || 'קראתי והבנתי';
+                ackBox.onchange = _syncOk;
+            } else if (ackBox) {
+                ackBox.onchange = null;
+            }
+            _syncOk();
+
             function cleanup(result) {
                 modal.classList.add('hidden');
                 okBtn.onclick = null;
                 cancelBtn.onclick = null;
                 inputEl.onkeydown = null;
+                if (ackBox) ackBox.onchange = null;
+                okBtn.disabled = false;
+                okBtn.classList.remove('opacity-50', 'cursor-not-allowed');
                 resolve(result);
             }
             okBtn.onclick = function() { cleanup(isPrompt ? inputEl.value.trim() : true); };
@@ -5847,8 +5885,9 @@ document.addEventListener('DOMContentLoaded', function() {
             mainContent.querySelector('#regenerate-student-btn')?.addEventListener('click', function() { 
                 appConfirm({
                     title: 'הפקת דוח מחדש',
-                    message: 'הפקה מחדש תדרוס את הטקסט הקיים בדוח. האם להמשיך?',
-                    danger: true, icon: 'refresh-cw', okText: 'הפק מחדש'
+                    message: nzRegenHollandMsg(examinee, 'student'),
+                    danger: true, icon: 'refresh-cw', okText: 'הפק מחדש בכל זאת',
+                    requireAck: true, ackText: 'הבנתי — הדוח יופק לפי קוד ההולנד הנוכחי'
                 }).then(function(ok) {
                     if (ok) executeWithDirtyCheck(function() { openAiModal(examinee, 'student'); });
                 });
@@ -5915,8 +5954,9 @@ document.addEventListener('DOMContentLoaded', function() {
             mainContent.querySelector('#regenerate-principal-btn')?.addEventListener('click', function() { 
                 appConfirm({
                     title: 'הפקת דוח מנהלת מחדש',
-                    message: 'הפקה מחדש תדרוס את הטקסט הקיים בדוח המנהלת. האם להמשיך?',
-                    danger: true, icon: 'refresh-cw', okText: 'הפק מחדש'
+                    message: nzRegenHollandMsg(examinee, 'principal'),
+                    danger: true, icon: 'refresh-cw', okText: 'הפק מחדש בכל זאת',
+                    requireAck: true, ackText: 'הבנתי — הדוח יופק לפי קוד ההולנד הנוכחי'
                 }).then(function(ok) {
                     if (ok) executeWithDirtyCheck(function() { openAiModal(examinee, 'principal'); });
                 });
@@ -11328,6 +11368,10 @@ async function buildPromptData(examinee) {
                 <h3 id="app-confirm-title" class="text-lg font-bold text-slate-900"></h3>
                 <p id="app-confirm-message" class="text-sm text-slate-500 mt-2 whitespace-pre-line"></p>
                 <input type="text" id="app-confirm-input" class="hidden mt-3 w-full p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <label id="app-confirm-ack-wrap" class="hidden mt-3 flex items-start gap-2 cursor-pointer select-none">
+                    <input type="checkbox" id="app-confirm-ack" class="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <span id="app-confirm-ack-text" class="text-sm font-semibold text-slate-700"></span>
+                </label>
             </div>
         </div>
         <div class="flex justify-end gap-3 mt-6">
